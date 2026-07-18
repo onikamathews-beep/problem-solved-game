@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#b9a36a">
+  <meta name="description" content="A 2–6 player multiplayer card game with 3 Fold Cord co-op and Problem? Solved! player-vs-player modes.">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>3 Fold Cord & Problem? Solved! — Multiplayer</title>
+  <style>
+    :root {
+      --yellow: #f2c62c;
+      --yellow-dark: #d6aa13;
+      --teal: #2f8f8b;
+      --teal-dark: #1f6865;
+      --cream: #fff9e9;
+      --paper: #f5eed9;
+      --ink: #171717;
+      --muted: #6e695f;
+      --red: #c84f43;
+      --green: #2c845f;
+      --blue: #3f6fa6;
+      --panel: rgba(255, 249, 233, .97);
+      --shadow: 0 12px 30px rgba(0,0,0,.18);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: #151515; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-rounded, "Arial Rounded MT Bold", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(242,198,44,.18), transparent 28%),
+        radial-gradient(circle at 90% 80%, rgba(47,143,139,.18), transparent 30%),
+        repeating-linear-gradient(135deg, #181818 0 22px, #1d1d1d 22px 44px);
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { border: 0; cursor: pointer; touch-action: manipulation; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .app {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) 14px max(28px, env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .mini-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-weight: 950;
+      letter-spacing: -.03em;
+      text-transform: uppercase;
+    }
+
+    .mini-logo span:first-child {
+      background: var(--yellow);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      padding: 5px 8px;
+      transform: rotate(-2deg);
+      box-shadow: 0 0 0 2px var(--cream);
+    }
+
+    .mini-logo span:last-child {
+      color: #52b5af;
+      text-shadow: 2px 2px 0 var(--cream), 4px 4px 0 var(--ink);
+      transform: rotate(1deg);
+    }
+
+    .connection-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      color: #f8f5ea;
+      font-size: .84rem;
+      border: 1px solid rgba(255,255,255,.16);
+      white-space: nowrap;
+    }
+
+    .connection-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #9a9a9a;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+    }
+
+    .connection-pill.online::before { background: #67d99c; }
+    .connection-pill.waiting::before { background: var(--yellow); }
+    .connection-pill.error::before { background: #ef6f61; }
+
+    .screen { display: none; }
+    .screen.active { display: block; animation: rise .22s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 205px;
+      padding: 28px 22px 24px;
+      border-radius: 28px;
+      background: var(--cream);
+      border: 4px solid var(--ink);
+      box-shadow: var(--shadow), inset 0 0 0 3px rgba(242,198,44,.35);
+      text-align: center;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: repeating-conic-gradient(from -5deg, rgba(242,198,44,.23) 0 7deg, transparent 7deg 14deg);
+      animation: slowspin 80s linear infinite;
+    }
+    @keyframes slowspin { to { transform: rotate(360deg); } }
+    .hero > * { position: relative; }
+
+    .big-logo { display: grid; justify-items: center; line-height: .88; margin: 10px auto 16px; width: fit-content; }
+    .problem-word {
+      z-index: 2;
+      padding: 11px 17px 9px;
+      background: radial-gradient(circle at 25% 30%, rgba(0,0,0,.12) 0 1px, transparent 1.7px), var(--yellow);
+      background-size: 10px 10px, auto;
+      border: 5px solid var(--ink);
+      box-shadow: 0 0 0 5px var(--cream), 0 0 0 8px var(--ink);
+      font-size: clamp(2.2rem, 10vw, 5.4rem);
+      font-weight: 1000;
+      letter-spacing: -.08em;
+      transform: rotate(-2deg);
+    }
+    .solved-word {
+      z-index: 1;
+      margin-top: 6px;
+      color: var(--teal);
+      font-size: clamp(2.45rem, 11vw, 6rem);
+      font-weight: 1000;
+      letter-spacing: -.09em;
+      text-shadow: -3px -3px 0 var(--cream), 3px -3px 0 var(--cream), -3px 3px 0 var(--cream), 3px 3px 0 var(--cream), -6px -6px 0 var(--ink), 6px -6px 0 var(--ink), -6px 6px 0 var(--ink), 6px 6px 0 var(--ink);
+      transform: rotate(1.5deg);
+    }
+    .tagline { margin: 0; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .8rem; }
+
+    .panel {
+      margin-top: 16px;
+      background: var(--panel);
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .panel h2, .panel h3 { margin: 0 0 10px; }
+    .muted { color: var(--muted); }
+    .small-text { font-size: .82rem; }
+    .center { text-align: center; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .choice { background: var(--paper); border: 2px solid #c8bea5; border-radius: 18px; padding: 16px; }
+
+    label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 850;
+      margin: 12px 0 6px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 2px solid #8f8775;
+      background: #fffef8;
+      color: var(--ink);
+      border-radius: 13px;
+      padding: 12px 13px;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(47,143,139,.16); }
+    textarea { min-height: 86px; resize: vertical; }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 13px;
+      padding: 11px 15px;
+      font-weight: 900;
+      border: 2px solid var(--ink);
+      box-shadow: 0 4px 0 var(--ink);
+      transition: transform .08s ease, box-shadow .08s ease, filter .15s ease;
+    }
+    .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+    .btn:hover:not(:disabled) { filter: brightness(1.04); }
+    .btn.primary { background: var(--yellow); color: var(--ink); }
+    .btn.teal { background: var(--teal); color: white; }
+    .btn.cream { background: var(--cream); color: var(--ink); }
+    .btn.danger { background: var(--red); color: white; }
+    .btn.success { background: var(--green); color: white; }
+    .btn.blue { background: var(--blue); color: white; }
+    .btn.small { min-height: 39px; padding: 7px 11px; font-size: .84rem; box-shadow: 0 3px 0 var(--ink); }
+    .btn.wide { width: 100%; margin-top: 12px; }
+
+    .button-row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
+    .button-row .btn { flex: 1 1 150px; }
+
+    .room-card {
+      text-align: center;
+      background: var(--yellow);
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .room-code { display: block; font-size: clamp(2.1rem, 12vw, 4.3rem); letter-spacing: .16em; margin-left: .16em; }
+
+    .player-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 9px; margin-top: 12px; }
+    .player-tile {
+      background: #fffef8;
+      border: 2px solid #b8ae96;
+      border-radius: 14px;
+      padding: 10px;
+      min-width: 0;
+    }
+    .player-tile.active { border-color: var(--teal); box-shadow: inset 0 0 0 2px rgba(47,143,139,.24); }
+    .player-tile.offline { opacity: .55; }
+    .player-name { font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .player-meta { color: var(--muted); font-size: .74rem; margin-top: 3px; }
+
+    .status-banner {
+      margin: 12px 0;
+      padding: 11px 13px;
+      border: 2px solid var(--ink);
+      border-radius: 13px;
+      background: var(--yellow);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; margin: 12px 0; }
+    .metric {
+      text-align: center;
+      background: #fffef8;
+      border: 2px solid #c8bea5;
+      border-radius: 14px;
+      padding: 10px 8px;
+    }
+    .metric strong { display: block; font-size: 1.5rem; }
+    .metric span { display: block; color: var(--muted); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+
+    .timer {
+      display: grid;
+      place-items: center;
+      min-height: 130px;
+      background: var(--ink);
+      color: var(--cream);
+      border: 4px solid var(--yellow);
+      border-radius: 20px;
+      text-align: center;
+    }
+    .timer strong { font-size: clamp(3rem, 14vw, 5.8rem); line-height: 1; letter-spacing: -.05em; }
+    .timer span { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 900; }
+    .timer.urgent { border-color: var(--red); animation: pulse .8s infinite alternate; }
+    @keyframes pulse { to { box-shadow: 0 0 0 6px rgba(200,79,67,.22); } }
+
+    .build-form { background: var(--paper); border: 2px solid #c8bea5; border-radius: 18px; padding: 14px; }
+    .build-form.problem-form { border-top: 10px solid var(--yellow); }
+    .build-form.solution-form { border-top: 10px solid var(--teal); }
+    .quick-list { display: grid; gap: 7px; margin-top: 10px; }
+    .quick-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #fffef8;
+      border: 1px solid #c8bea5;
+      border-radius: 11px;
+      padding: 8px 9px;
+      font-size: .82rem;
+    }
+    .quick-item span { flex: 1; }
+
+    details.deck-section { margin-top: 10px; background: #fffef8; border: 2px solid #c8bea5; border-radius: 14px; overflow: hidden; }
+    details.deck-section summary { cursor: pointer; font-weight: 900; padding: 12px; background: var(--paper); }
+    .deck-list { display: grid; gap: 8px; padding: 10px; }
+    .deck-row {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid #d0c7b1;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .deck-row.problem-row { border-left: 7px solid var(--yellow); }
+    .deck-row.solution-row { border-left: 7px solid var(--teal); }
+    .deck-text { line-height: 1.35; }
+    .deck-author { color: var(--muted); font-size: .72rem; margin-top: 4px; }
+    .deck-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .saved-list { display: grid; gap: 8px; }
+    .saved-item {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 10px;
+      align-items: center;
+      background: #fffef8;
+      border: 2px solid #c8bea5;
+      border-radius: 13px;
+      padding: 10px;
+    }
+    .saved-title { font-weight: 900; }
+    .saved-meta { color: var(--muted); font-size: .75rem; margin-top: 3px; }
+
+    .game-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .round-badge { background: var(--yellow); border: 3px solid var(--ink); border-radius: 999px; padding: 8px 13px; font-weight: 950; white-space: nowrap; }
+
+    .score-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .score-card { background: var(--panel); border: 3px solid var(--ink); border-radius: 16px; padding: 11px; }
+    .pvp-score-list { display: grid; gap: 8px; margin-top: 10px; }
+    .pvp-score-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; background: #fffef8; border: 2px solid #c8bea5; border-radius: 12px; padding: 9px 11px; }
+    .pvp-score-row.leading { border-color: var(--yellow-dark); background: #fff7cf; }
+    .pvp-score-row strong:last-child { font-size: 1.12rem; }
+    .coop-entry { width: 100%; text-align: left; background: var(--cream); border: 3px solid var(--teal-dark); border-radius: 14px; padding: 12px; box-shadow: 0 3px 0 var(--teal-dark); }
+    .coop-entry h4 { margin: 0 0 7px; }
+    .coop-entry p { margin: 6px 0 0; line-height: 1.38; }
+    .coop-entry .principle { border-top: 1px solid #b7d5d2; padding-top: 7px; }
+    .coop-entry .inspiration { color: #385c59; font-size: .82rem; }
+    .vote-status { display: grid; gap: 7px; margin-top: 10px; }
+    .vote-person { display: flex; justify-content: space-between; gap: 10px; background: #fffef8; border: 1px solid #d0c7b1; border-radius: 10px; padding: 8px 10px; }
+    .score-line { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .score-value { font-weight: 950; }
+    .meter { height: 10px; background: #d9d3c4; border-radius: 99px; overflow: hidden; margin-top: 7px; }
+    .meter-fill { height: 100%; width: 0; transition: width .25s ease; }
+    .meter-fill.good { background: var(--green); }
+    .meter-fill.bad { background: var(--red); }
+
+    .table-area { display: grid; grid-template-columns: minmax(250px,.85fr) minmax(300px,1.15fr); gap: 14px; align-items: start; }
+    .card-zone {
+      min-height: 355px;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(255,255,255,.07);
+      border: 2px dashed rgba(255,255,255,.25);
+      border-radius: 22px;
+    }
+    .play-card {
+      width: min(100%, 270px);
+      aspect-ratio: 2.43 / 3.26;
+      border: 5px solid var(--ink);
+      border-radius: 17px;
+      padding: 20px 17px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 12px 25px rgba(0,0,0,.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .play-card.problem { background: radial-gradient(circle at 20% 25%, rgba(0,0,0,.13) 0 1px, transparent 1.5px), var(--yellow); background-size: 9px 9px, auto; }
+    .play-card.problem::after { content:""; position:absolute; left:-10%; right:-10%; bottom:22px; height:22px; border-top:5px solid var(--ink); border-bottom:5px solid var(--ink); transform:rotate(-2deg); opacity:.9; }
+    .play-card.solution { background: repeating-conic-gradient(from 0deg at 50% 110%, rgba(47,143,139,.13) 0 6deg, transparent 6deg 12deg), var(--cream); }
+    .card-type { position: relative; z-index: 1; text-transform: uppercase; font-weight: 950; letter-spacing: .08em; font-size: .74rem; display:flex; align-items:center; gap:7px; }
+    .card-icon { display:grid; place-items:center; width:27px; height:27px; border:3px solid var(--ink); border-radius:50%; font-size:1rem; }
+    .card-text { position: relative; z-index: 1; font-weight: 900; font-size: clamp(1.05rem, 3vw, 1.34rem); line-height: 1.24; }
+    .card-number { position: relative; z-index: 1; font-size: .7rem; font-weight: 800; color: rgba(0,0,0,.68); }
+    .card-back { background: var(--ink); color: var(--cream); place-items:center; justify-content:center; text-align:center; }
+    .back-mark strong, .back-mark em { display:block; font-style:normal; font-weight:1000; font-size:1.7rem; }
+    .back-mark strong { color:var(--yellow); }
+    .back-mark em { color:#52b5af; }
+    .back-mark small { display:block; margin-top:12px; text-transform:uppercase; letter-spacing:.1em; }
+
+    .action-panel { background: var(--panel); border: 3px solid var(--ink); border-radius: 18px; padding: 15px; margin-top: 10px; }
+    .action-panel h3 { margin:0 0 7px; }
+    .action-panel p { margin:0 0 9px; }
+
+    .judge-list { display: grid; gap: 9px; }
+    .judge-card {
+      width: 100%;
+      text-align: left;
+      background: var(--cream);
+      border: 3px solid var(--teal-dark);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 3px 0 var(--teal-dark);
+    }
+    .judge-card strong { display:block; margin-bottom:4px; }
+    .judge-card small { display:block; color:#385c59; margin-top:6px; }
+    .judge-card.winner { border-color: var(--green); background: #eef8f2; box-shadow: 0 3px 0 var(--green); }
+
+    .hand-wrap { margin-top: 14px; background: var(--panel); border: 3px solid var(--ink); border-radius: 18px; padding: 13px; }
+    .hand-head { display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    .hand-head h3 { margin:0; }
+    .hand { display:grid; grid-template-columns: repeat(5, minmax(145px,1fr)); gap:9px; margin-top:10px; overflow-x:auto; padding-bottom:5px; }
+    .hand-card {
+      min-height: 158px;
+      background: var(--cream);
+      border: 3px solid var(--teal-dark);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: left;
+      font-weight: 850;
+      box-shadow: 0 4px 0 var(--teal-dark);
+    }
+    .hand-card.selected { background:#dff4f1; transform:translateY(-3px); box-shadow:0 7px 0 var(--teal-dark); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      transform: translate(-50%, 15px);
+      width: min(92vw, 520px);
+      background: #111;
+      color: #fff;
+      border: 2px solid var(--yellow);
+      border-radius: 13px;
+      padding: 11px 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      text-align: center;
+      font-weight: 750;
+      z-index: 20;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    dialog {
+      width: min(92vw, 620px);
+      border: 4px solid var(--ink);
+      border-radius: 22px;
+      background: var(--cream);
+      color: var(--ink);
+      padding: 20px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.45);
+    }
+    dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+    dialog h2 { margin-top: 0; }
+    .rules-list { padding-left: 20px; line-height: 1.5; }
+
+    .end-screen { text-align:center; padding:25px 18px; background:var(--cream); border:4px solid var(--ink); border-radius:24px; box-shadow:var(--shadow); }
+    .end-icon { font-size:4rem; }
+    .end-screen h2 { font-size:2.3rem; margin:4px 0; }
+    .footer-note { color:rgba(255,255,255,.72); text-align:center; font-size:.78rem; margin-top:18px; }
+    .top-brands { display:flex; align-items:center; gap:9px; min-width:0; }
+    .brand-divider { color:rgba(255,255,255,.55); font-weight:900; }
+    .coop-mini {
+      color:#e8d6a5;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight:700;
+      letter-spacing:.015em;
+      white-space:nowrap;
+      text-shadow:0 1px 0 rgba(0,0,0,.3);
+    }
+    .brand-showcase {
+      position:relative;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+      align-items:center;
+      gap:18px;
+      width:min(900px,100%);
+      margin:0 auto 14px;
+    }
+    .brand-option { min-width:0; display:grid; justify-items:center; align-content:center; }
+    .brand-mode-label {
+      margin-top:13px;
+      padding:6px 11px;
+      border:2px solid var(--ink);
+      border-radius:999px;
+      background:#fffef8;
+      font-size:.75rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .coop-logo-home {
+      display:block;
+      width:min(100%,290px);
+      max-height:280px;
+      object-fit:contain;
+      border-radius:18px;
+    }
+    .brand-or {
+      width:48px;
+      height:48px;
+      display:grid;
+      place-items:center;
+      border:3px solid var(--ink);
+      border-radius:50%;
+      background:var(--cream);
+      font-weight:1000;
+      transform:rotate(-4deg);
+      box-shadow:0 4px 0 var(--ink);
+    }
+    .mode-note {
+      margin:12px 0 0;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#eef2e6;
+      border:1px solid #bfc7aa;
+      color:#514a3d;
+      font-size:.86rem;
+    }
+    .hidden { display:none !important; }
+
+    @media (max-width: 820px) {
+      .grid-2, .table-area { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .card-zone { min-height: 330px; }
+      .hand { grid-template-columns: repeat(5, 135px); }
+    }
+    @media (max-width: 500px) {
+      .app { padding-left:9px; padding-right:9px; }
+      .hero { padding-left:12px; padding-right:12px; }
+      .panel { padding:13px; }
+      .topbar { align-items:flex-start; }
+      .mini-logo { font-size:.82rem; }
+      .connection-pill { font-size:.7rem; padding:6px 8px; }
+      .top-brands { gap:6px; }
+      .brand-divider, .coop-mini { display:none; }
+      .brand-showcase { grid-template-columns:1fr; gap:12px; }
+      .brand-or { width:42px; height:42px; }
+      .coop-logo-home { width:min(100%,260px); }
+      .metric-grid { grid-template-columns: repeat(3,1fr); gap:6px; }
+      .metric strong { font-size:1.2rem; }
+      .score-grid { gap:7px; }
+      .deck-row, .saved-item { grid-template-columns:1fr; }
+      .deck-actions { justify-content:flex-start; }
+      .game-header { grid-template-columns:1fr; }
+      .round-badge { justify-self:start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="top-brands"><div class="mini-logo" aria-label="Problem Solved"><span>Problem?</span><span>Solved!</span></div><span class="brand-divider">•</span><span class="coop-mini">3 Fold Cord</span></div>
+      <div id="connectionPill" class="connection-pill">Not connected</div>
+    </header>
+
+    <section id="lobbyScreen" class="screen active">
+      <div class="hero">
+        <div class="brand-showcase">
+          <div class="brand-option">
+            <div class="big-logo" aria-label="Problem Solved">
+              <div class="problem-word">PROBLEM?</div>
+              <div class="solved-word">SOLVED!</div>
+            </div>
+            <div class="brand-mode-label">Player vs. Player</div>
+          </div>
+          <div class="brand-or" aria-hidden="true">OR</div>
+          <div class="brand-option">
+            <img class="coop-logo-home" src="./3-fold-cord-logo.png" alt="3 Fold Cord — Discuss, Discover, Grow Together">
+            <div class="brand-mode-label">Co-op</div>
+          </div>
+        </div>
+        <p class="tagline">Build one deck together, then choose how your group wants to play.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Play 3 Fold Cord or Problem? Solved! with 2–6 devices</h2>
+        <p class="muted">One person hosts. Everyone else joins with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
+        <div class="grid-2">
+          <div class="choice">
+            <h3>Create a room</h3>
+            <label for="hostName">Your name</label>
+            <input id="hostName" maxlength="24" autocomplete="nickname" placeholder="Host name">
+            <button id="createRoomBtn" class="btn primary wide" type="button">Create Room</button>
+          </div>
+          <div class="choice">
+            <h3>Join a room</h3>
+            <label for="guestName">Your name</label>
+            <input id="guestName" maxlength="24" autocomplete="nickname" placeholder="Player name">
+            <label for="joinCode">Room code</label>
+            <input id="joinCode" maxlength="6" inputmode="text" autocomplete="off" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-weight:900">
+            <button id="joinRoomBtn" class="btn teal wide" type="button">Join Room</button>
+          </div>
+        </div>
+        <button id="rulesBtn" class="btn cream wide" type="button">How Multiplayer Works</button>
+      </div>
+
+      <div class="panel">
+        <h2>Saved games on this device</h2>
+        <p class="muted small-text">Custom decks are saved in this browser. Export a backup to move one to another device or browser.</p>
+        <p class="mode-note"><strong>Important:</strong> Saved decks stay on the host device unless the host exports the JSON backup. They are not stored in GitHub or shared automatically.</p>
+        <div id="savedLobbyList" class="saved-list"></div>
+        <label for="importDeckInput">Import a saved game</label>
+        <input id="importDeckInput" type="file" accept="application/json,.json">
+      </div>
+      <p class="footer-note">All devices must be online, and the host must keep the webpage open.</p>
+    </section>
+
+    <section id="connectingScreen" class="screen">
+      <div class="panel center">
+        <h2 id="connectingTitle">Opening the room…</h2>
+        <p id="connectingText" class="muted">Connecting securely through the browser.</p>
+        <button id="cancelConnectingBtn" class="btn danger wide" type="button">Cancel</button>
+      </div>
+    </section>
+
+    <section id="roomScreen" class="screen">
+      <div class="panel">
+        <div class="room-card">
+          <div>ROOM CODE</div>
+          <strong id="roomCodeDisplay" class="room-code">------</strong>
+          <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
+        </div>
+        <div class="metric-grid">
+          <div class="metric"><strong id="roomPlayerCount">1</strong><span>Players</span></div>
+          <div class="metric"><strong>6</strong><span>Maximum</span></div>
+          <div class="metric"><strong id="roomModeMetric">3 Fold Cord</strong><span>Game Mode</span></div>
+        </div>
+        <h2>Players in the room</h2>
+        <div id="roomPlayers" class="player-grid"></div>
+      </div>
+
+      <div id="hostRoomControls" class="panel hidden">
+        <h2>Choose how to play</h2>
+        <label for="playStyleSelect">Play style</label>
+        <select id="playStyleSelect">
+          <option value="coop" selected>3 Fold Cord — work together by unanimous agreement</option>
+          <option value="pvp">Problem? Solved! — best solution earns the point</option>
+        </select>
+        <label for="roomModeSelect">Deck setup</label>
+        <select id="roomModeSelect"></select>
+        <div id="buildSettingsWrap">
+          <label for="deckNameInput">Game name</label>
+          <input id="deckNameInput" maxlength="50" placeholder="Friday Night Game Deck">
+          <label for="buildTimeSelect">Card-building time</label>
+          <select id="buildTimeSelect">
+            <option value="60">1 minute</option>
+            <option value="120" selected>2 minutes</option>
+            <option value="180">3 minutes</option>
+            <option value="300">5 minutes</option>
+          </select>
+        </div>
+        <button id="startRoomBtn" class="btn primary wide" type="button">Start 2-Minute Build</button>
+      </div>
+
+      <div id="guestRoomControls" class="panel center hidden">
+        <h2>Waiting for the host</h2>
+        <p id="guestModeText" class="muted">The host is preparing the game.</p>
+      </div>
+
+      <button id="leaveRoomBtn" class="btn danger wide" type="button">Leave Room</button>
+    </section>
+
+    <section id="buildScreen" class="screen">
+      <div class="panel">
+        <div id="buildTimer" class="timer"><strong id="buildTimeText">2:00</strong><span>Add as many cards as you can</span></div>
+        <div class="metric-grid">
+          <div class="metric"><strong id="totalProblems">0</strong><span>Total Problems</span></div>
+          <div class="metric"><strong id="totalSolutions">0</strong><span>Total Solutions</span></div>
+          <div class="metric"><strong id="myTotalCards">0</strong><span>Your Cards</span></div>
+        </div>
+        <div id="buildPlayers" class="player-grid"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="build-form problem-form">
+          <h2>Add a Problem</h2>
+          <p class="muted small-text">Write a situation the group will need to solve.</p>
+          <textarea id="problemInput" maxlength="220" placeholder="You realize you have been talking while muted…"></textarea>
+          <button id="addProblemBtn" class="btn primary wide" type="button">Add Problem Card</button>
+        </div>
+        <div class="build-form solution-form">
+          <h2>Add a Solution</h2>
+          <p class="muted small-text">Write a funny, clever, practical, or unexpected solution.</p>
+          <textarea id="solutionInput" maxlength="220" placeholder="Turn it into a motivational speech."></textarea>
+          <button id="addSolutionBtn" class="btn teal wide" type="button">Add Solution Card</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Your recent cards</h2>
+        <div id="myBuildCards" class="quick-list"></div>
+        <button id="endBuildEarlyBtn" class="btn danger wide hidden" type="button">End Building Early</button>
+      </div>
+    </section>
+
+    <section id="reviewScreen" class="screen">
+      <div class="panel">
+        <h2 id="reviewTitle">Your game is built!</h2>
+        <p class="muted">Review the deck, save it for later, or start playing now.</p>
+        <div class="metric-grid">
+          <div class="metric"><strong id="reviewProblemCount">0</strong><span>Problems</span></div>
+          <div class="metric"><strong id="reviewSolutionCount">0</strong><span>Solutions</span></div>
+          <div class="metric"><strong id="reviewContributorCount">0</strong><span>Contributors</span></div>
+        </div>
+        <div id="deckReadiness" class="status-banner">Checking deck…</div>
+        <details class="deck-section" open>
+          <summary>Problem Deck</summary>
+          <div id="reviewProblems" class="deck-list"></div>
+        </details>
+        <details class="deck-section">
+          <summary>Solution Deck</summary>
+          <div id="reviewSolutions" class="deck-list"></div>
+        </details>
+      </div>
+
+      <div id="hostReviewControls" class="panel hidden">
+        <h2>Host controls</h2>
+        <div class="button-row">
+          <button id="saveDeckBtn" class="btn blue" type="button">Save Game</button>
+          <button id="exportDeckBtn" class="btn cream" type="button">Export Backup</button>
+          <button id="addMoreTimeBtn" class="btn teal" type="button">Add 1 More Minute</button>
+        </div>
+        <button id="startCustomGameBtn" class="btn primary wide" type="button">Start Playing</button>
+      </div>
+      <div id="guestReviewControls" class="panel center hidden">
+        <h2>Waiting for the host</h2>
+        <p class="muted">The host can save the deck, add more building time, or start the game.</p>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="game-header">
+        <div id="gamePlayers" class="player-grid"></div>
+        <div id="roundBadge" class="round-badge">Round 1</div>
+      </div>
+
+      <div id="coopScoreGrid" class="score-grid">
+        <div class="score-card">
+          <div class="score-line"><strong>3 Fold Cord Points</strong><span id="solvedScore" class="score-value">0 / 12</span></div>
+          <div class="meter"><div id="solvedMeter" class="meter-fill good"></div></div>
+        </div>
+        <div class="score-card">
+          <div class="score-line"><strong>Needs Work</strong><span id="missScore" class="score-value">0 / 3</span></div>
+          <div class="meter"><div id="missMeter" class="meter-fill bad"></div></div>
+        </div>
+      </div>
+      <div id="pvpScorePanel" class="score-card hidden">
+        <div class="score-line"><strong>Player Scores</strong><span id="pvpGoalText" class="score-value">First to 5</span></div>
+        <div id="pvpScores" class="pvp-score-list"></div>
+      </div>
+
+      <div id="statusBanner" class="status-banner" aria-live="polite">Get ready!</div>
+
+      <div class="table-area">
+        <div id="problemZone" class="card-zone" aria-label="Problem card area"></div>
+        <div>
+          <div id="solutionZone" class="card-zone" aria-label="Solution area"></div>
+          <div id="actionPanel" class="action-panel"></div>
+        </div>
+      </div>
+
+      <div id="handWrap" class="hand-wrap">
+        <div class="hand-head"><h3>Your Solution Cards</h3><span id="handHelp" class="muted">Choose one when you are a Solver.</span></div>
+        <div id="hand" class="hand"></div>
+      </div>
+
+      <div class="button-row" style="margin-top:12px">
+        <button id="gameRulesBtn" class="btn cream small" type="button">Rules</button>
+        <button id="leaveGameBtn" class="btn danger small" type="button">Leave Game</button>
+      </div>
+    </section>
+
+    <section id="endScreen" class="screen">
+      <div class="end-screen">
+        <div id="endIcon" class="end-icon">🎉</div>
+        <h2 id="endTitle">Game Complete!</h2>
+        <p id="endText">Your team reached twelve points together.</p>
+        <button id="playAgainBtn" class="btn primary wide hidden" type="button">Play This Deck Again</button>
+        <button id="endLeaveBtn" class="btn cream wide" type="button">Return to Lobby</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <dialog id="rulesDialog">
+    <h2>How Both Game Modes Work</h2>
+    <ol class="rules-list">
+      <li>A room supports <strong>2–6 players</strong>, each on their own device.</li>
+      <li>In <strong>Build Together</strong>, everyone gets the same timer and can add unlimited Problem and Solution Cards.</li>
+      <li><strong>3 Fold Cord:</strong> A rotating Round Leader draws the Problem. Every player submits a proposed solution and the principle behind it. A Solution Card may be used as inspiration.</li>
+      <li>When everyone has answered, all ideas are revealed with player names. Discuss them together, then everyone votes.</li>
+      <li>The team earns one point only when <strong>every connected player approves</strong>. Reach <strong>12 points</strong> before three rounds need more work.</li>
+      <li><strong>Problem? Solved!:</strong> One Problem Picker draws. Everyone else secretly plays a Solution Card and may explain it.</li>
+      <li>The Picker chooses the best anonymous answer. That player earns one point, and the Picker rotates. First to five points wins.</li>
+    </ol>
+    <p class="muted">Saved games store the custom card deck. The host can use the same deck for 3 Fold Cord or Problem? Solved! each time.</p>
+    <button id="closeRulesBtn" class="btn primary wide" type="button">Got It</button>
+  </dialog>
+
+  <script type="module">
+    import { Peer } from 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/+esm';
+
+    const MAX_PLAYERS = 6;
+    const HAND_SIZE = 5;
+    const SOLVED_GOAL = 12;
+    const MISS_LIMIT = 3;
+    const PVP_GOAL = 5;
+    const MIN_PROBLEMS = 5;
+    const MIN_SOLUTIONS = 10;
+    const STORAGE_KEY = 'problemSolved.savedGames.v2';
+
+    const STARTER_PROBLEMS = [
+      "You accidentally replied “Love you” to your boss. What do you do?",
+      "You confidently wave back, then realize the person was waving at someone behind you.",
+      "Your phone starts playing loud music during a completely silent moment.",
+      "You send a screenshot to the exact person you were talking about.",
+      "You forget someone’s name halfway through introducing them.",
+      "You arrive at a party wearing a costume. It was not a costume party.",
+      "You laugh at a joke, then realize nobody actually told one.",
+      "You walk into a glass door while trying to look cool.",
+      "You say “You too” when the server says, “Enjoy your meal.”",
+      "You realize your shirt has been inside out all day.",
+      "You accidentally react to a five-year-old social media post.",
+      "You join a video call with a ridiculous filter already turned on.",
+      "You call someone by the wrong name three times in one conversation.",
+      "You trip in public, but nobody seems sure whether they saw it.",
+      "You confidently enter the wrong car and sit down.",
+      "You forget to mute yourself during a very private side conversation.",
+      "You bring food for everyone, then drop it at the door.",
+      "You are telling a story and completely forget the point.",
+      "Your chair makes a suspicious noise in a quiet room.",
+      "You accidentally wear two different shoes to an important event.",
+      "You wave enthusiastically at a stranger who looks nothing like your friend up close.",
+      "You spell someone’s name wrong on a personalized gift.",
+      "You are caught practicing an argument alone in your car.",
+      "You answer a question that was directed to somebody else.",
+      "You send a voice message and discover it recorded two extra minutes.",
+      "You forget why you walked into the room while everyone watches.",
+      "You confidently give directions, then realize you sent them the wrong way.",
+      "You compliment someone on something they clearly dislike about themselves.",
+      "Your stomach growls loudly during a serious conversation.",
+      "You accidentally hit Reply All with a message meant for one person.",
+      "You have been standing in the wrong line for twenty minutes."
+    ];
+
+    const STARTER_SOLUTIONS = [
+      "Pretend it was part of a very complicated plan.",
+      "Blame autocorrect with unreasonable confidence.",
+      "Commit to the mistake and make it look intentional.",
+      "Create a distraction using the nearest harmless object.",
+      "Say, “Well, this is awkward,” and take a dramatic bow.",
+      "Immediately change the subject to snacks.",
+      "Use interpretive dance to explain what happened.",
+      "Ask everyone to forget the last thirty seconds.",
+      "Walk away slowly as though the scene has ended.",
+      "Announce that this was a surprise social experiment.",
+      "Turn it into a motivational speech.",
+      "Offer a sincere apology and one emergency cookie.",
+      "Act shocked that nobody else planned the same thing.",
+      "Call a trusted friend and put them on speakerphone.",
+      "Use a fake accent until the danger passes.",
+      "Make a PowerPoint explaining why this was reasonable.",
+      "Declare a five-minute recess.",
+      "Ask, “Can we start over from the beginning?”",
+      "Pretend you just received an urgent invisible message.",
+      "Change your name and begin a new life.",
+      "Say nothing. Maintain intense eye contact.",
+      "Turn the mistake into a catchy slogan.",
+      "Offer to trade problems with someone else.",
+      "Tell the truth, but add unnecessary dramatic music.",
+      "Ask a child nearby to handle the negotiations.",
+      "Make everyone vote on what should happen next.",
+      "Start cleaning something that does not need cleaning.",
+      "Introduce the mistake as your newest personality trait.",
+      "Use a compliment so powerful that everyone forgets.",
+      "Pretend the room is a documentary and narrate the moment.",
+      "Leave and re-enter with more confidence.",
+      "Write a formal apology using only sticky notes.",
+      "Solve it with snacks and positive reinforcement.",
+      "Ask for a moment of silence for your dignity.",
+      "Claim it is a regional custom.",
+      "Create an overly detailed backup story.",
+      "Turn to the nearest person and say, “Your move.”",
+      "Start a slow clap and hope others join.",
+      "Use the phrase, “Technically, nothing is impossible.”",
+      "Make a tiny trophy for surviving the situation.",
+      "Admit the mistake before anyone can mention it.",
+      "Add sunglasses. Everything looks intentional in sunglasses.",
+      "Schedule a follow-up meeting to discuss the incident.",
+      "Distract everyone with an oddly specific fun fact.",
+      "Invent a new rule that makes you correct.",
+      "Offer a reasonable explanation in an unreasonable voice.",
+      "Ask whether this can count as team building.",
+      "Take one deep breath and handle it like an adult.",
+      "Find the funniest honest explanation and use it.",
+      "Recruit another player as your official spokesperson.",
+      "Solve only half the problem and celebrate early.",
+      "Use a handwritten sign that says, “Under Control.”",
+      "Blame a mysterious scheduling conflict.",
+      "Make the problem worse so the first mistake looks small.",
+      "Apologize, fix what you can, and laugh about the rest.",
+      "Ask for one minute to consult the instruction manual.",
+      "Respond with an inspirational quote that answers nothing.",
+      "Give the situation a code name and launch Operation Recovery.",
+      "Offer two choices, both of which involve dessert.",
+      "Say, “Great question,” while thinking of an answer."
+    ];
+
+    const ui = {};
+    document.querySelectorAll('[id]').forEach(element => { ui[element.id] = element; });
+
+    let peer = null;
+    let hostConn = null;
+    let hostConnections = new Map();
+    let isHost = false;
+    let myPlayerId = null;
+    let roomCode = '';
+    let state = null;
+    let selectedSolutionInstanceId = null;
+    let toastTimer = null;
+    let pendingJoinName = '';
+    let reconnecting = false;
+    let intentionalClose = false;
+
+    function uid(prefix = 'id') {
+      const random = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      return `${prefix}-${random}`;
+    }
+
+    function randomCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    function cleanCode(value) { return String(value || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6); }
+    function peerIdFromCode(code) { return `problem-solved-v2-${String(code).toLowerCase()}`; }
+    function clampText(value, max = 220) { return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max); }
+    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+    function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function toast(message) {
+      clearTimeout(toastTimer);
+      ui.toast.textContent = message;
+      ui.toast.classList.add('show');
+      toastTimer = setTimeout(() => ui.toast.classList.remove('show'), 2600);
+    }
+
+    function setConnection(text, status = '') {
+      ui.connectionPill.textContent = text;
+      ui.connectionPill.className = `connection-pill ${status}`.trim();
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.toggle('active', screen.id === screenId));
+    }
+
+    function playerById(id) { return state?.players?.find(player => player.id === id); }
+    function playerName(id) { return playerById(id)?.name || 'Player'; }
+    function connectedPlayers() { return state?.players?.filter(player => player.connected) || []; }
+    function connectedPlayerIds() { return connectedPlayers().map(player => player.id); }
+    function currentPickerId() { return state?.game?.turnOrder?.[state.game.pickerPosition] || null; }
+    function isCoopMode() { return (state?.game?.playMode || state?.settings?.playMode || 'coop') === 'coop'; }
+    function requiredSubmitterIds() { return isCoopMode() ? connectedPlayerIds() : activeSolverIds(); }
+    function activeSolverIds() { return connectedPlayerIds().filter(id => id !== currentPickerId()); }
+    function isMyTurnAsPicker() { return myPlayerId === currentPickerId(); }
+    function isMyTurnAsSolver() { return activeSolverIds().includes(myPlayerId); }
+
+    function createRoomState(hostName, code) {
+      return {
+        version: 4,
+        roomCode: code,
+        phase: 'room',
+        hostId: 'host',
+        createdAt: Date.now(),
+        players: [{
+          id: 'host',
+          name: hostName,
+          connected: true,
+          joinedAt: Date.now(),
+          problemsAdded: 0,
+          solutionsAdded: 0
+        }],
+        settings: {
+          playMode: 'coop',
+          playModeLabel: '3 Fold Cord',
+          mode: 'build',
+          modeLabel: 'Build Together',
+          savedDeckId: '',
+          deckName: `${hostName}'s Game`,
+          buildSeconds: 120
+        },
+        builder: {
+          startedAt: null,
+          endsAt: null,
+          problems: [],
+          solutions: [],
+          savedAt: null
+        },
+        activeDeck: null,
+        game: null
+      };
+    }
+
+    function sanitizeStateFor(viewerId) {
+      const view = deepClone(state);
+      if (!view?.game) return view;
+
+      const game = view.game;
+      const ownHand = game.hands?.[viewerId] || [];
+      game.hands = { [viewerId]: ownHand };
+      game.submittedPlayerIds = Object.keys(state.game.submissions || {});
+      game.votedPlayerIds = Object.keys(state.game.votes || {});
+
+      if (state.game.playMode === 'coop') {
+        game.judgeCards = [];
+        if (!['coopVote', 'roundResult', 'end'].includes(game.phase)) game.submissions = {};
+        if (!['roundResult', 'end'].includes(game.phase)) game.votes = {};
+      } else {
+        if (game.phase === 'judge') {
+          if (viewerId !== currentPickerId()) game.judgeCards = [];
+        } else if (!['roundResult', 'end'].includes(game.phase)) {
+          game.judgeCards = [];
+        }
+        if (!['roundResult', 'end'].includes(game.phase)) game.submissions = {};
+        game.votes = {};
+      }
+      return view;
+    }
+
+
+    function broadcastState() {
+      if (!isHost || !state) return;
+      for (const [playerId, connection] of hostConnections.entries()) {
+        if (connection.open) connection.send({ type: 'state', state: sanitizeStateFor(playerId) });
+      }
+      render();
+    }
+
+    function sendNotice(playerId, message) {
+      if (playerId === 'host') toast(message);
+      else {
+        const connection = hostConnections.get(playerId);
+        if (connection?.open) connection.send({ type: 'notice', message });
+      }
+    }
+
+    function rejectAction(playerId, message) { sendNotice(playerId, message); }
+
+    function cleanupConnection() {
+      try { hostConn?.close(); } catch {}
+      for (const connection of hostConnections.values()) {
+        try { connection.close(); } catch {}
+      }
+      hostConnections.clear();
+      try { peer?.destroy(); } catch {}
+      peer = null;
+      hostConn = null;
+      reconnecting = false;
+    }
+
+    function resetToLobby(message = '') {
+      intentionalClose = true;
+      if (isHost) {
+        for (const connection of hostConnections.values()) {
+          try { if (connection.open) connection.send({ type: 'hostClosing' }); } catch {}
+        }
+      }
+      cleanupConnection();
+      setTimeout(() => { intentionalClose = false; }, 0);
+      isHost = false;
+      myPlayerId = null;
+      roomCode = '';
+      state = null;
+      selectedSolutionInstanceId = null;
+      setConnection('Not connected');
+      showScreen('lobbyScreen');
+      renderSavedGames();
+      if (message) toast(message);
+    }
+
+    function readablePeerError(error) {
+      const type = error?.type || '';
+      if (type === 'peer-unavailable') return 'Room not found. Check the code and make sure the host is still waiting.';
+      if (type === 'network') return 'The network interrupted the connection. Try again.';
+      if (type === 'browser-incompatible') return 'This browser does not support the connection needed for multiplayer.';
+      if (type === 'ssl-unavailable') return 'This game needs to be opened from a secure HTTPS website.';
+      return 'The devices could not connect. Try another network or reopen the room.';
+    }
+
+    function hostCreateRoom() {
+      const name = clampText(ui.hostName.value, 24);
+      if (!name) return toast('Enter your name first.');
+      cleanupConnection();
+      isHost = true;
+      myPlayerId = 'host';
+      roomCode = randomCode();
+      state = createRoomState(name, roomCode);
+      ui.connectingTitle.textContent = 'Opening your room…';
+      ui.connectingText.textContent = 'Creating a code for up to six players.';
+      showScreen('connectingScreen');
+      setConnection('Opening room…', 'waiting');
+      openHostPeer(0);
+    }
+
+    function openHostPeer(attempt) {
+      peer = new Peer(peerIdFromCode(roomCode), { debug: 1 });
+      peer.on('open', () => {
+        setConnection('Room open', 'waiting');
+        render();
+      });
+      peer.on('connection', incoming => prepareIncomingConnection(incoming));
+      peer.on('error', error => {
+        if (error?.type === 'unavailable-id' && attempt < 4) {
+          try { peer.destroy(); } catch {}
+          roomCode = randomCode();
+          state.roomCode = roomCode;
+          openHostPeer(attempt + 1);
+          return;
+        }
+        setConnection('Room error', 'error');
+        resetToLobby(readablePeerError(error));
+      });
+    }
+
+    function prepareIncomingConnection(connection) {
+      connection.on('data', message => handleHostIncoming(connection, message));
+      connection.on('error', () => {});
+      connection.on('close', () => {
+        const playerId = connection._problemSolvedPlayerId;
+        if (playerId) handlePlayerDisconnect(playerId);
+      });
+    }
+
+    function handleHostIncoming(connection, message) {
+      if (!message || typeof message !== 'object') return;
+      if (message.type === 'join') {
+        if (connection._problemSolvedPlayerId) return;
+        const name = clampText(message.name, 24);
+        if (!name) return connection.send({ type: 'rejected', message: 'Enter a player name.' });
+        if (state.phase !== 'room') return connection.send({ type: 'rejected', message: 'This game has already started.' });
+        if (connectedPlayers().length >= MAX_PLAYERS) return connection.send({ type: 'rejected', message: 'This room already has six players.' });
+
+        const playerId = uid('player');
+        connection._problemSolvedPlayerId = playerId;
+        hostConnections.set(playerId, connection);
+        state.players.push({
+          id: playerId,
+          name,
+          connected: true,
+          joinedAt: Date.now(),
+          problemsAdded: 0,
+          solutionsAdded: 0
+        });
+        connection.send({ type: 'welcome', playerId, state: sanitizeStateFor(playerId) });
+        toast(`${name} joined the room.`);
+        broadcastState();
+        return;
+      }
+
+      if (message.type === 'action') {
+        const playerId = connection._problemSolvedPlayerId;
+        if (playerId) handleAction(playerId, message.action, message.payload || {});
+      }
+    }
+
+    function guestJoinRoom() {
+      const name = clampText(ui.guestName.value, 24);
+      const code = cleanCode(ui.joinCode.value);
+      if (!name) return toast('Enter your name first.');
+      if (code.length !== 6) return toast('Enter the six-character room code.');
+
+      cleanupConnection();
+      isHost = false;
+      myPlayerId = null;
+      pendingJoinName = name;
+      roomCode = code;
+      ui.connectingTitle.textContent = 'Joining the room…';
+      ui.connectingText.textContent = `Looking for room ${code}.`;
+      showScreen('connectingScreen');
+      setConnection('Connecting…', 'waiting');
+
+      peer = new Peer(undefined, { debug: 1 });
+      peer.on('open', () => {
+        const connection = peer.connect(peerIdFromCode(code), { reliable: true });
+        hostConn = connection;
+        connection.on('open', () => connection.send({ type: 'join', name }));
+        connection.on('data', handleGuestIncoming);
+        connection.on('close', () => {
+          if (!intentionalClose && !reconnecting && state) {
+            setConnection('Host disconnected', 'error');
+            setTimeout(() => resetToLobby('The host left or the connection closed.'), 0);
+          }
+        });
+        connection.on('error', error => {
+          setConnection('Connection error', 'error');
+          toast(readablePeerError(error));
+        });
+      });
+      peer.on('error', error => {
+        setConnection('Connection error', 'error');
+        resetToLobby(readablePeerError(error));
+      });
+    }
+
+    function handleGuestIncoming(message) {
+      if (!message || typeof message !== 'object') return;
+      if (message.type === 'welcome') {
+        myPlayerId = message.playerId;
+        state = message.state;
+        roomCode = state.roomCode;
+        setConnection('Connected', 'online');
+        render();
+      } else if (message.type === 'state') {
+        state = message.state;
+        setConnection('Connected', 'online');
+        render();
+      } else if (message.type === 'notice') {
+        toast(message.message);
+      } else if (message.type === 'rejected') {
+        resetToLobby(message.message || 'Could not join the room.');
+      } else if (message.type === 'hostClosing') {
+        resetToLobby('The host ended the room.');
+      }
+    }
+
+    function sendAction(action, payload = {}) {
+      if (isHost) handleAction(myPlayerId, action, payload);
+      else if (hostConn?.open) hostConn.send({ type: 'action', action, payload });
+      else toast('You are not connected to the host.');
+    }
+
+    function handleAction(actorId, action, payload) {
+      if (!isHost || !state) return;
+      const actor = playerById(actorId);
+      if (!actor?.connected) return;
+
+      if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text);
+      if (action === 'removeBuildCard') return hostRemoveBuildCard(actorId, payload.kind, payload.cardId);
+      if (action === 'editBuildCard') return hostEditBuildCard(actorId, payload.kind, payload.cardId, payload.text);
+      if (action === 'drawProblem') return hostDrawProblem(actorId);
+      if (action === 'playSolution') return hostPlaySolution(actorId, payload.instanceId, payload.explanation);
+      if (action === 'submitCoop') return hostSubmitCoop(actorId, payload.instanceId, payload.suggestion, payload.principle);
+      if (action === 'voteCoop') return hostVoteCoop(actorId, Boolean(payload.approve));
+      if (action === 'judge') return hostJudge(actorId, payload.submissionId || null);
+      if (action === 'nextRound') return hostNextRound(actorId);
+      if (action === 'playAgain') return hostPlayAgain(actorId);
+    }
+
+
+    function handlePlayerDisconnect(playerId) {
+      if (!isHost || !state) return;
+      const player = playerById(playerId);
+      if (!player) return;
+      hostConnections.delete(playerId);
+
+      if (state.phase === 'room') {
+        state.players = state.players.filter(item => item.id !== playerId);
+      } else {
+        player.connected = false;
+      }
+
+      if (state.phase === 'play' && state.game) {
+        if (currentPickerId() === playerId) abortRoundAndRotatePicker();
+        else if (state.game.phase === 'submit') {
+          if (isCoopMode()) maybeAdvanceCoopToVote();
+          else maybeAdvanceToJudge();
+        } else if (state.game.phase === 'coopVote') {
+          maybeResolveCoopVotes();
+        }
+      }
+
+      toast(`${player.name} disconnected.`);
+      broadcastState();
+    }
+
+
+    function abortRoundAndRotatePicker() {
+      if (!state.game) return;
+      replenishSubmittedHands();
+      state.game.submissions = {};
+      state.game.submittedPlayerIds = [];
+      state.game.votes = {};
+      state.game.votedPlayerIds = [];
+      state.game.judgeCards = [];
+      state.game.result = null;
+      state.game.problemId = null;
+      state.game.round += 1;
+      rotatePicker();
+      state.game.phase = 'draw';
+    }
+
+
+    function hostSetRoomSettings() {
+      if (!isHost || state?.phase !== 'room') return;
+      const playMode = ui.playStyleSelect.value === 'pvp' ? 'pvp' : 'coop';
+      state.settings.playMode = playMode;
+      state.settings.playModeLabel = playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+
+      const value = ui.roomModeSelect.value;
+      if (value === 'build') {
+        state.settings.mode = 'build';
+        state.settings.modeLabel = 'Build Together';
+        state.settings.savedDeckId = '';
+      } else if (value === 'starter') {
+        state.settings.mode = 'starter';
+        state.settings.modeLabel = 'Starter Deck';
+        state.settings.savedDeckId = '';
+      } else if (value.startsWith('saved:')) {
+        const id = value.slice(6);
+        const saved = getSavedGames().find(deck => deck.id === id);
+        if (!saved) return;
+        state.settings.mode = 'saved';
+        state.settings.modeLabel = saved.name;
+        state.settings.savedDeckId = id;
+      }
+      state.settings.deckName = clampText(ui.deckNameInput.value, 50) || state.settings.deckName;
+      state.settings.buildSeconds = Number(ui.buildTimeSelect.value) || 120;
+      broadcastState();
+    }
+
+
+    function hostStartSelectedMode() {
+      if (!isHost || state?.phase !== 'room') return;
+      if (connectedPlayers().length < 2) return toast('At least two players are needed.');
+
+      hostSetRoomSettings();
+      if (state.settings.mode === 'build') {
+        state.phase = 'build';
+        state.builder.startedAt = Date.now();
+        state.builder.endsAt = Date.now() + state.settings.buildSeconds * 1000;
+        broadcastState();
+        return;
+      }
+
+      if (state.settings.mode === 'starter') {
+        startGameWithDeck({ name: 'Starter Deck', problems: STARTER_PROBLEMS, solutions: STARTER_SOLUTIONS });
+        return;
+      }
+
+      if (state.settings.mode === 'saved') {
+        const saved = getSavedGames().find(deck => deck.id === state.settings.savedDeckId);
+        if (!saved) return toast('That saved game could not be found on this device.');
+        startGameWithDeck(saved);
+      }
+    }
+
+    function hostAddBuildCard(actorId, kind, text) {
+      if (state.phase !== 'build') return rejectAction(actorId, 'Card building has ended.');
+      if (Date.now() >= state.builder.endsAt) {
+        finishBuild();
+        return rejectAction(actorId, 'Time is up.');
+      }
+      if (!['problem', 'solution'].includes(kind)) return;
+      const cleaned = clampText(text, 220);
+      if (cleaned.length < 4) return rejectAction(actorId, 'Write a little more before adding the card.');
+      const list = kind === 'problem' ? state.builder.problems : state.builder.solutions;
+      list.push({ id: uid(kind), text: cleaned, authorId: actorId, createdAt: Date.now() });
+      const actor = playerById(actorId);
+      if (kind === 'problem') actor.problemsAdded += 1;
+      else actor.solutionsAdded += 1;
+      broadcastState();
+    }
+
+    function hostRemoveBuildCard(actorId, kind, cardId) {
+      if (!['build', 'review'].includes(state.phase)) return;
+      const key = kind === 'problem' ? 'problems' : 'solutions';
+      const list = state.builder[key];
+      const card = list.find(item => item.id === cardId);
+      if (!card) return;
+      if (actorId !== state.hostId && actorId !== card.authorId) return rejectAction(actorId, 'Only the host or the card’s author can remove it.');
+      state.builder[key] = list.filter(item => item.id !== cardId);
+      const author = playerById(card.authorId);
+      if (author) {
+        if (kind === 'problem') author.problemsAdded = Math.max(0, author.problemsAdded - 1);
+        else author.solutionsAdded = Math.max(0, author.solutionsAdded - 1);
+      }
+      broadcastState();
+    }
+
+    function hostEditBuildCard(actorId, kind, cardId, text) {
+      if (!['build', 'review'].includes(state.phase)) return;
+      const key = kind === 'problem' ? 'problems' : 'solutions';
+      const card = state.builder[key].find(item => item.id === cardId);
+      if (!card) return;
+      if (actorId !== state.hostId && actorId !== card.authorId) return rejectAction(actorId, 'Only the host or the card’s author can edit it.');
+      const cleaned = clampText(text, 220);
+      if (cleaned.length < 4) return rejectAction(actorId, 'The edited card is too short.');
+      card.text = cleaned;
+      broadcastState();
+    }
+
+    function finishBuild() {
+      if (!isHost || state?.phase !== 'build') return;
+      state.phase = 'review';
+      state.builder.endsAt = Date.now();
+      broadcastState();
+    }
+
+    function resumeBuild(seconds = 60) {
+      if (!isHost || state?.phase !== 'review') return;
+      state.phase = 'build';
+      state.builder.endsAt = Date.now() + seconds * 1000;
+      broadcastState();
+    }
+
+    function customDeckFromBuilder() {
+      return {
+        id: uid('deck'),
+        name: clampText(state.settings.deckName, 50) || 'Custom Problem? Solved! Game',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        problems: state.builder.problems.map(card => card.text),
+        solutions: state.builder.solutions.map(card => card.text)
+      };
+    }
+
+    function deckIsReady(deck) { return deck.problems.length >= MIN_PROBLEMS && deck.solutions.length >= MIN_SOLUTIONS; }
+
+    function normalizeDeck(raw) {
+      const problems = (raw.problems || []).map(item => clampText(typeof item === 'string' ? item : item.text, 220)).filter(text => text.length >= 4);
+      const solutions = (raw.solutions || []).map(item => clampText(typeof item === 'string' ? item : item.text, 220)).filter(text => text.length >= 4);
+      return {
+        id: raw.id || uid('deck'),
+        name: clampText(raw.name, 50) || 'Saved Problem? Solved! Game',
+        createdAt: Number(raw.createdAt) || Date.now(),
+        updatedAt: Number(raw.updatedAt) || Date.now(),
+        problems,
+        solutions
+      };
+    }
+
+    function getSavedGames() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed.map(normalizeDeck).filter(deckIsReady) : [];
+      } catch { return []; }
+    }
+
+    function putSavedGames(games) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(games.slice(0, 40)));
+    }
+
+    function saveCurrentDeck() {
+      if (!isHost || state?.phase !== 'review') return;
+      const deck = customDeckFromBuilder();
+      if (!deckIsReady(deck)) return toast(`Add at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions before saving.`);
+      const games = getSavedGames();
+      const sameNameIndex = games.findIndex(item => item.name.toLowerCase() === deck.name.toLowerCase());
+      if (sameNameIndex >= 0) {
+        deck.id = games[sameNameIndex].id;
+        deck.createdAt = games[sameNameIndex].createdAt;
+        games[sameNameIndex] = deck;
+      } else {
+        games.unshift(deck);
+      }
+      putSavedGames(games);
+      state.builder.savedAt = Date.now();
+      broadcastState();
+      renderSavedGames();
+      toast(`Saved “${deck.name}” on this device.`);
+    }
+
+    function exportDeck(deck) {
+      const normalized = normalizeDeck(deck);
+      const blob = new Blob([JSON.stringify({ format: 'problem-solved-deck', version: 2, ...normalized }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${normalized.name.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'problem_solved_game'}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function exportCurrentDeck() {
+      if (!isHost || !['review', 'play', 'end'].includes(state?.phase)) return;
+      const deck = state.phase === 'review' ? customDeckFromBuilder() : state.activeDeck;
+      if (!deckIsReady(deck)) return toast('The deck needs more cards before it can be exported.');
+      exportDeck(deck);
+    }
+
+    async function importDeckFile(file) {
+      if (!file) return;
+      try {
+        const raw = JSON.parse(await file.text());
+        const deck = normalizeDeck(raw);
+        if (!deckIsReady(deck)) throw new Error('Deck is too small');
+        const games = getSavedGames();
+        deck.id = uid('deck');
+        deck.name = games.some(item => item.name === deck.name) ? `${deck.name} (Imported)` : deck.name;
+        games.unshift(deck);
+        putSavedGames(games);
+        renderSavedGames();
+        if (state?.phase === 'room' && isHost) renderRoom();
+        toast(`Imported “${deck.name}”.`);
+      } catch {
+        toast(`That file is not a valid saved game. It needs at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions.`);
+      } finally {
+        ui.importDeckInput.value = '';
+      }
+    }
+
+    function deleteSavedDeck(id) {
+      const deck = getSavedGames().find(item => item.id === id);
+      if (!deck) return;
+      if (!confirm(`Delete “${deck.name}” from this browser?`)) return;
+      putSavedGames(getSavedGames().filter(item => item.id !== id));
+      renderSavedGames();
+      toast('Saved game deleted.');
+    }
+
+    function buildActiveDeck(deck) {
+      const normalized = normalizeDeck(deck);
+      return {
+        id: normalized.id,
+        name: normalized.name,
+        problems: normalized.problems.map((text, index) => ({ id: `problem-${index}-${uid('c')}`, text })),
+        solutions: normalized.solutions.map((text, index) => ({ id: `solution-${index}-${uid('c')}`, text }))
+      };
+    }
+
+    function createSolutionCycle(solutionCards) {
+      return shuffle(solutionCards).map(card => ({ instanceId: uid('instance'), cardId: card.id, text: card.text }));
+    }
+
+    function ensureSolutionPile(minimum = 1) {
+      while (state.game.solutionPile.length < minimum) {
+        state.game.solutionPile.push(...createSolutionCycle(state.activeDeck.solutions));
+      }
+    }
+
+    function drawSolutionInstance() {
+      ensureSolutionPile(1);
+      return state.game.solutionPile.shift();
+    }
+
+    function drawProblemCardId() {
+      if (!state.game.problemPile.length) state.game.problemPile = shuffle(state.activeDeck.problems.map(card => card.id));
+      return state.game.problemPile.shift();
+    }
+
+    function startGameWithDeck(deck) {
+      const normalized = normalizeDeck(deck);
+      if (!deckIsReady(normalized)) return toast(`This deck needs at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions.`);
+      const players = connectedPlayers();
+      if (players.length < 2) return toast('At least two connected players are needed.');
+
+      state.activeDeck = buildActiveDeck(normalized);
+      const turnOrder = players.map(player => player.id);
+      const playMode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
+      state.game = {
+        playMode,
+        round: 1,
+        solved: 0,
+        misses: 0,
+        goal: SOLVED_GOAL,
+        missLimit: MISS_LIMIT,
+        pvpGoal: PVP_GOAL,
+        playerScores: Object.fromEntries(players.map(player => [player.id, 0])),
+        phase: 'draw',
+        turnOrder,
+        pickerPosition: 0,
+        problemPile: shuffle(state.activeDeck.problems.map(card => card.id)),
+        problemId: null,
+        solutionPile: [],
+        hands: {},
+        submissions: {},
+        submittedPlayerIds: [],
+        votes: {},
+        votedPlayerIds: [],
+        judgeCards: [],
+        result: null,
+        winner: null,
+        winnerPlayerId: null
+      };
+
+      ensureSolutionPile(players.length * HAND_SIZE + 10);
+      for (const player of players) {
+        state.game.hands[player.id] = [];
+        for (let i = 0; i < HAND_SIZE; i++) state.game.hands[player.id].push(drawSolutionInstance());
+      }
+      state.phase = 'play';
+      selectedSolutionInstanceId = null;
+      broadcastState();
+    }
+
+
+    function hostDrawProblem(actorId) {
+      if (state.phase !== 'play' || state.game.phase !== 'draw') return;
+      if (actorId !== currentPickerId()) return rejectAction(actorId, `Only the ${isCoopMode() ? 'Round Leader' : 'Problem Picker'} can draw.`);
+      state.game.problemId = drawProblemCardId();
+      state.game.submissions = {};
+      state.game.submittedPlayerIds = [];
+      state.game.votes = {};
+      state.game.votedPlayerIds = [];
+      state.game.judgeCards = [];
+      state.game.result = null;
+      state.game.phase = 'submit';
+      broadcastState();
+    }
+
+
+    function hostPlaySolution(actorId, instanceId, explanation) {
+      if (isCoopMode()) return rejectAction(actorId, 'Use the 3 Fold Cord response form for this round.');
+      if (state.phase !== 'play' || state.game.phase !== 'submit') return rejectAction(actorId, 'Solutions are not being accepted right now.');
+      if (!activeSolverIds().includes(actorId)) return rejectAction(actorId, 'The Problem Picker does not play a Solution Card this round.');
+      if (state.game.submissions[actorId]) return rejectAction(actorId, 'You already played a card this round.');
+      const hand = state.game.hands[actorId] || [];
+      const index = hand.findIndex(card => card.instanceId === instanceId);
+      if (index < 0) return rejectAction(actorId, 'That card is no longer in your hand.');
+      const [card] = hand.splice(index, 1);
+      state.game.submissions[actorId] = {
+        id: uid('submission'),
+        playerId: actorId,
+        instanceId: card.instanceId,
+        cardId: card.cardId,
+        text: card.text,
+        explanation: clampText(explanation, 240),
+        submittedAt: Date.now()
+      };
+      state.game.submittedPlayerIds = Object.keys(state.game.submissions);
+      maybeAdvanceToJudge();
+      broadcastState();
+    }
+
+
+    function maybeAdvanceToJudge() {
+      if (!state.game || state.game.phase !== 'submit') return;
+      const solvers = activeSolverIds();
+      if (!solvers.length) return;
+      if (!solvers.every(id => state.game.submissions[id])) return;
+      state.game.judgeCards = shuffle(Object.values(state.game.submissions).map(submission => ({
+        submissionId: submission.id,
+        text: submission.text,
+        explanation: submission.explanation
+      })));
+      state.game.phase = 'judge';
+    }
+
+
+    function hostSubmitCoop(actorId, instanceId, suggestion, principle) {
+      if (!isCoopMode()) return rejectAction(actorId, 'This is not a 3 Fold Cord round.');
+      if (state.phase !== 'play' || state.game.phase !== 'submit') return rejectAction(actorId, 'Responses are not being accepted right now.');
+      if (!connectedPlayerIds().includes(actorId)) return;
+      if (state.game.submissions[actorId]) return rejectAction(actorId, 'You already submitted your response this round.');
+
+      const cleanSuggestion = clampText(suggestion, 300);
+      const cleanPrinciple = clampText(principle, 220);
+      if (cleanSuggestion.length < 4) return rejectAction(actorId, 'Add a little more detail to your suggested solution.');
+      if (cleanPrinciple.length < 3) return rejectAction(actorId, 'Add the principle behind your solution.');
+
+      let inspiration = '';
+      let cardId = null;
+      let usedInstanceId = null;
+      if (instanceId) {
+        const hand = state.game.hands[actorId] || [];
+        const index = hand.findIndex(card => card.instanceId === instanceId);
+        if (index >= 0) {
+          const [card] = hand.splice(index, 1);
+          inspiration = card.text;
+          cardId = card.cardId;
+          usedInstanceId = card.instanceId;
+        }
+      }
+
+      state.game.submissions[actorId] = {
+        id: uid('submission'),
+        playerId: actorId,
+        instanceId: usedInstanceId,
+        cardId,
+        inspiration,
+        suggestion: cleanSuggestion,
+        principle: cleanPrinciple,
+        submittedAt: Date.now()
+      };
+      state.game.submittedPlayerIds = Object.keys(state.game.submissions);
+      maybeAdvanceCoopToVote();
+      broadcastState();
+    }
+
+    function maybeAdvanceCoopToVote() {
+      if (!state.game || !isCoopMode() || state.game.phase !== 'submit') return;
+      const required = connectedPlayerIds();
+      if (required.length < 2) return;
+      if (!required.every(id => state.game.submissions[id])) return;
+      state.game.phase = 'coopVote';
+      state.game.votes = {};
+      state.game.votedPlayerIds = [];
+    }
+
+    function hostVoteCoop(actorId, approve) {
+      if (!isCoopMode() || state.phase !== 'play' || state.game.phase !== 'coopVote') return rejectAction(actorId, 'Voting is not open right now.');
+      if (!connectedPlayerIds().includes(actorId)) return;
+      if (Object.prototype.hasOwnProperty.call(state.game.votes, actorId)) return rejectAction(actorId, 'Your vote is already locked in.');
+      state.game.votes[actorId] = Boolean(approve);
+      state.game.votedPlayerIds = Object.keys(state.game.votes);
+      maybeResolveCoopVotes();
+      broadcastState();
+    }
+
+    function maybeResolveCoopVotes() {
+      if (!state.game || !isCoopMode() || state.game.phase !== 'coopVote') return;
+      const voters = connectedPlayerIds();
+      if (voters.length < 2) return;
+      if (!voters.every(id => Object.prototype.hasOwnProperty.call(state.game.votes, id))) return;
+
+      const approved = voters.every(id => state.game.votes[id] === true);
+      if (approved) state.game.solved += 1;
+      else state.game.misses += 1;
+
+      const entries = Object.values(state.game.submissions).map(submission => ({
+        submissionId: submission.id,
+        playerId: submission.playerId,
+        playerName: playerName(submission.playerId),
+        inspiration: submission.inspiration || '',
+        suggestion: submission.suggestion,
+        principle: submission.principle
+      }));
+      state.game.result = {
+        outcome: approved ? 'solved' : 'miss',
+        entries,
+        approvals: voters.map(id => ({ playerId: id, playerName: playerName(id), approve: state.game.votes[id] === true }))
+      };
+      replenishSubmittedHands();
+
+      if (state.game.solved >= state.game.goal) {
+        state.game.winner = 'win';
+        state.game.phase = 'end';
+        state.phase = 'end';
+      } else if (state.game.misses >= state.game.missLimit) {
+        state.game.winner = 'loss';
+        state.game.phase = 'end';
+        state.phase = 'end';
+      } else {
+        state.game.phase = 'roundResult';
+      }
+    }
+
+    function replenishSubmittedHands() {
+      if (!state.game) return;
+      for (const submission of Object.values(state.game.submissions || {})) {
+        state.game.hands[submission.playerId] ||= [];
+        while (state.game.hands[submission.playerId].length < HAND_SIZE) state.game.hands[submission.playerId].push(drawSolutionInstance());
+      }
+    }
+
+    function hostJudge(actorId, submissionId) {
+      if (isCoopMode()) return;
+      if (state.phase !== 'play' || state.game.phase !== 'judge') return;
+      if (actorId !== currentPickerId()) return rejectAction(actorId, 'Only the Problem Picker can judge the answers.');
+      const submissions = Object.values(state.game.submissions);
+      const winner = submissionId ? submissions.find(item => item.id === submissionId) : null;
+      if (submissionId && !winner) return rejectAction(actorId, 'That solution could not be found.');
+
+      if (winner) state.game.playerScores[winner.playerId] = (state.game.playerScores[winner.playerId] || 0) + 1;
+
+      const order = state.game.judgeCards.map(card => card.submissionId);
+      state.game.result = {
+        outcome: winner ? 'solved' : 'miss',
+        winningSubmissionId: winner?.id || null,
+        pointPlayerId: winner?.playerId || null,
+        reveals: order.map(id => {
+          const submission = submissions.find(item => item.id === id);
+          return {
+            submissionId: submission.id,
+            playerId: submission.playerId,
+            playerName: playerName(submission.playerId),
+            text: submission.text,
+            explanation: submission.explanation,
+            winner: submission.id === winner?.id
+          };
+        })
+      };
+      replenishSubmittedHands();
+
+      if (winner && state.game.playerScores[winner.playerId] >= state.game.pvpGoal) {
+        state.game.winner = 'pvp';
+        state.game.winnerPlayerId = winner.playerId;
+        state.game.phase = 'end';
+        state.phase = 'end';
+      } else {
+        state.game.phase = 'roundResult';
+      }
+      broadcastState();
+    }
+
+
+    function rotatePicker() {
+      const order = state.game.turnOrder;
+      for (let step = 1; step <= order.length; step++) {
+        const candidate = (state.game.pickerPosition + step) % order.length;
+        if (playerById(order[candidate])?.connected) {
+          state.game.pickerPosition = candidate;
+          return;
+        }
+      }
+    }
+
+    function hostNextRound(actorId) {
+      if (state.phase !== 'play' || state.game.phase !== 'roundResult') return;
+      if (actorId !== currentPickerId() && actorId !== state.hostId) return rejectAction(actorId, `The ${isCoopMode() ? 'Round Leader' : 'Problem Picker'} starts the next round.`);
+      state.game.round += 1;
+      rotatePicker();
+      state.game.problemId = null;
+      state.game.submissions = {};
+      state.game.submittedPlayerIds = [];
+      state.game.votes = {};
+      state.game.votedPlayerIds = [];
+      state.game.judgeCards = [];
+      state.game.result = null;
+      state.game.phase = 'draw';
+      selectedSolutionInstanceId = null;
+      broadcastState();
+    }
+
+
+    function hostPlayAgain(actorId) {
+      if (actorId !== state.hostId || state.phase !== 'end' || !state.activeDeck) return;
+      const deck = {
+        id: state.activeDeck.id,
+        name: state.activeDeck.name,
+        problems: state.activeDeck.problems.map(card => card.text),
+        solutions: state.activeDeck.solutions.map(card => card.text)
+      };
+      startGameWithDeck(deck);
+    }
+
+    function getProblemText(problemId) { return state.activeDeck?.problems?.find(card => card.id === problemId)?.text || 'A mysterious problem appears.'; }
+
+    function render() {
+      if (!state) {
+        showScreen('lobbyScreen');
+        return;
+      }
+      roomCode = state.roomCode;
+      ui.roomCodeDisplay.textContent = roomCode;
+      if (state.phase === 'room') renderRoom();
+      else if (state.phase === 'build') renderBuild();
+      else if (state.phase === 'review') renderReview();
+      else if (state.phase === 'play') renderGame();
+      else if (state.phase === 'end') renderEnd();
+    }
+
+    function renderPlayerTiles(container, options = {}) {
+      const leaderId = options.pickerId || null;
+      container.innerHTML = state.players.map(player => {
+        const cards = (player.problemsAdded || 0) + (player.solutionsAdded || 0);
+        let meta = player.id === state.hostId ? 'Host' : 'Player';
+        if (options.showContributions) meta = `${player.problemsAdded || 0} problems • ${player.solutionsAdded || 0} solutions`;
+        if (leaderId) {
+          if (state.game?.playMode === 'coop') meta = player.id === leaderId ? 'Round Leader' : (player.connected ? 'Teammate' : 'Disconnected');
+          else meta = player.id === leaderId ? 'Problem Picker' : (player.connected ? `Solver • ${state.game?.playerScores?.[player.id] || 0} pts` : 'Disconnected');
+        }
+        return `<div class="player-tile ${player.id === leaderId ? 'active' : ''} ${player.connected ? '' : 'offline'}">
+          <div class="player-name">${escapeHtml(player.name)}${player.id === myPlayerId ? ' (You)' : ''}</div>
+          <div class="player-meta">${escapeHtml(meta)}${options.showContributions ? ` • ${cards} total` : ''}</div>
+        </div>`;
+      }).join('');
+    }
+
+
+    function renderRoom() {
+      showScreen('roomScreen');
+      setConnection(isHost ? 'Room open' : 'Connected', isHost ? 'waiting' : 'online');
+      ui.roomPlayerCount.textContent = connectedPlayers().length;
+      ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+      renderPlayerTiles(ui.roomPlayers);
+      ui.hostRoomControls.classList.toggle('hidden', !isHost);
+      ui.guestRoomControls.classList.toggle('hidden', isHost);
+      ui.guestModeText.textContent = `${state.settings.playModeLabel} • ${state.settings.modeLabel}. ${connectedPlayers().length < 2 ? 'Waiting for another player.' : 'The host can start whenever everyone is ready.'}`;
+
+      if (isHost) {
+        const saved = getSavedGames();
+        const currentValue = state.settings.mode === 'saved' ? `saved:${state.settings.savedDeckId}` : state.settings.mode;
+        ui.playStyleSelect.value = state.settings.playMode || 'coop';
+        ui.roomModeSelect.innerHTML = [
+          '<option value="build">Build Together</option>',
+          '<option value="starter">Play Starter Deck</option>',
+          ...saved.map(deck => `<option value="saved:${escapeHtml(deck.id)}">Saved: ${escapeHtml(deck.name)}</option>`)
+        ].join('');
+        ui.roomModeSelect.value = [...ui.roomModeSelect.options].some(option => option.value === currentValue) ? currentValue : 'build';
+        ui.deckNameInput.value = state.settings.deckName;
+        ui.buildTimeSelect.value = String(state.settings.buildSeconds);
+        const building = ui.roomModeSelect.value === 'build';
+        ui.buildSettingsWrap.classList.toggle('hidden', !building);
+        const seconds = Number(ui.buildTimeSelect.value) || 120;
+        ui.startRoomBtn.textContent = building ? `Start ${seconds / 60}-Minute Build` : `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'}`;
+        ui.startRoomBtn.disabled = connectedPlayers().length < 2;
+      }
+    }
+
+
+    function renderBuild() {
+      showScreen('buildScreen');
+      setConnection('Building cards', 'online');
+      const myProblems = state.builder.problems.filter(card => card.authorId === myPlayerId);
+      const mySolutions = state.builder.solutions.filter(card => card.authorId === myPlayerId);
+      ui.totalProblems.textContent = state.builder.problems.length;
+      ui.totalSolutions.textContent = state.builder.solutions.length;
+      ui.myTotalCards.textContent = myProblems.length + mySolutions.length;
+      renderPlayerTiles(ui.buildPlayers, { showContributions: true });
+      ui.endBuildEarlyBtn.classList.toggle('hidden', !isHost);
+
+      const recent = [...myProblems.map(card => ({ ...card, kind: 'problem' })), ...mySolutions.map(card => ({ ...card, kind: 'solution' }))]
+        .sort((a,b) => b.createdAt - a.createdAt).slice(0, 8);
+      ui.myBuildCards.innerHTML = recent.length ? recent.map(card => `<div class="quick-item">
+        <span><strong>${card.kind === 'problem' ? 'Problem:' : 'Solution:'}</strong> ${escapeHtml(card.text)}</span>
+        <button type="button" class="btn cream small" data-edit-kind="${card.kind}" data-edit-id="${card.id}">Edit</button>
+        <button type="button" class="btn danger small" data-remove-kind="${card.kind}" data-remove-id="${card.id}">×</button>
+      </div>`).join('') : '<p class="muted">Your cards will appear here as you add them.</p>';
+      bindDeckEditButtons(ui.myBuildCards);
+      updateBuildTimer();
+    }
+
+    function updateBuildTimer() {
+      if (state?.phase !== 'build') return;
+      const remaining = Math.max(0, state.builder.endsAt - Date.now());
+      const totalSeconds = Math.ceil(remaining / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      ui.buildTimeText.textContent = `${minutes}:${seconds}`;
+      ui.buildTimer.classList.toggle('urgent', totalSeconds <= 15);
+      const enabled = totalSeconds > 0;
+      ui.problemInput.disabled = !enabled;
+      ui.solutionInput.disabled = !enabled;
+      ui.addProblemBtn.disabled = !enabled;
+      ui.addSolutionBtn.disabled = !enabled;
+      if (isHost && totalSeconds <= 0) finishBuild();
+    }
+
+    function renderReview() {
+      showScreen('reviewScreen');
+      setConnection('Deck review', 'online');
+      const deck = customDeckFromBuilder();
+      ui.reviewTitle.textContent = `${deck.name} is built!`;
+      ui.reviewProblemCount.textContent = deck.problems.length;
+      ui.reviewSolutionCount.textContent = deck.solutions.length;
+      ui.reviewContributorCount.textContent = state.players.filter(player => (player.problemsAdded + player.solutionsAdded) > 0).length;
+      const ready = deckIsReady(deck);
+      const needProblems = Math.max(0, MIN_PROBLEMS - deck.problems.length);
+      const needSolutions = Math.max(0, MIN_SOLUTIONS - deck.solutions.length);
+      ui.deckReadiness.textContent = ready ? 'Ready to play! The deck will automatically reshuffle when needed.' : `Add ${needProblems} more Problem${needProblems === 1 ? '' : 's'} and ${needSolutions} more Solution${needSolutions === 1 ? '' : 's'} to play.`;
+      ui.deckReadiness.style.background = ready ? 'var(--yellow)' : '#f3b5ae';
+      ui.reviewProblems.innerHTML = renderDeckRows(state.builder.problems, 'problem');
+      ui.reviewSolutions.innerHTML = renderDeckRows(state.builder.solutions, 'solution');
+      bindDeckEditButtons(ui.reviewProblems);
+      bindDeckEditButtons(ui.reviewSolutions);
+      ui.hostReviewControls.classList.toggle('hidden', !isHost);
+      ui.guestReviewControls.classList.toggle('hidden', isHost);
+      ui.startCustomGameBtn.disabled = !ready || connectedPlayers().length < 2;
+      ui.saveDeckBtn.disabled = !ready;
+      ui.exportDeckBtn.disabled = !ready;
+      ui.saveDeckBtn.textContent = state.builder.savedAt ? 'Save Updated Game' : 'Save Game';
+      ui.startCustomGameBtn.textContent = `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'}`;
+    }
+
+    function renderDeckRows(cards, kind) {
+      if (!cards.length) return `<p class="muted">No ${kind} cards yet.</p>`;
+      return cards.map((card, index) => {
+        const canEdit = isHost || card.authorId === myPlayerId;
+        return `<div class="deck-row ${kind}-row">
+          <div><div class="deck-text"><strong>${index + 1}.</strong> ${escapeHtml(card.text)}</div><div class="deck-author">Added by ${escapeHtml(playerName(card.authorId))}</div></div>
+          ${canEdit ? `<div class="deck-actions"><button type="button" class="btn cream small" data-edit-kind="${kind}" data-edit-id="${card.id}">Edit</button><button type="button" class="btn danger small" data-remove-kind="${kind}" data-remove-id="${card.id}">Delete</button></div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    function bindDeckEditButtons(container) {
+      container.querySelectorAll('[data-remove-id]').forEach(button => button.addEventListener('click', () => sendAction('removeBuildCard', { kind: button.dataset.removeKind, cardId: button.dataset.removeId })));
+      container.querySelectorAll('[data-edit-id]').forEach(button => button.addEventListener('click', () => {
+        const kind = button.dataset.editKind;
+        const key = kind === 'problem' ? 'problems' : 'solutions';
+        const card = state.builder[key].find(item => item.id === button.dataset.editId);
+        if (!card) return;
+        const edited = prompt(`Edit this ${kind} card:`, card.text);
+        if (edited != null) sendAction('editBuildCard', { kind, cardId: card.id, text: edited });
+      }));
+    }
+
+    function cardBack(label) {
+      return `<article class="play-card card-back"><div class="back-mark"><strong>PROBLEM?</strong><em>SOLVED!</em><small>${escapeHtml(label)}</small></div></article>`;
+    }
+
+    function renderProblemCard() {
+      if (!state.game.problemId) {
+        ui.problemZone.innerHTML = cardBack('Problem Deck');
+        return;
+      }
+      ui.problemZone.innerHTML = `<article class="play-card problem">
+        <div class="card-type"><span class="card-icon">!</span> Problem</div>
+        <div class="card-text">${escapeHtml(getProblemText(state.game.problemId))}</div>
+        <div class="card-number">Problem Card</div>
+      </article>`;
+    }
+
+    function renderGame() {
+      showScreen('gameScreen');
+      setConnection(`${isCoopMode() ? '3 Fold Cord' : 'Problem? Solved!'} connected`, 'online');
+      const game = state.game;
+      const leaderId = currentPickerId();
+      renderPlayerTiles(ui.gamePlayers, { pickerId: leaderId });
+      ui.roundBadge.textContent = `Round ${game.round} • ${isCoopMode() ? '3 Fold Cord' : 'Problem? Solved!'}`;
+
+      ui.coopScoreGrid.classList.toggle('hidden', !isCoopMode());
+      ui.pvpScorePanel.classList.toggle('hidden', isCoopMode());
+      if (isCoopMode()) {
+        ui.solvedScore.textContent = `${game.solved} / ${game.goal}`;
+        ui.missScore.textContent = `${game.misses} / ${game.missLimit}`;
+        ui.solvedMeter.style.width = `${Math.min(100, game.solved / game.goal * 100)}%`;
+        ui.missMeter.style.width = `${Math.min(100, game.misses / game.missLimit * 100)}%`;
+      } else {
+        const high = Math.max(0, ...Object.values(game.playerScores || {}));
+        ui.pvpGoalText.textContent = `First to ${game.pvpGoal}`;
+        ui.pvpScores.innerHTML = game.turnOrder.map(id => `<div class="pvp-score-row ${(game.playerScores[id] || 0) === high && high > 0 ? 'leading' : ''}"><span>${escapeHtml(playerName(id))}${id === myPlayerId ? ' (You)' : ''}</span><strong>${game.playerScores[id] || 0}</strong></div>`).join('');
+      }
+
+      renderProblemCard();
+      renderGameSolutionZone();
+      renderGameActions();
+      renderHand();
+      renderGameStatus();
+    }
+
+
+    function renderGameSolutionZone() {
+      const game = state.game;
+
+      if (isCoopMode()) {
+        if (game.phase === 'coopVote') {
+          const entries = Object.values(game.submissions || {});
+          ui.solutionZone.innerHTML = `<div style="width:100%"><div class="judge-list">${entries.map(item => `<div class="coop-entry"><h4>${escapeHtml(playerName(item.playerId))}'s idea</h4>${item.inspiration ? `<p class="inspiration"><strong>Solution Card inspiration:</strong> ${escapeHtml(item.inspiration)}</p>` : ''}<p><strong>Suggested solution:</strong> ${escapeHtml(item.suggestion)}</p><p class="principle"><strong>Principle:</strong> ${escapeHtml(item.principle)}</p></div>`).join('')}</div></div>`;
+          return;
+        }
+        if (game.phase === 'roundResult') {
+          const entries = game.result?.entries || [];
+          ui.solutionZone.innerHTML = `<div style="width:100%"><div class="judge-list">${entries.map(item => `<div class="coop-entry"><h4>${escapeHtml(item.playerName)}'s idea</h4>${item.inspiration ? `<p class="inspiration"><strong>Solution Card inspiration:</strong> ${escapeHtml(item.inspiration)}</p>` : ''}<p><strong>Suggested solution:</strong> ${escapeHtml(item.suggestion)}</p><p class="principle"><strong>Principle:</strong> ${escapeHtml(item.principle)}</p></div>`).join('')}</div></div>`;
+          return;
+        }
+        const submittedCount = (game.submittedPlayerIds || []).length;
+        if (game.phase === 'submit' && submittedCount) {
+          ui.solutionZone.innerHTML = `<article class="play-card solution"><div class="card-type"><span class="card-icon">✦</span> Team Ideas</div><div class="card-text">${submittedCount} of ${connectedPlayerIds().length} responses submitted.</div><div class="card-number">Ideas reveal after everyone answers.</div></article>`;
+        } else {
+          ui.solutionZone.innerHTML = cardBack('Team Solutions');
+        }
+        return;
+      }
+
+      if (game.phase === 'judge' && isMyTurnAsPicker()) {
+        ui.solutionZone.innerHTML = `<div style="width:100%"><div class="judge-list">${game.judgeCards.map((card, index) => `<button type="button" class="judge-card" data-judge-id="${card.submissionId}"><strong>Solution ${index + 1}</strong>${escapeHtml(card.text)}${card.explanation ? `<small><strong>Explanation:</strong> ${escapeHtml(card.explanation)}</small>` : ''}</button>`).join('')}</div></div>`;
+        ui.solutionZone.querySelectorAll('[data-judge-id]').forEach(button => button.addEventListener('click', () => sendAction('judge', { submissionId: button.dataset.judgeId })));
+        return;
+      }
+
+      if (game.phase === 'roundResult') {
+        const reveals = game.result?.reveals || [];
+        ui.solutionZone.innerHTML = `<div style="width:100%"><div class="judge-list">${reveals.map(item => `<div class="judge-card ${item.winner ? 'winner' : ''}"><strong>${item.winner ? '✓ Point for ' : 'Played by '}${escapeHtml(item.playerName)}</strong>${escapeHtml(item.text)}${item.explanation ? `<small><strong>Explanation:</strong> ${escapeHtml(item.explanation)}</small>` : ''}</div>`).join('')}</div></div>`;
+        return;
+      }
+
+      const submittedCount = (game.submittedPlayerIds || Object.keys(game.submissions || {})).length;
+      if (game.phase === 'submit' && submittedCount) {
+        ui.solutionZone.innerHTML = `<article class="play-card solution"><div class="card-type"><span class="card-icon">✦</span> Solutions</div><div class="card-text">${submittedCount} private answer${submittedCount === 1 ? '' : 's'} submitted.</div><div class="card-number">Answers stay hidden until everyone is ready.</div></article>`;
+      } else {
+        ui.solutionZone.innerHTML = cardBack('Solution Deck');
+      }
+    }
+
+
+    function renderGameActions() {
+      const game = state.game;
+      const leader = playerName(currentPickerId());
+      let html = '';
+
+      if (isCoopMode()) {
+        const submitted = game.submittedPlayerIds || [];
+        const voted = game.votedPlayerIds || [];
+        if (game.phase === 'draw') {
+          html = isMyTurnAsPicker()
+            ? `<h3>You are the Round Leader</h3><p>Draw the Problem. Everyone—including you—will propose a solution and its guiding principle.</p><button id="drawProblemBtn" class="btn primary wide" type="button">Draw a Problem</button>`
+            : `<h3>${escapeHtml(leader)} is the Round Leader</h3><p>Waiting for the shared Problem Card.</p>`;
+        } else if (game.phase === 'submit') {
+          if (submitted.includes(myPlayerId)) {
+            html = `<h3>Your idea is locked in</h3><p>${submitted.length} of ${connectedPlayerIds().length} players have submitted. Everyone's ideas will reveal together.</p>`;
+          } else {
+            html = `<h3>Offer Your Solution</h3><p>Explain what you would do and the principle that makes it a good solution. Selecting a card below is optional inspiration.</p><label for="coopSuggestion">How would you solve the problem?</label><textarea id="coopSuggestion" maxlength="300" placeholder="I would…"></textarea><label for="coopPrinciple">What principle supports your solution?</label><textarea id="coopPrinciple" maxlength="220" placeholder="The principle is…"></textarea><button id="submitCoopBtn" class="btn teal wide" type="button">Submit My Idea</button>`;
+          }
+        } else if (game.phase === 'coopVote') {
+          if (voted.includes(myPlayerId)) {
+            html = `<h3>Your vote is locked in</h3><p>${voted.length} of ${connectedPlayerIds().length} players have voted. The vote remains private until everyone is finished.</p>`;
+          } else {
+            html = `<h3>Discuss, Then Decide Together</h3><p>Review every suggestion and principle. After talking it through, approve only if the group has a solution you would all use.</p><div class="button-row"><button id="approveCoopBtn" class="btn success" type="button">I Like Our Solution</button><button id="rejectCoopBtn" class="btn danger" type="button">Needs More Discussion</button></div>`;
+          }
+        } else if (game.phase === 'roundResult') {
+          const solved = game.result?.outcome === 'solved';
+          const approvals = game.result?.approvals || [];
+          html = `<h3>${solved ? 'Everyone Agreed — Problem Solved!' : 'The Team Did Not Fully Agree'}</h3><p>${solved ? 'Every player approved, so the team earned one point.' : 'At least one player chose Needs More Discussion, so this round counts as Needs Work.'}</p><div class="vote-status">${approvals.map(vote => `<div class="vote-person"><span>${escapeHtml(vote.playerName)}</span><strong>${vote.approve ? 'Approved' : 'Needs Work'}</strong></div>`).join('')}</div>${isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected) ? '<button id="nextRoundBtn" class="btn primary wide" type="button">Next Shared Problem</button>' : `<p class="muted">Waiting for ${escapeHtml(leader)} to continue.</p>`}`;
+        }
+      } else {
+        if (game.phase === 'draw') {
+          html = isMyTurnAsPicker()
+            ? `<h3>You are the Problem Picker</h3><p>Draw the next Problem Card and read it aloud.</p><button id="drawProblemBtn" class="btn primary wide" type="button">Draw a Problem</button>`
+            : `<h3>${escapeHtml(leader)} is the Problem Picker</h3><p>Waiting for the next Problem Card.</p>`;
+        } else if (game.phase === 'submit') {
+          const submitted = game.submittedPlayerIds || [];
+          if (isMyTurnAsPicker()) {
+            html = `<h3>Solutions are coming in</h3><p>${submitted.length} of ${activeSolverIds().length} Solver${activeSolverIds().length === 1 ? '' : 's'} submitted.</p>`;
+          } else if (submitted.includes(myPlayerId)) {
+            html = `<h3>Your answer is locked in</h3><p>Waiting for the other Solvers. The Picker cannot see who played which card.</p>`;
+          } else {
+            html = `<h3>Choose Your Solution</h3><p>Select a card from your hand and optionally explain how it solves the problem.</p><label for="solutionExplanation">Optional explanation</label><textarea id="solutionExplanation" maxlength="240" placeholder="Make your case…"></textarea><button id="submitSolutionBtn" class="btn teal wide" type="button" ${selectedSolutionInstanceId ? '' : 'disabled'}>Submit Selected Card</button>`;
+          }
+        } else if (game.phase === 'judge') {
+          html = isMyTurnAsPicker()
+            ? `<h3>Choose the best solution</h3><p>Tap the anonymous answer that solves the Problem best—or choose none.</p><button id="noneWorkedBtn" class="btn danger wide" type="button">None of These Worked</button>`
+            : `<h3>The Picker is deciding</h3><p>${escapeHtml(leader)} is judging the anonymous answers.</p>`;
+        } else if (game.phase === 'roundResult') {
+          const solved = game.result?.outcome === 'solved';
+          const pointName = game.result?.pointPlayerId ? playerName(game.result.pointPlayerId) : '';
+          html = `<h3>${solved ? `${escapeHtml(pointName)} Earned the Point!` : 'No Solution Was Chosen'}</h3><p>${solved ? 'The selected player moves one point closer to victory.' : 'Nobody scores this round.'}</p>${isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected) ? '<button id="nextRoundBtn" class="btn primary wide" type="button">Next Round</button>' : `<p class="muted">Waiting for ${escapeHtml(leader)} to continue.</p>`}`;
+        }
+      }
+
+      ui.actionPanel.innerHTML = html;
+      document.getElementById('drawProblemBtn')?.addEventListener('click', () => sendAction('drawProblem'));
+      document.getElementById('submitSolutionBtn')?.addEventListener('click', () => {
+        if (!selectedSolutionInstanceId) return;
+        const explanation = document.getElementById('solutionExplanation')?.value || '';
+        sendAction('playSolution', { instanceId: selectedSolutionInstanceId, explanation });
+        selectedSolutionInstanceId = null;
+      });
+      document.getElementById('submitCoopBtn')?.addEventListener('click', () => {
+        const suggestion = document.getElementById('coopSuggestion')?.value || '';
+        const principle = document.getElementById('coopPrinciple')?.value || '';
+        if (clampText(suggestion, 300).length < 4) return toast('Add your suggested solution first.');
+        if (clampText(principle, 220).length < 3) return toast('Add the principle behind it.');
+        sendAction('submitCoop', { instanceId: selectedSolutionInstanceId, suggestion, principle });
+        selectedSolutionInstanceId = null;
+      });
+      document.getElementById('approveCoopBtn')?.addEventListener('click', () => sendAction('voteCoop', { approve: true }));
+      document.getElementById('rejectCoopBtn')?.addEventListener('click', () => sendAction('voteCoop', { approve: false }));
+      document.getElementById('noneWorkedBtn')?.addEventListener('click', () => sendAction('judge', { submissionId: null }));
+      document.getElementById('nextRoundBtn')?.addEventListener('click', () => sendAction('nextRound'));
+    }
+
+
+    function renderHand() {
+      const game = state.game;
+      const hand = game.hands?.[myPlayerId] || [];
+      if (selectedSolutionInstanceId && !hand.some(card => card.instanceId === selectedSolutionInstanceId)) selectedSolutionInstanceId = null;
+      const submitted = (game.submittedPlayerIds || []).includes(myPlayerId);
+      const selectable = game.phase === 'submit' && !submitted && (isCoopMode() ? connectedPlayerIds().includes(myPlayerId) : isMyTurnAsSolver());
+
+      if (isCoopMode()) {
+        ui.handHelp.textContent = selectable ? 'Optional: tap a card for inspiration, or write your own idea.' : submitted ? 'Your optional inspiration card is locked with your response.' : 'These cards can inspire a future cooperative answer.';
+      } else {
+        ui.handHelp.textContent = selectable ? 'Tap one card, then submit it.' : isMyTurnAsPicker() ? 'You keep your hand while you are the Picker.' : submitted ? 'Your answer is already submitted.' : 'Your cards are ready for your next Solver turn.';
+      }
+
+      ui.hand.innerHTML = hand.map(card => `<button type="button" class="hand-card ${selectedSolutionInstanceId === card.instanceId ? 'selected' : ''}" data-instance-id="${card.instanceId}" ${selectable ? '' : 'disabled'}>${escapeHtml(card.text)}</button>`).join('');
+      ui.hand.querySelectorAll('[data-instance-id]').forEach(button => button.addEventListener('click', () => {
+        if (!selectable) return;
+        const clicked = button.dataset.instanceId;
+        selectedSolutionInstanceId = selectedSolutionInstanceId === clicked && isCoopMode() ? null : clicked;
+        ui.hand.querySelectorAll('.hand-card').forEach(card => card.classList.toggle('selected', card.dataset.instanceId === selectedSolutionInstanceId));
+        const submitButton = document.getElementById('submitSolutionBtn');
+        if (submitButton) submitButton.disabled = !selectedSolutionInstanceId;
+      }));
+    }
+
+
+    function renderGameStatus() {
+      const game = state.game;
+      const leader = playerName(currentPickerId());
+      const submitted = game.submittedPlayerIds || [];
+      const voted = game.votedPlayerIds || [];
+      let text = '';
+      if (isCoopMode()) {
+        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn: draw the shared Problem.' : `${leader} is drawing the shared Problem.`;
+        if (game.phase === 'submit') text = submitted.includes(myPlayerId) ? `Your idea is submitted. ${submitted.length} of ${connectedPlayerIds().length} ready.` : 'Your turn: offer a solution and the principle behind it.';
+        if (game.phase === 'coopVote') text = voted.includes(myPlayerId) ? `Your vote is locked. ${voted.length} of ${connectedPlayerIds().length} voted.` : 'Discuss the revealed ideas, then vote.';
+        if (game.phase === 'roundResult') text = game.result?.outcome === 'solved' ? 'Unanimous approval — one cooperative point!' : 'Not unanimous — this round needs more work.';
+      } else {
+        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn: draw a Problem Card.' : `${leader} is drawing the Problem.`;
+        if (game.phase === 'submit') text = isMyTurnAsPicker() ? `${submitted.length} of ${activeSolverIds().length} answers submitted.` : submitted.includes(myPlayerId) ? 'Your solution is submitted.' : 'Your turn: play a private Solution Card.';
+        if (game.phase === 'judge') text = isMyTurnAsPicker() ? 'Your turn: choose the solution that works best.' : `${leader} is judging the answers.`;
+        if (game.phase === 'roundResult') text = game.result?.outcome === 'solved' ? `${playerName(game.result.pointPlayerId)} earned one point.` : 'No player scored this round.';
+      }
+      ui.statusBanner.textContent = text;
+    }
+
+
+    function renderEnd() {
+      showScreen('endScreen');
+      setConnection('Game complete', 'online');
+      if (state.game?.playMode === 'pvp') {
+        const winnerName = playerName(state.game.winnerPlayerId);
+        ui.endIcon.textContent = '🏆';
+        ui.endTitle.textContent = `${winnerName} Wins!`;
+        ui.endText.textContent = `${winnerName} reached ${state.game.pvpGoal} points first in “${state.activeDeck.name}.”`;
+      } else {
+        const won = state.game?.winner === 'win';
+        ui.endIcon.textContent = won ? '🎉' : '🛠️';
+        ui.endTitle.textContent = won ? '3 Fold Cord Complete!' : 'More Discussion Needed';
+        ui.endText.textContent = won ? `Your team reached ${state.game.goal} points through unanimous agreement in ${state.game.round} rounds using “${state.activeDeck.name}.”` : `The team reached ${state.game.missLimit} Needs Work rounds—but the deck is ready for another try.`;
+      }
+      ui.playAgainBtn.classList.toggle('hidden', !isHost);
+    }
+
+
+    function renderSavedGames() {
+      const games = getSavedGames();
+      ui.savedLobbyList.innerHTML = games.length ? games.map(deck => `<div class="saved-item">
+        <div><div class="saved-title">${escapeHtml(deck.name)}</div><div class="saved-meta">${deck.problems.length} Problems • ${deck.solutions.length} Solutions • Updated ${new Date(deck.updatedAt).toLocaleDateString()}</div></div>
+        <div class="deck-actions"><button type="button" class="btn cream small" data-export-saved="${deck.id}">Export</button><button type="button" class="btn danger small" data-delete-saved="${deck.id}">Delete</button></div>
+      </div>`).join('') : '<p class="muted">No saved games yet. Build one with your group, then save it after the timer.</p>';
+      ui.savedLobbyList.querySelectorAll('[data-export-saved]').forEach(button => button.addEventListener('click', () => {
+        const deck = getSavedGames().find(item => item.id === button.dataset.exportSaved);
+        if (deck) exportDeck(deck);
+      }));
+      ui.savedLobbyList.querySelectorAll('[data-delete-saved]').forEach(button => button.addEventListener('click', () => deleteSavedDeck(button.dataset.deleteSaved)));
+    }
+
+    async function copyRoomCode() {
+      try {
+        await navigator.clipboard.writeText(roomCode);
+        toast('Room code copied.');
+      } catch {
+        toast(`Room code: ${roomCode}`);
+      }
+    }
+
+    function addCardFromInput(kind) {
+      const input = kind === 'problem' ? ui.problemInput : ui.solutionInput;
+      const text = clampText(input.value, 220);
+      if (text.length < 4) return toast('Write a little more before adding the card.');
+      sendAction('addBuildCard', { kind, text });
+      input.value = '';
+      input.focus();
+    }
+
+    ui.createRoomBtn.addEventListener('click', hostCreateRoom);
+    ui.joinRoomBtn.addEventListener('click', guestJoinRoom);
+    ui.joinCode.addEventListener('input', () => { ui.joinCode.value = cleanCode(ui.joinCode.value); });
+    ui.joinCode.addEventListener('keydown', event => { if (event.key === 'Enter') guestJoinRoom(); });
+    ui.cancelConnectingBtn.addEventListener('click', () => resetToLobby());
+    ui.copyCodeBtn.addEventListener('click', copyRoomCode);
+    ui.leaveRoomBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the room.'));
+    ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
+    ui.endLeaveBtn.addEventListener('click', () => resetToLobby());
+
+    ui.playStyleSelect.addEventListener('change', hostSetRoomSettings);
+    ui.roomModeSelect.addEventListener('change', hostSetRoomSettings);
+    ui.buildTimeSelect.addEventListener('change', hostSetRoomSettings);
+    ui.deckNameInput.addEventListener('change', hostSetRoomSettings);
+    ui.startRoomBtn.addEventListener('click', hostStartSelectedMode);
+
+    ui.addProblemBtn.addEventListener('click', () => addCardFromInput('problem'));
+    ui.addSolutionBtn.addEventListener('click', () => addCardFromInput('solution'));
+    ui.problemInput.addEventListener('keydown', event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') addCardFromInput('problem'); });
+    ui.solutionInput.addEventListener('keydown', event => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') addCardFromInput('solution'); });
+    ui.endBuildEarlyBtn.addEventListener('click', finishBuild);
+
+    ui.saveDeckBtn.addEventListener('click', saveCurrentDeck);
+    ui.exportDeckBtn.addEventListener('click', exportCurrentDeck);
+    ui.addMoreTimeBtn.addEventListener('click', () => resumeBuild(60));
+    ui.startCustomGameBtn.addEventListener('click', () => startGameWithDeck(customDeckFromBuilder()));
+    ui.playAgainBtn.addEventListener('click', () => sendAction('playAgain'));
+
+    ui.rulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
+    ui.gameRulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
+    ui.closeRulesBtn.addEventListener('click', () => ui.rulesDialog.close());
+    ui.importDeckInput.addEventListener('change', () => importDeckFile(ui.importDeckInput.files?.[0]));
+
+    setInterval(updateBuildTimer, 250);
+    renderSavedGames();
+
+    window.addEventListener('beforeunload', () => {
+      if (isHost) {
+        for (const connection of hostConnections.values()) {
+          try { connection.send({ type: 'hostClosing' }); } catch {}
+        }
+      }
+      cleanupConnection();
+    });
+  
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      });
+    }
+</script>
+</body>
+</html>
