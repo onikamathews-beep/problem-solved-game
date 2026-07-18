@@ -928,6 +928,705 @@
       .mode-invite-hero { padding: 16px 12px; }
     }
 
+  
+    /* =========================================================
+       3 FOLD CORD VINTAGE TABLETOP REDESIGN — v8
+       ========================================================= */
+    body.coop-game {
+      --forest: #102f1e;
+      --forest-2: #173d27;
+      --forest-3: #245538;
+      --parchment: #f4e7c9;
+      --parchment-light: #fff6df;
+      --parchment-deep: #dec89a;
+      --antique-gold: #b98a31;
+      --bright-gold: #d9b65b;
+      --dark-gold: #76521e;
+      --vintage-ink: #233321;
+      --soft-brown: #655038;
+      --danger: #9d4f46;
+      min-height: 100dvh;
+      color: var(--vintage-ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 15% 8%, rgba(218,182,92,.13), transparent 30%),
+        radial-gradient(circle at 85% 78%, rgba(255,255,255,.04), transparent 34%),
+        repeating-linear-gradient(145deg, rgba(255,255,255,.018) 0 2px, transparent 2px 8px),
+        linear-gradient(145deg, #0c2417, #143623 50%, #0a2115);
+      overflow: hidden;
+    }
+
+    body.coop-game .app {
+      width: min(520px, 100%);
+      height: 100dvh;
+      margin: 0 auto;
+      padding: max(5px, env(safe-area-inset-top)) 5px max(5px, env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+
+    body.coop-game .topbar { display: none !important; }
+    body.coop-game #gameScreen.active {
+      display: flex;
+      height: 100%;
+      min-height: 0;
+      flex-direction: column;
+      gap: 7px;
+      animation: none;
+      position: relative;
+      border: 1px solid rgba(222,190,112,.65);
+      border-radius: 24px;
+      padding: 8px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.025), transparent 35%, rgba(255,255,255,.018)),
+        #0f2b1c;
+      box-shadow:
+        inset 0 0 0 2px rgba(10,20,13,.6),
+        inset 0 0 0 4px rgba(207,164,69,.24);
+    }
+
+    .coop-vintage-header {
+      flex: 0 0 70px;
+      min-height: 70px;
+      display: grid;
+      grid-template-columns: 46px 48px minmax(0,1fr) 78px;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 7px;
+      color: #efd28d;
+      border-bottom: 1px solid rgba(218,182,92,.35);
+      background:
+        radial-gradient(circle at 78% 12%, rgba(255,255,255,.045), transparent 26%),
+        linear-gradient(180deg, rgba(25,67,43,.96), rgba(12,39,24,.98));
+      border-radius: 16px 16px 8px 8px;
+      box-shadow: inset 0 -1px 0 rgba(0,0,0,.45);
+      position: relative;
+      z-index: 12;
+    }
+
+    .coop-menu-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      color: #e7c974;
+      font-size: 1.55rem;
+      line-height: 1;
+      border: 1px solid #8e6b2b;
+      background: linear-gradient(145deg, #173d27, #0d2a1a);
+      box-shadow: 0 3px 0 #071a10, inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+
+    .coop-bookmark-logo {
+      width: 42px;
+      height: 62px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 3px rgba(0,0,0,.45));
+    }
+
+    .coop-vintage-title {
+      min-width: 0;
+      display: grid;
+      align-content: center;
+      line-height: 1;
+    }
+    .coop-vintage-title strong {
+      color: #f1d28a;
+      font-size: clamp(1.2rem, 5vw, 1.72rem);
+      font-weight: 500;
+      letter-spacing: .025em;
+      white-space: nowrap;
+      text-shadow: 0 2px 0 #563b15;
+    }
+    .coop-vintage-title span {
+      margin-top: 5px;
+      color: #bca879;
+      font-size: .58rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .coop-points-box {
+      height: 54px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      border: 1px solid #8d6b2f;
+      border-radius: 12px;
+      background: linear-gradient(160deg, #1a442c, #0a2919);
+      box-shadow: inset 0 0 0 1px rgba(255,226,149,.08), 0 3px 0 #06180e;
+    }
+    .coop-points-box span {
+      color: #d3b86d;
+      font-size: .58rem;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .coop-points-box strong {
+      color: #fff3d5;
+      font-size: 1.2rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .coop-menu-sheet {
+      position: absolute;
+      top: 70px;
+      left: 14px;
+      z-index: 40;
+      width: 160px;
+      padding: 8px;
+      display: grid;
+      gap: 7px;
+      border: 1px solid #b58a37;
+      border-radius: 13px;
+      background: #f8ecd2;
+      box-shadow: 0 14px 32px rgba(0,0,0,.38);
+    }
+    .coop-sheet-button {
+      min-height: 42px;
+      border: 1px solid #8b6a35;
+      border-radius: 9px;
+      color: #243921;
+      background: #fff7e3;
+      font-weight: 700;
+    }
+    .coop-sheet-button.danger { color: white; background: #9b4f45; border-color: #6f352f; }
+
+    body.coop-game .game-header,
+    body.coop-game #coopScoreGrid,
+    body.coop-game #pvpScorePanel,
+    body.coop-game .pvp-footer-actions { display: none !important; }
+
+    body.coop-game .status-banner {
+      flex: 0 0 48px;
+      min-height: 48px;
+      margin: 0 4px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 34px;
+      border: 1px solid #7a9b55;
+      border-radius: 14px;
+      color: #fff0bf;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04), transparent 20%, transparent 80%, rgba(255,255,255,.04)),
+        linear-gradient(180deg, #285e35, #174629);
+      box-shadow: 0 4px 0 #082718, inset 0 0 0 1px rgba(255,255,255,.05);
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+    }
+    body.coop-game .status-banner::before {
+      content: "✓";
+      position: absolute;
+      left: 13px;
+      width: 23px;
+      height: 23px;
+      display: grid;
+      place-items: center;
+      border: 2px solid #d9c48f;
+      border-radius: 50%;
+      color: #173d27;
+      background: #cbd69e;
+      font-family: system-ui, sans-serif;
+      font-size: .84rem;
+    }
+    body.coop-game .status-banner.banner-flash { animation: bannerSweep .52s ease-out; }
+    @keyframes bannerSweep {
+      0% { opacity: 0; transform: translateY(-18px) scale(.98); }
+      70% { opacity: 1; transform: translateY(2px) scale(1.01); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    body.coop-game .table-area {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(178px, 1fr) 86px;
+      gap: 7px;
+      padding: 10px;
+      overflow: hidden;
+      border: 1px solid #d7bf8a;
+      border-radius: 19px;
+      background:
+        radial-gradient(circle at 18% 4%, rgba(255,255,255,.72), transparent 22%),
+        repeating-linear-gradient(12deg, rgba(99,73,37,.025) 0 1px, transparent 1px 6px),
+        linear-gradient(145deg, #fff5dc, #edddbb);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.4), 0 5px 0 #071d12;
+    }
+
+    body.coop-game .action-panel {
+      min-height: 48px;
+      margin: 0;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 11px;
+      color: #263924;
+      background: rgba(255,248,225,.68);
+      box-shadow: none;
+      text-align: center;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    body.coop-game .action-panel h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+    body.coop-game .action-panel p { margin: 2px 0 0; font-size: .78rem; line-height: 1.25; }
+    body.coop-game .action-panel .btn { margin: 0 0 0 10px; width: auto; min-width: 115px; min-height: 40px; }
+    body.coop-game .action-panel > div { width: 100%; }
+
+    body.coop-game .card-zone {
+      min-height: 0;
+      padding: 5px;
+      border: 0;
+      border-radius: 13px;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    body.coop-game .problem-stage {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    body.coop-game .problem-stage .play-card {
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+    }
+
+    body.coop-game .play-card {
+      width: min(100%, 430px);
+      max-height: 100%;
+      aspect-ratio: 1.56 / 1;
+      padding: 24px 28px 20px;
+      border: 1px solid #977334;
+      border-radius: 15px;
+      color: #20351f;
+      background:
+        linear-gradient(90deg, transparent 0 14px, rgba(112,77,30,.15) 14px 15px, transparent 15px calc(100% - 15px), rgba(112,77,30,.15) calc(100% - 15px) calc(100% - 14px), transparent calc(100% - 14px)),
+        linear-gradient(0deg, transparent 0 14px, rgba(112,77,30,.15) 14px 15px, transparent 15px calc(100% - 15px), rgba(112,77,30,.15) calc(100% - 15px) calc(100% - 14px), transparent calc(100% - 14px)),
+        radial-gradient(circle at 12% 10%, rgba(255,255,255,.62), transparent 18%),
+        repeating-linear-gradient(22deg, rgba(92,62,29,.018) 0 1px, transparent 1px 5px),
+        #f5e5c3;
+      box-shadow: 0 8px 0 #64461f, 0 12px 22px rgba(68,44,18,.26);
+      overflow: hidden;
+      position: relative;
+    }
+    body.coop-game .play-card::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      background: url("./ornate-landscape-frame.svg") center / 100% 100% no-repeat;
+      opacity: .9;
+      pointer-events: none;
+      z-index: 1;
+    }
+    body.coop-game .hand-card::before,
+    body.coop-game .played-solution-card::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      background: url("./ornate-portrait-frame.svg") center / 100% 100% no-repeat;
+      opacity: .88;
+      pointer-events: none;
+      z-index: 1;
+    }
+    body.coop-game .play-card::after {
+      content: "❧  ───  ❦  ───  ❧";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 9px;
+      color: #8c6b30;
+      font-size: .68rem;
+      letter-spacing: .04em;
+      text-align: center;
+      opacity: .82;
+      pointer-events: none;
+    }
+    body.coop-game .play-card.problem {
+      background:
+        linear-gradient(90deg, transparent 0 14px, rgba(112,77,30,.15) 14px 15px, transparent 15px calc(100% - 15px), rgba(112,77,30,.15) calc(100% - 15px) calc(100% - 14px), transparent calc(100% - 14px)),
+        linear-gradient(0deg, transparent 0 14px, rgba(112,77,30,.15) 14px 15px, transparent 15px calc(100% - 15px), rgba(112,77,30,.15) calc(100% - 15px) calc(100% - 14px), transparent calc(100% - 14px)),
+        radial-gradient(circle at 12% 10%, rgba(255,255,255,.58), transparent 18%),
+        repeating-linear-gradient(22deg, rgba(92,62,29,.018) 0 1px, transparent 1px 5px),
+        #f1d795;
+    }
+    body.coop-game .play-card.problem::after {
+      content: "❧  ───  braided together  ───  ❧";
+      height: auto;
+      border: 0;
+      transform: none;
+      opacity: .8;
+    }
+    body.coop-game .card-type {
+      justify-content: center;
+      color: #34452f;
+      font-size: .66rem;
+      letter-spacing: .1em;
+    }
+    body.coop-game .card-icon {
+      width: 25px;
+      height: 25px;
+      border: 1px solid #765a28;
+      color: #fff3d2;
+      background: #254d30;
+    }
+    body.coop-game .card-text {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      flex: 1;
+      padding: 6px 0 18px;
+      color: #17321e;
+      font-size: clamp(1.08rem, 4.7vw, 1.6rem);
+      font-weight: 600;
+      line-height: 1.18;
+      text-align: center;
+    }
+    body.coop-game .card-number { display: none; }
+
+    .coop-card-back {
+      color: #e8ce88 !important;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(218,182,92,.12), transparent 42%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.015) 0 2px, transparent 2px 8px),
+        #10331f !important;
+      border-color: #c89b3e !important;
+      box-shadow: 0 7px 0 #071d12, 0 12px 20px rgba(0,0,0,.28) !important;
+    }
+    .coop-card-back::after { content: ""; }
+    .coop-back-bookmark {
+      width: 72px;
+      height: 118px;
+      object-fit: contain;
+      filter: drop-shadow(0 3px 2px rgba(0,0,0,.38));
+    }
+    .coop-back-mark strong {
+      color: #ecd28e;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: .05em;
+    }
+    .coop-back-mark small { color: #bca56a; font-size: .58rem; }
+
+    body.coop-game .shared-stage {
+      min-height: 86px;
+      margin-top: 4px;
+      padding: 12px 7px 5px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(133,98,42,.32);
+      border-radius: 11px;
+      background: rgba(239,223,188,.72);
+      position: relative;
+      z-index: 4;
+    }
+    body.coop-game .shared-stage::before {
+      content: "Shared Play Area";
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0 11px;
+      color: #80622f;
+      background: #efdfbc;
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .shared-card-backs {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 9px;
+      padding-top: 8px;
+    }
+    .shared-mini-back {
+      width: 58px;
+      aspect-ratio: 2.43 / 3.26;
+      border: 1px solid #c29135;
+      border-radius: 7px;
+      background:
+        url("./three-fold-bookmark.png") center / 22px auto no-repeat,
+        radial-gradient(circle at 50% 45%, rgba(220,181,80,.12), transparent 35%),
+        #0e3420;
+      box-shadow: 0 3px 0 #071c11, 0 5px 8px rgba(0,0,0,.22);
+      animation: cardLand .36s ease-out both;
+    }
+    @keyframes cardLand {
+      from { opacity: 0; transform: translateY(-30px) rotate(-5deg) scale(.86); }
+      70% { transform: translateY(4px) rotate(1deg) scale(1.03); }
+      to { opacity: 1; transform: translateY(0) rotate(0) scale(1); }
+    }
+
+    .played-solutions {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 4px;
+      overflow: visible;
+    }
+    .played-solution-card {
+      width: clamp(78px, 22%, 112px);
+      min-height: 128px;
+      padding: 17px 8px 12px;
+      border: 1px solid #9b7637;
+      border-radius: 10px;
+      color: #213722;
+      background:
+        repeating-linear-gradient(20deg, rgba(96,68,30,.018) 0 1px, transparent 1px 5px),
+        #f8e9c8;
+      box-shadow: 0 4px 0 #765224, 0 7px 13px rgba(74,48,20,.17);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      position: relative;
+      transform: rotate(var(--card-tilt, 0deg));
+      animation: revealCard .35s ease-out both;
+    }
+    @keyframes revealCard {
+      from { opacity: 0; transform: translateY(22px) scale(.85) rotate(var(--card-tilt, 0deg)); }
+      to { opacity: 1; transform: translateY(0) scale(1) rotate(var(--card-tilt, 0deg)); }
+    }
+    .played-card-text {
+      position: relative;
+      z-index: 2;
+      padding: 0;
+      font-size: clamp(.68rem, 2.6vw, .85rem);
+      font-weight: 600;
+      line-height: 1.16;
+    }
+    .played-by, .played-card-label, .played-card-footer { display: none; }
+    .revealed-solutions-wrap h3,
+    .revealed-solutions-wrap > p { display: none; }
+
+    body.coop-game .hand-wrap {
+      flex: 0 0 228px;
+      min-height: 0;
+      margin: 0;
+      padding: 4px 5px 0;
+      border: 0;
+      border-radius: 0;
+      background:
+        radial-gradient(ellipse at center 110%, rgba(213,177,84,.14), transparent 58%),
+        linear-gradient(180deg, #10321f, #0b2818);
+      box-shadow: none;
+      overflow: hidden;
+      transition: flex-basis .3s ease;
+      position: relative;
+      z-index: 8;
+    }
+    body.coop-game .hand-wrap.collapsed { flex-basis: 86px; }
+    body.coop-game .hand-head {
+      height: 0;
+      min-height: 0;
+      overflow: hidden;
+      justify-content: center;
+      align-items: center;
+      color: #d6bd7b;
+    }
+    body.coop-game .hand-head h3 { display: none; }
+    body.coop-game .hand-head .muted {
+      color: #cbb37b;
+      font-size: .7rem;
+      letter-spacing: .04em;
+    }
+
+    body.coop-game .hand {
+      position: relative;
+      width: 100%;
+      height: 185px;
+      margin: 0;
+      padding: 0;
+      display: block;
+      overflow: visible;
+      touch-action: none;
+      user-select: none;
+      transition: height .3s ease, transform .3s ease;
+    }
+    body.coop-game .hand-wrap.collapsed .hand {
+      height: 58px;
+      transform: translateY(40px);
+    }
+
+    body.coop-game .hand-card {
+      --offset: 0;
+      --fan-x: calc(var(--offset) * 66px);
+      --fan-rot: calc(var(--offset) * 5deg);
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      width: min(44vw, 190px);
+      height: 180px;
+      min-height: 0;
+      padding: 29px 16px 18px;
+      border: 1px solid #9f7837;
+      border-radius: 13px;
+      color: #20351f;
+      background:
+        linear-gradient(90deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
+        linear-gradient(0deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
+        repeating-linear-gradient(20deg, rgba(92,62,29,.017) 0 1px, transparent 1px 5px),
+        #f8e9c8;
+      box-shadow: 0 5px 0 #735024, 0 10px 18px rgba(0,0,0,.22);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.17;
+      text-align: center;
+      transform-origin: 50% 120%;
+      transform: translateX(calc(-50% + var(--fan-x))) rotate(var(--fan-rot)) scale(var(--fan-scale, .88));
+      opacity: var(--fan-opacity, .86);
+      z-index: var(--fan-z, 1);
+      transition: transform .26s cubic-bezier(.2,.75,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    body.coop-game .hand-card::after {
+      content: "❧  ──  ❦  ──  ❧";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 11px;
+      color: #87672f;
+      font-size: .52rem;
+      opacity: .75;
+    }
+    body.coop-game .hand-card.focused {
+      --fan-scale: 1;
+      --fan-opacity: 1;
+      box-shadow: 0 5px 0 #765124, 0 0 0 2px #e2b84f, 0 10px 22px rgba(0,0,0,.28);
+      filter: brightness(1.02);
+    }
+    body.coop-game .hand-card.selected {
+      background:
+        linear-gradient(90deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
+        linear-gradient(0deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
+        #f8e9c8;
+      transform: translateX(calc(-50% + var(--fan-x))) rotate(var(--fan-rot)) scale(var(--fan-scale, 1));
+    }
+    body.coop-game .hand-card-kicker {
+      color: #6c542b;
+      font-size: .55rem;
+      letter-spacing: .12em;
+    }
+    body.coop-game .hand-card:disabled { opacity: var(--fan-opacity, .78); }
+
+    .hand-gesture-hint {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1px;
+      color: #d8bf7c;
+      font-size: .69rem;
+      letter-spacing: .04em;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .hand-gesture-hint span { padding: 0 8px; font-size: 1rem; }
+    .hand-wrap.collapsed .hand-gesture-hint { opacity: 0; }
+
+    .coop-action-dock { display: none; }
+    body.coop-game .coop-action-dock {
+      flex: 0 0 56px;
+      display: grid;
+      grid-template-columns: 1fr 1.55fr 1fr;
+      gap: 7px;
+      padding: 0 3px 2px;
+      z-index: 15;
+    }
+    .dock-button {
+      min-width: 0;
+      border: 1px solid #9b7635;
+      border-radius: 13px;
+      color: #ead08c;
+      background: linear-gradient(160deg, #173d27, #0b2818);
+      box-shadow: 0 4px 0 #06170e;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+    .dock-button.play {
+      color: #fff2cd;
+      background: linear-gradient(160deg, #c79a3d, #986b22);
+      border-color: #e0b75b;
+      font-size: 1rem;
+      box-shadow: 0 4px 0 #563712, inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+    .dock-button:disabled { opacity: .44; }
+
+    .card-flight {
+      position: fixed !important;
+      z-index: 1000 !important;
+      pointer-events: none !important;
+      margin: 0 !important;
+      transition:
+        left .48s cubic-bezier(.2,.8,.2,1),
+        top .48s cubic-bezier(.2,.8,.2,1),
+        width .48s cubic-bezier(.2,.8,.2,1),
+        height .48s cubic-bezier(.2,.8,.2,1),
+        transform .48s cubic-bezier(.2,.8,.2,1),
+        opacity .48s ease !important;
+    }
+
+    .vote-button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 5px;
+      margin-top: 7px;
+    }
+    body.coop-game .vote-button-grid .btn {
+      min-height: 40px;
+      padding: 7px 5px;
+      border: 1px solid rgba(84,61,27,.62);
+      border-radius: 9px;
+      box-shadow: 0 3px 0 rgba(52,35,14,.55);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: .72rem;
+    }
+
+    @media (min-height: 900px) {
+      body.coop-game .hand-wrap { flex-basis: 285px; }
+      body.coop-game .hand { height: 226px; }
+      body.coop-game .hand-card { height: 215px; }
+      body.coop-game .table-area { grid-template-rows: auto minmax(210px,1fr) 105px; }
+    }
+
+    @media (max-height: 760px) {
+      body.coop-game .hand-wrap { flex-basis: 210px; }
+      body.coop-game .hand { height: 157px; }
+      body.coop-game .hand-card { height: 150px; width: min(39vw, 150px); font-size: .82rem; }
+      body.coop-game .table-area { grid-template-rows: auto minmax(150px,1fr) 74px; }
+      body.coop-game .play-card { padding: 18px 22px 16px; }
+    }
+
+    @media (max-width: 390px) {
+      .coop-vintage-header { grid-template-columns: 42px 40px minmax(0,1fr) 70px; gap: 5px; }
+      .coop-bookmark-logo { width: 36px; height: 56px; }
+      .coop-vintage-title strong { font-size: 1.18rem; }
+      body.coop-game .hand-card { --fan-x: calc(var(--offset) * 55px); width: min(46vw, 176px); }
+      .dock-button { font-size: .72rem; }
+      .dock-button.play { font-size: .91rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -958,7 +1657,7 @@
 
       <div class="panel">
         <h2>Play 3 Fold Cord or Problem? Solved! with 2–6 devices</h2>
-        <p class="muted">One person hosts. Everyone else joins through the shared link or with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
+        <p class="muted">One person hosts. Everyone else joins with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
         <div class="grid-2">
           <div class="choice">
             <h3>Create a room</h3>
@@ -986,7 +1685,7 @@
         <label for="importDeckInput">Import a saved game</label>
         <input id="importDeckInput" type="file" accept="application/json,.json">
       </div>
-      <p class="footer-note">Rooms are stored online. You can open the Share sheet, switch apps, or return to the game without closing the room.</p>
+      <p class="footer-note">All devices must be online, and the host must keep the webpage open.</p>
     </section>
 
     <section id="inviteJoinScreen" class="screen">
@@ -1020,7 +1719,7 @@
     <section id="connectingScreen" class="screen">
       <div class="panel center">
         <h2 id="connectingTitle">Opening the room…</h2>
-        <p id="connectingText" class="muted">Connecting to the online game room.</p>
+        <p id="connectingText" class="muted">Connecting securely through the browser.</p>
         <button id="cancelConnectingBtn" class="btn danger wide" type="button">Cancel</button>
       </div>
     </section>
@@ -1034,7 +1733,7 @@
             <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
             <button id="shareInviteBtn" type="button" class="btn teal small">Share 3 Fold Cord Invite</button>
           </div>
-          <p id="inviteLinkHint" class="invite-helper">The shared invitation opens the correct join page, pre-fills the room code, and also displays the code in the message.</p>
+          <p id="inviteLinkHint" class="invite-helper">The shared link opens only the 3 Fold Cord join page. Your room code is included in the invitation message.</p>
         </div>
         <div class="metric-grid">
           <div class="metric"><strong id="roomPlayerCount">1</strong><span>Players</span></div>
@@ -1175,11 +1874,26 @@
       </div>
     </section>
 
+
     <section id="gameScreen" class="screen">
-      <div id="coopGameBrand" class="coop-game-brand hidden" aria-label="3 Fold Cord cooperative mode">
-        <div class="coop-brand-crop"><img src="./3-fold-cord-logo.png" alt=""></div>
-        <div class="coop-brand-copy"><strong>3 Fold Cord</strong><span>Discuss • Discover • Grow Together</span></div>
+      <div id="coopGameBrand" class="coop-vintage-header hidden" aria-label="3 Fold Cord cooperative mode">
+        <button id="coopMenuBtn" class="coop-menu-button" type="button" aria-label="Open game menu">☰</button>
+        <img class="coop-bookmark-logo" src="./three-fold-bookmark.png" alt="">
+        <div class="coop-vintage-title">
+          <strong>3 Fold Cord</strong>
+          <span>Ecclesiastes 4:12</span>
+        </div>
+        <div class="coop-points-box">
+          <span>Points</span>
+          <strong id="solvedScore">0 / 12</strong>
+        </div>
       </div>
+
+      <div id="coopMenuSheet" class="coop-menu-sheet hidden">
+        <button id="coopMenuRulesBtn" class="coop-sheet-button" type="button">Rules</button>
+        <button id="coopLeaveBtn" class="coop-sheet-button danger" type="button">Leave Game</button>
+      </div>
+
       <div class="game-header">
         <div id="gamePlayers" class="player-grid"></div>
         <div id="roundBadge" class="round-badge">Round 1</div>
@@ -1187,11 +1901,12 @@
 
       <div id="coopScoreGrid" class="score-grid coop-score-grid">
         <div class="score-card">
-          <div class="score-line"><strong>Team Progress</strong><span id="solvedScore" class="score-value">0 / 12</span></div>
+          <div class="score-line"><strong>Team Progress</strong><span class="score-value">12 points wins</span></div>
           <div class="meter"><div id="solvedMeter" class="meter-fill good"></div></div>
-          <div class="score-caption">Reach 12 agreed solutions. There is no strike or loss counter.</div>
+          <div class="score-caption">Reach twelve agreed solutions together.</div>
         </div>
       </div>
+
       <div id="pvpScorePanel" class="score-card hidden">
         <div class="score-line"><strong>Player Scores</strong><span id="pvpGoalText" class="score-value">First to 5</span></div>
         <div id="pvpScores" class="pvp-score-list"></div>
@@ -1200,23 +1915,31 @@
       <div id="statusBanner" class="status-banner" aria-live="polite">Get ready!</div>
 
       <div class="table-area">
-        <div id="problemZone" class="card-zone" aria-label="Problem card area"></div>
-        <div>
-          <div id="solutionZone" class="card-zone" aria-label="Solution area"></div>
-          <div id="actionPanel" class="action-panel"></div>
-        </div>
+        <div id="actionPanel" class="action-panel"></div>
+        <div id="problemZone" class="card-zone problem-stage" aria-label="Problem card area"></div>
+        <div id="solutionZone" class="card-zone shared-stage" aria-label="Shared play area"></div>
       </div>
 
       <div id="handWrap" class="hand-wrap">
-        <div class="hand-head"><h3>Your Solution Cards</h3><span id="handHelp" class="muted">Choose one when you are a Solver.</span></div>
-        <div id="hand" class="hand"></div>
+        <div class="hand-head">
+          <h3>Your Solution Cards</h3>
+          <span id="handHelp" class="muted">Swipe left or right.</span>
+        </div>
+        <div id="hand" class="hand" aria-label="Your hand of Solution Cards"></div>
+        <div class="hand-gesture-hint"><span>‹</span> Swipe left or right <span>›</span></div>
       </div>
 
-      <div class="button-row" style="margin-top:12px">
-        <button id="gameRulesBtn" class="btn cream small" type="button">Rules</button>
+      <div class="coop-action-dock">
+        <button id="collapseHandBtn" class="dock-button" type="button"><span aria-hidden="true">⌃</span> Collapse</button>
+        <button id="playFocusedCardBtn" class="dock-button play" type="button" disabled>Play This Card</button>
+        <button id="gameRulesBtn" class="dock-button" type="button"><span aria-hidden="true">▤</span> Rules</button>
+      </div>
+
+      <div class="pvp-footer-actions">
         <button id="leaveGameBtn" class="btn danger small" type="button">Leave Game</button>
       </div>
     </section>
+
 
     <section id="endScreen" class="screen">
       <div class="end-screen">
@@ -1236,8 +1959,8 @@
     <ol class="rules-list">
       <li>A room supports <strong>2–6 players</strong>, each on their own device. The host chooses the starting hand size.</li>
       <li>Typing is used only during <strong>Build Together</strong>, when everyone can add Problem and Solution Cards to the deck.</li>
-      <li><strong>3 Fold Cord:</strong> A rotating Round Leader draws one shared Problem Card. Every player—including the leader—privately plays exactly one Solution Card from their hand.</li>
-      <li>After everyone locks in, all played cards are revealed with player names. Players explain aloud how their card could help and what principle supports it.</li>
+      <li><strong>3 Fold Cord:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text first and reads it aloud. Every player then privately plays exactly one Solution Card from their hand.</li>
+      <li>After everyone plays, the Solution Cards are revealed in the shared play area. Players explain aloud how the cards could help and what principles support them. The round ends with a brief outcome banner rather than a separate reveal screen.</li>
       <li>Everyone votes <strong>Agree</strong>, <strong>Disagree</strong>, or <strong>Needs More Discussion</strong>. All Agree earns one team point. Any Disagree ends the round with no point. Needs More Discussion keeps the same cards and Problem open for another discussion and vote.</li>
       <li>Played cards are discarded after an Agree or Disagree result, and every player draws back up to the host-selected hand size. The team wins when it reaches <strong>12 points</strong>.</li>
       <li><strong>Problem? Solved!:</strong> One Problem Picker draws. Everyone else secretly plays one Solution Card. The Picker chooses the best anonymous card; that player earns one point. First to five points wins.</li>
@@ -1247,9 +1970,23 @@
   </dialog>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
-    import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
-    import { getDatabase, ref, get, set, update, remove, onValue, onDisconnect, push } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import { getDatabase, ref, set, get, update, remove, push, onValue, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI",
+      authDomain: "planning-with-ai-642ec.firebaseapp.com",
+      databaseURL: "https://planning-with-ai-642ec-default-rtdb.firebaseio.com",
+      projectId: "planning-with-ai-642ec",
+      storageBucket: "planning-with-ai-642ec.firebasestorage.app",
+      messagingSenderId: "560868808729",
+      appId: "1:560868808729:web:1b0b6fc13eadb1c1047288"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+    const database = getDatabase(firebaseApp);
 
     const MAX_PLAYERS = 6;
     const DEFAULT_HAND_SIZE = 5;
@@ -1359,33 +2096,20 @@
     const ui = {};
     document.querySelectorAll('[id]').forEach(element => { ui[element.id] = element; });
 
-    const FIREBASE_CONFIG = {
-      apiKey: 'AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI',
-      authDomain: 'planning-with-ai-642ec.firebaseapp.com',
-      databaseURL: 'https://planning-with-ai-642ec-default-rtdb.firebaseio.com',
-      projectId: 'planning-with-ai-642ec',
-      storageBucket: 'planning-with-ai-642ec.firebasestorage.app',
-      messagingSenderId: '560868808729',
-      appId: '1:560868808729:web:1b0b6fc13eadb1c1047288'
-    };
-    const firebaseApp = initializeApp(FIREBASE_CONFIG);
-    const auth = getAuth(firebaseApp);
-    const db = getDatabase(firebaseApp);
-    const SESSION_KEY = 'problemSolved.activeRoom.v1';
-
-    let firebaseUser = null;
-    let roomUnsubscribers = [];
-    let actionUnsubscribers = new Map();
-    let actionQueuesBusy = new Set();
-    let stateSyncPromise = Promise.resolve();
-    let lastNoticeId = null;
     let isHost = false;
     let myPlayerId = null;
     let roomCode = '';
     let state = null;
     let selectedSolutionInstanceId = null;
+    let handFocusIndex = 0;
+    let handCollapsed = false;
     let toastTimer = null;
-    let intentionalClose = false;
+    let roomUnsubscribers = [];
+    let processedActionIds = new Set();
+    let firebaseReady = false;
+    let restoringRoom = false;
+    let lastBannerText = '';
+    const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
 
@@ -1468,7 +2192,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 7,
+        version: 8,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -1515,6 +2239,7 @@
 
       if (state.game.playMode === 'coop') {
         game.judgeCards = [];
+        if (viewerId !== currentPickerId()) game.problemId = null;
         if (!['coopVote', 'roundResult', 'end'].includes(game.phase)) game.submissions = {};
         if (!['roundResult', 'end'].includes(game.phase)) game.votes = {};
       } else {
@@ -1530,373 +2255,249 @@
     }
 
 
-    function firebaseRoomRef(path = '') {
-      const suffix = path ? `/${path.replace(/^\/+/, '')}` : '';
-      return ref(db, `rooms/${roomCode}${suffix}`);
+
+    function roomRefPath(path = '') {
+      const base = `rooms/${roomCode}`;
+      return path ? `${base}/${path}` : base;
     }
 
-    async function ensureAuth() {
-      try { await setPersistence(auth, browserLocalPersistence); } catch {}
-      if (!auth.currentUser) {
-        await new Promise(resolve => {
-          let unsubscribe = () => {};
-          unsubscribe = onAuthStateChanged(auth, () => {
-            unsubscribe();
-            resolve();
-          });
-        });
+    async function ensureFirebaseAuth() {
+      if (!firebaseReady) {
+        await setPersistence(auth, browserLocalPersistence);
+        firebaseReady = true;
       }
-      if (auth.currentUser) {
-        firebaseUser = auth.currentUser;
-        return firebaseUser;
-      }
-      const credential = await signInAnonymously(auth);
-      firebaseUser = credential.user;
-      return firebaseUser;
+      if (!auth.currentUser) await signInAnonymously(auth);
+      return auth.currentUser;
     }
 
-    function saveActiveSession() {
-      if (!roomCode || !myPlayerId || !state) return;
-      const player = playerById(myPlayerId);
-      localStorage.setItem(SESSION_KEY, JSON.stringify({
+    function saveActiveRoom(role, name = '') {
+      localStorage.setItem(ACTIVE_ROOM_KEY, JSON.stringify({
+        role,
         roomCode,
-        uid: myPlayerId,
-        isHost,
-        playerName: player?.name || '',
-        mode: state.settings?.playMode || state.game?.playMode || inviteMode || 'coop'
+        name,
+        mode: state?.settings?.playMode || inviteMode || 'coop'
       }));
     }
 
-    function clearActiveSession() {
-      localStorage.removeItem(SESSION_KEY);
-    }
-
-    function detachRoomListeners() {
+    function clearRoomListeners() {
       for (const unsubscribe of roomUnsubscribers.splice(0)) {
         try { unsubscribe(); } catch {}
       }
-      for (const unsubscribe of actionUnsubscribers.values()) {
-        try { unsubscribe(); } catch {}
-      }
-      actionUnsubscribers.clear();
-      actionQueuesBusy.clear();
+      processedActionIds.clear();
     }
 
-    function cleanupConnection() {
-      detachRoomListeners();
-      stateSyncPromise = Promise.resolve();
-    }
-
-    async function setupPresence() {
+    function installPresence(name) {
       if (!roomCode || !myPlayerId) return;
-      const playerRef = firebaseRoomRef(`players/${myPlayerId}`);
-      const connectedRef = firebaseRoomRef(`players/${myPlayerId}/connected`);
-      await update(playerRef, { connected: true, lastSeen: Date.now() });
-      try { await onDisconnect(connectedRef).set(false); } catch {}
-      if (isHost) {
-        const hostOnlineRef = firebaseRoomRef('meta/hostOnline');
-        await set(hostOnlineRef, true);
-        try { await onDisconnect(hostOnlineRef).set(false); } catch {}
-      }
+      const playerConnected = ref(database, roomRefPath(`players/${myPlayerId}/connected`));
+      const presence = ref(database, roomRefPath(`presence/${myPlayerId}`));
+      set(playerConnected, true).catch(() => {});
+      set(presence, { connected: true, lastSeen: serverTimestamp(), name }).catch(() => {});
+      onDisconnect(playerConnected).set(false).catch(() => {});
+      onDisconnect(presence).set({ connected: false, lastSeen: serverTimestamp(), name }).catch(() => {});
     }
 
-    async function persistRoomState() {
-      if (!isHost || !state || !roomCode) return;
-      state._hostOnline = true;
-      const updates = {
-        'private/state': deepClone(state),
-        'meta/phase': state.phase,
-        'meta/playMode': state.settings?.playMode || state.game?.playMode || 'coop',
-        'meta/playModeLabel': state.settings?.playModeLabel || (isCoopMode() ? '3 Fold Cord' : 'Problem? Solved!'),
-        'meta/mode': state.settings?.mode || '',
-        'meta/modeLabel': state.settings?.modeLabel || '',
-        'meta/handSize': Number(state.settings?.handSize || state.game?.handSize || DEFAULT_HAND_SIZE),
-        'meta/hostOnline': true,
-        'meta/closed': false,
-        'meta/updatedAt': Date.now()
-      };
-      for (const player of state.players || []) {
-        updates[`views/${player.id}/state`] = sanitizeStateFor(player.id);
-        updates[`players/${player.id}/name`] = player.name;
-        updates[`players/${player.id}/joinedAt`] = player.joinedAt || Date.now();
-        updates[`players/${player.id}/problemsAdded`] = player.problemsAdded || 0;
-        updates[`players/${player.id}/solutionsAdded`] = player.solutionsAdded || 0;
+    async function broadcastState() {
+      if (!isHost || !state || !roomCode) {
+        render();
+        return;
       }
-      await update(firebaseRoomRef(), updates);
-      saveActiveSession();
-    }
-
-    function broadcastState() {
-      if (!state) return;
       render();
-      if (!isHost) return;
-      stateSyncPromise = stateSyncPromise
-        .then(() => persistRoomState())
-        .catch(error => {
-          console.error(error);
-          setConnection('Sync interrupted', 'error');
-          toast('The room could not sync. Check your internet connection.');
-        });
+      try {
+        const writes = [
+          set(ref(database, roomRefPath('private/state')), state),
+          update(ref(database, roomRefPath('meta')), {
+            phase: state.phase,
+            playMode: state.settings?.playMode || state.game?.playMode || 'coop',
+            updatedAt: serverTimestamp()
+          })
+        ];
+        for (const player of state.players || []) {
+          writes.push(set(ref(database, roomRefPath(`views/${player.id}`)), sanitizeStateFor(player.id)));
+        }
+        await Promise.all(writes);
+      } catch (error) {
+        console.error('Could not sync room state', error);
+        setConnection('Sync interrupted', 'error');
+      }
     }
 
-    async function sendNotice(playerId, message) {
+    function sendNotice(playerId, message) {
       if (playerId === myPlayerId) {
         toast(message);
         return;
       }
       if (!isHost || !roomCode) return;
-      try {
-        await update(firebaseRoomRef(`views/${playerId}`), {
-          notice: { id: uid('notice'), message: clampText(message, 220), createdAt: Date.now() }
-        });
-      } catch {}
+      const noticeRef = ref(database, roomRefPath(`views/${playerId}/notice`));
+      set(noticeRef, { message, at: Date.now() }).catch(() => {});
+      setTimeout(() => set(noticeRef, null).catch(() => {}), 2500);
     }
 
-    function rejectAction(playerId, message) { void sendNotice(playerId, message); }
+    function rejectAction(playerId, message) { sendNotice(playerId, message); }
 
-    function minimalRoomState(meta, players) {
-      return {
-        version: 7,
-        roomCode,
-        phase: 'room',
-        hostId: meta.hostUid,
-        createdAt: meta.createdAt || Date.now(),
-        players,
-        settings: {
-          playMode: meta.playMode || inviteMode || 'coop',
-          playModeLabel: meta.playModeLabel || ((meta.playMode || inviteMode) === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'),
-          mode: meta.mode || 'build',
-          modeLabel: meta.modeLabel || 'Build Together',
-          savedDeckId: '',
-          deckName: 'Shared Game',
-          buildSeconds: 120,
-          handSize: Number(meta.handSize) || DEFAULT_HAND_SIZE
-        },
-        builder: { startedAt: null, endsAt: null, problems: [], solutions: [], savedAt: null },
-        activeDeck: null,
-        game: null,
-        _hostOnline: meta.hostOnline !== false
-      };
-    }
-
-    function playersFromSnapshot(value) {
-      return Object.entries(value || {}).map(([id, player]) => ({
-        id,
-        name: clampText(player?.name || 'Player', 24),
-        connected: player?.connected !== false,
-        joinedAt: Number(player?.joinedAt) || Date.now(),
-        problemsAdded: Number(player?.problemsAdded) || 0,
-        solutionsAdded: Number(player?.solutionsAdded) || 0
-      })).sort((a, b) => a.joinedAt - b.joinedAt);
+    function cleanupConnection() {
+      clearRoomListeners();
     }
 
     async function resetToLobby(message = '') {
-      intentionalClose = true;
-      const leavingCode = roomCode;
-      const leavingPlayerId = myPlayerId;
-      const leavingAsHost = isHost;
-      cleanupConnection();
-      if (leavingCode && leavingPlayerId) {
+      const oldRoom = roomCode;
+      const oldUid = myPlayerId;
+      const wasHost = isHost;
+      clearRoomListeners();
+      localStorage.removeItem(ACTIVE_ROOM_KEY);
+
+      if (oldRoom && oldUid) {
         try {
-          if (leavingAsHost) {
-            await update(ref(db, `rooms/${leavingCode}/meta`), { closed: true, hostOnline: false, closedAt: Date.now() });
+          if (wasHost) {
+            const oldState = state;
+            const ids = (oldState?.players || []).map(player => player.id);
+            const cleanupWrites = [];
+            for (const id of ids) {
+              cleanupWrites.push(remove(ref(database, `rooms/${oldRoom}/views/${id}`)));
+              cleanupWrites.push(remove(ref(database, `rooms/${oldRoom}/players/${id}`)));
+              cleanupWrites.push(remove(ref(database, `rooms/${oldRoom}/presence/${id}`)));
+              cleanupWrites.push(remove(ref(database, `rooms/${oldRoom}/actions/${id}`)));
+            }
+            cleanupWrites.push(remove(ref(database, `rooms/${oldRoom}/private`)));
+            await Promise.allSettled(cleanupWrites);
+            await remove(ref(database, `rooms/${oldRoom}/meta`));
           } else {
-            await remove(ref(db, `rooms/${leavingCode}/players/${leavingPlayerId}`));
+            await set(ref(database, `rooms/${oldRoom}/players/${oldUid}/connected`), false);
+            await set(ref(database, `rooms/${oldRoom}/presence/${oldUid}`), { connected: false, lastSeen: serverTimestamp() });
           }
         } catch {}
       }
-      clearActiveSession();
+
       isHost = false;
       myPlayerId = null;
       roomCode = '';
       state = null;
       selectedSolutionInstanceId = null;
-      lastNoticeId = null;
+      handFocusIndex = 0;
+      handCollapsed = false;
       document.body.classList.remove('coop-game', 'pvp-game');
       setConnection('Not connected');
       showEntryScreen();
       renderSavedGames();
-      intentionalClose = false;
       if (message) toast(message);
     }
 
-    function readableFirebaseError(error) {
-      const code = String(error?.code || '');
-      if (code.includes('permission-denied')) return 'Firebase blocked the room request. Check the database rules.';
-      if (code.includes('network')) return 'The network interrupted the connection. Try again.';
-      if (code.includes('auth')) return 'Guest sign-in could not start. Check Firebase Authentication.';
-      return 'The online room could not be opened. Try again.';
+    function mergeFirebasePlayers(rawPlayers = {}) {
+      if (!isHost || !state) return false;
+      let changed = false;
+      for (const [id, raw] of Object.entries(rawPlayers || {})) {
+        const existing = playerById(id);
+        if (!existing) {
+          if ((state.players || []).length >= MAX_PLAYERS) continue;
+          state.players.push({
+            id,
+            name: clampText(raw.name, 24) || 'Player',
+            connected: raw.connected !== false,
+            joinedAt: Number(raw.joinedAt) || Date.now(),
+            problemsAdded: Number(raw.problemsAdded) || 0,
+            solutionsAdded: Number(raw.solutionsAdded) || 0
+          });
+          changed = true;
+        } else {
+          const nextConnected = raw.connected !== false;
+          const nextName = clampText(raw.name, 24) || existing.name;
+          if (existing.connected !== nextConnected || existing.name !== nextName) {
+            existing.connected = nextConnected;
+            existing.name = nextName;
+            changed = true;
+          }
+        }
+      }
+      return changed;
+    }
+
+    function attachHostRoomListeners() {
+      clearRoomListeners();
+
+      roomUnsubscribers.push(onValue(ref(database, roomRefPath('players')), snapshot => {
+        if (!isHost || !state) return;
+        if (mergeFirebasePlayers(snapshot.val() || {})) broadcastState();
+      }));
+
+      roomUnsubscribers.push(onValue(ref(database, roomRefPath('actions')), snapshot => {
+        if (!isHost || !state) return;
+        const all = snapshot.val() || {};
+        for (const [actorId, actionRows] of Object.entries(all)) {
+          for (const [actionId, row] of Object.entries(actionRows || {})) {
+            const key = `${actorId}/${actionId}`;
+            if (processedActionIds.has(key)) continue;
+            processedActionIds.add(key);
+            remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
+            handleAction(actorId, row.action, row.payload || {});
+          }
+        }
+      }));
+
+      roomUnsubscribers.push(onValue(ref(database, roomRefPath('meta')), snapshot => {
+        if ((!snapshot.exists() || snapshot.val()?.phase === 'closed') && state) resetToLobby('The room is no longer available.');
+      }));
+    }
+
+    function attachGuestRoomListeners() {
+      clearRoomListeners();
+      let lastNoticeAt = 0;
+
+      roomUnsubscribers.push(onValue(ref(database, roomRefPath(`views/${myPlayerId}`)), snapshot => {
+        const view = snapshot.val();
+        if (!view) return;
+        if (view.notice?.message && Number(view.notice.at) > lastNoticeAt) {
+          lastNoticeAt = Number(view.notice.at);
+          toast(view.notice.message);
+        }
+        delete view.notice;
+        state = view;
+        roomCode = state.roomCode || roomCode;
+        setConnection('Connected', 'online');
+        render();
+      }));
+
+      roomUnsubscribers.push(onValue(ref(database, roomRefPath('meta')), snapshot => {
+        if ((!snapshot.exists() || snapshot.val()?.phase === 'closed') && state) resetToLobby('The host ended the room.');
+      }));
     }
 
     async function hostCreateRoom() {
       const name = clampText(ui.hostName.value, 24);
       if (!name) return toast('Enter your name first.');
       cleanupConnection();
-      ui.connectingTitle.textContent = 'Opening your online room…';
-      ui.connectingText.textContent = 'Creating a room that stays saved while you share or switch apps.';
+      ui.connectingTitle.textContent = 'Opening your room…';
+      ui.connectingText.textContent = 'Creating a cloud room for up to six players.';
       showScreen('connectingScreen');
-      setConnection('Signing in…', 'waiting');
+      setConnection('Opening room…', 'waiting');
+
       try {
-        await ensureAuth();
+        const user = await ensureFirebaseAuth();
         isHost = true;
-        myPlayerId = firebaseUser.uid;
-        let created = false;
-        for (let attempt = 0; attempt < 8 && !created; attempt++) {
+        myPlayerId = user.uid;
+
+        for (let attempt = 0; attempt < 8; attempt++) {
           roomCode = randomCode();
-          const metaRef = ref(db, `rooms/${roomCode}/meta`);
-          const existing = await get(metaRef);
-          if (existing.exists()) continue;
-          state = createRoomState(name, roomCode, myPlayerId);
-          await set(metaRef, {
-            hostUid: myPlayerId,
-            roomCode,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            phase: 'room',
-            playMode: 'coop',
-            playModeLabel: '3 Fold Cord',
-            mode: 'build',
-            modeLabel: 'Build Together',
-            handSize: DEFAULT_HAND_SIZE,
-            hostOnline: true,
-            closed: false
-          });
-          await set(ref(db, `rooms/${roomCode}/players/${myPlayerId}`), state.players[0]);
-          await set(ref(db, `rooms/${roomCode}/private/state`), state);
-          await set(ref(db, `rooms/${roomCode}/views/${myPlayerId}/state`), sanitizeStateFor(myPlayerId));
-          created = true;
+          const existing = await get(ref(database, `rooms/${roomCode}/meta`));
+          if (!existing.exists()) break;
         }
-        if (!created) throw new Error('room-code-collision');
-        await setupPresence();
+
+        state = createRoomState(name, roomCode, myPlayerId);
+        await set(ref(database, roomRefPath('meta')), {
+          hostUid: myPlayerId,
+          phase: 'room',
+          playMode: 'coop',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        await set(ref(database, roomRefPath(`players/${myPlayerId}`)), state.players[0]);
+        installPresence(name);
+        saveActiveRoom('host', name);
         attachHostRoomListeners();
-        saveActiveSession();
-        setConnection('Room open online', 'online');
-        render();
+        await broadcastState();
+        setConnection('Room open', 'waiting');
       } catch (error) {
         console.error(error);
-        await resetToLobby(readableFirebaseError(error));
+        await resetToLobby('The Firebase room could not be created. Check your connection and try again.');
       }
-    }
-
-    function attachActionListener(playerId) {
-      if (!isHost || actionUnsubscribers.has(playerId)) return;
-      const unsubscribe = onValue(firebaseRoomRef(`actions/${playerId}`), () => {
-        void processActionQueueFor(playerId);
-      }, error => console.error(error));
-      actionUnsubscribers.set(playerId, unsubscribe);
-    }
-
-    async function processActionQueueFor(playerId) {
-      if (!isHost || actionQueuesBusy.has(playerId)) return;
-      actionQueuesBusy.add(playerId);
-      try {
-        while (isHost && state) {
-          const snapshot = await get(firebaseRoomRef(`actions/${playerId}`));
-          const entries = Object.entries(snapshot.val() || {})
-            .map(([id, value]) => ({ id, ...(value || {}) }))
-            .sort((a, b) => (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
-          if (!entries.length) break;
-          const item = entries[0];
-          handleAction(playerId, item.action, item.payload || {});
-          await remove(firebaseRoomRef(`actions/${playerId}/${item.id}`));
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        actionQueuesBusy.delete(playerId);
-      }
-    }
-
-    function syncPlayersIntoHost(dbPlayers) {
-      if (!state || !isHost) return false;
-      let changed = false;
-      const incomingIds = new Set(dbPlayers.map(player => player.id));
-      for (const incoming of dbPlayers) {
-        const current = playerById(incoming.id);
-        if (!current) {
-          state.players.push(incoming);
-          toast(`${incoming.name} joined the room.`);
-          changed = true;
-        } else {
-          const wasConnected = current.connected;
-          current.name = incoming.name;
-          current.connected = incoming.connected;
-          current.joinedAt = incoming.joinedAt;
-          if (wasConnected !== current.connected) changed = true;
-          if (wasConnected && !current.connected && state.phase !== 'room') handlePlayerDisconnectState(current.id);
-        }
-        attachActionListener(incoming.id);
-      }
-      if (state.phase === 'room') {
-        const before = state.players.length;
-        state.players = state.players.filter(player => player.id === state.hostId || incomingIds.has(player.id));
-        if (state.players.length !== before) changed = true;
-      }
-      state.players.sort((a, b) => a.joinedAt - b.joinedAt);
-      return changed;
-    }
-
-    function attachHostRoomListeners() {
-      detachRoomListeners();
-      const playersUnsub = onValue(firebaseRoomRef('players'), snapshot => {
-        if (!isHost || !state) return;
-        const changed = syncPlayersIntoHost(playersFromSnapshot(snapshot.val()));
-        if (changed) broadcastState();
-        else render();
-      }, error => console.error(error));
-      const metaUnsub = onValue(firebaseRoomRef('meta'), snapshot => {
-        const meta = snapshot.val();
-        if (!meta || meta.closed) {
-          if (!intentionalClose) void resetToLobby('This room has been closed.');
-        }
-      }, error => console.error(error));
-      roomUnsubscribers.push(playersUnsub, metaUnsub);
-      for (const player of state.players || []) attachActionListener(player.id);
-    }
-
-    function attachGuestRoomListeners() {
-      detachRoomListeners();
-      const metaUnsub = onValue(firebaseRoomRef('meta'), snapshot => {
-        const meta = snapshot.val();
-        if (!meta || meta.closed) {
-          if (!intentionalClose) void resetToLobby('The host closed this room.');
-          return;
-        }
-        if (state) {
-          state._hostOnline = meta.hostOnline !== false;
-          state.settings ||= {};
-          state.settings.playMode = meta.playMode || state.settings.playMode || inviteMode || 'coop';
-          state.settings.playModeLabel = meta.playModeLabel || (state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord');
-          state.settings.mode = meta.mode || state.settings.mode || 'build';
-          state.settings.modeLabel = meta.modeLabel || state.settings.modeLabel || 'Build Together';
-          state.settings.handSize = Number(meta.handSize) || state.settings.handSize || DEFAULT_HAND_SIZE;
-          render();
-        }
-      }, error => console.error(error));
-      const playersUnsub = onValue(firebaseRoomRef('players'), snapshot => {
-        const players = playersFromSnapshot(snapshot.val());
-        if (!state) return;
-        state.players = players;
-        render();
-      }, error => console.error(error));
-      const viewUnsub = onValue(firebaseRoomRef(`views/${myPlayerId}`), snapshot => {
-        const record = snapshot.val() || {};
-        if (record.state) {
-          state = record.state;
-          roomCode = state.roomCode;
-          setConnection('Connected online', 'online');
-          saveActiveSession();
-          render();
-        }
-        if (record.notice?.id && record.notice.id !== lastNoticeId) {
-          lastNoticeId = record.notice.id;
-          toast(record.notice.message || 'The host could not complete that action.');
-        }
-      }, error => {
-        console.error(error);
-        setConnection('Waiting for host', 'waiting');
-      });
-      roomUnsubscribers.push(metaUnsub, playersUnsub, viewUnsub);
     }
 
     async function guestJoinRoom() {
@@ -1909,88 +2510,139 @@
       if (code.length !== 6) return toast('Enter the six-character room code.');
 
       cleanupConnection();
-      ui.connectingTitle.textContent = 'Joining the online room…';
+      ui.connectingTitle.textContent = 'Joining the room…';
       ui.connectingText.textContent = `Looking for room ${code}.`;
       showScreen('connectingScreen');
-      setConnection('Signing in…', 'waiting');
+      setConnection('Connecting…', 'waiting');
+
       try {
-        await ensureAuth();
+        const user = await ensureFirebaseAuth();
         isHost = false;
-        myPlayerId = firebaseUser.uid;
+        myPlayerId = user.uid;
         roomCode = code;
-        const metaSnapshot = await get(firebaseRoomRef('meta'));
-        if (!metaSnapshot.exists() || metaSnapshot.val()?.closed) throw new Error('room-not-found');
+
+        const metaSnapshot = await get(ref(database, roomRefPath('meta')));
+        if (!metaSnapshot.exists()) throw new Error('Room not found.');
         const meta = metaSnapshot.val();
         const expectedMode = inviteMode || null;
-        if (expectedMode && expectedMode !== meta.playMode) {
+        if (expectedMode && meta.playMode && expectedMode !== meta.playMode) {
           const requested = expectedMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
-          const current = meta.playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
-          throw new Error(`mode-mismatch:${requested}:${current}`);
+          throw new Error(`This invitation is not for the room's current mode. Ask the host for a ${requested} invitation.`);
         }
-        if (meta.phase !== 'room') throw new Error('game-started');
-        const playersSnapshot = await get(firebaseRoomRef('players'));
-        const players = playersFromSnapshot(playersSnapshot.val());
-        const existing = players.find(player => player.id === myPlayerId);
-        if (!existing && players.filter(player => player.connected).length >= MAX_PLAYERS) throw new Error('room-full');
-        const player = existing || {
+        if (meta.phase !== 'room') throw new Error('This game has already started.');
+
+        const playersSnapshot = await get(ref(database, roomRefPath('players')));
+        const players = playersSnapshot.val() || {};
+        if (!players[myPlayerId] && Object.keys(players).filter(id => players[id]?.connected !== false).length >= MAX_PLAYERS) {
+          throw new Error('This room already has six players.');
+        }
+
+        await set(ref(database, roomRefPath(`players/${myPlayerId}`)), {
           id: myPlayerId,
           name,
           connected: true,
           joinedAt: Date.now(),
-          problemsAdded: 0,
-          solutionsAdded: 0
+          problemsAdded: Number(players[myPlayerId]?.problemsAdded) || 0,
+          solutionsAdded: Number(players[myPlayerId]?.solutionsAdded) || 0
+        });
+        installPresence(name);
+        state = {
+          roomCode,
+          phase: 'room',
+          hostId: meta.hostUid,
+          settings: {
+            playMode: meta.playMode || expectedMode || 'coop',
+            playModeLabel: (meta.playMode || expectedMode) === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'
+          },
+          players: Object.values(players).concat(players[myPlayerId] ? [] : [{ id: myPlayerId, name, connected: true }])
         };
-        player.name = name;
-        player.connected = true;
-        await set(firebaseRoomRef(`players/${myPlayerId}`), player);
-        const mergedPlayers = [...players.filter(item => item.id !== myPlayerId), player].sort((a, b) => a.joinedAt - b.joinedAt);
-        state = minimalRoomState(meta, mergedPlayers);
-        await setupPresence();
+        saveActiveRoom('guest', name);
         attachGuestRoomListeners();
-        saveActiveSession();
-        setConnection('In waiting room', 'online');
+        showScreen('guestWaitingScreen');
+        setConnection('Joining waiting room…', 'waiting');
         render();
       } catch (error) {
         console.error(error);
-        const message = String(error?.message || '');
-        if (message === 'room-not-found') return void resetToLobby('Room not found. Check the code and try again.');
-        if (message === 'game-started') return void resetToLobby('This game has already started.');
-        if (message === 'room-full') return void resetToLobby('This room already has six players.');
-        if (message.startsWith('mode-mismatch:')) {
-          const [, requested, current] = message.split(':');
-          return void resetToLobby(`This invitation is for ${requested}, but the room is set to ${current}. Ask the host for the current invite.`);
-        }
-        return void resetToLobby(readableFirebaseError(error));
+        await resetToLobby(error.message || 'Could not join the room.');
       }
     }
 
-    async function sendAction(action, payload = {}) {
+    async function restoreActiveRoom() {
+      if (restoringRoom) return false;
+      restoringRoom = true;
+      try {
+        const saved = JSON.parse(localStorage.getItem(ACTIVE_ROOM_KEY) || 'null');
+        if (!saved?.roomCode || !saved?.role) return false;
+        const user = await ensureFirebaseAuth();
+        roomCode = cleanCode(saved.roomCode);
+        myPlayerId = user.uid;
+        const metaSnapshot = await get(ref(database, roomRefPath('meta')));
+        if (!metaSnapshot.exists()) {
+          localStorage.removeItem(ACTIVE_ROOM_KEY);
+          return false;
+        }
+        const meta = metaSnapshot.val();
+
+        if (saved.role === 'host' && meta.hostUid === myPlayerId) {
+          const stateSnapshot = await get(ref(database, roomRefPath('private/state')));
+          if (!stateSnapshot.exists()) return false;
+          isHost = true;
+          state = stateSnapshot.val();
+          const own = playerById(myPlayerId);
+          if (own) own.connected = true;
+          await set(ref(database, roomRefPath(`players/${myPlayerId}/connected`)), true);
+          installPresence(saved.name || own?.name || 'Host');
+          attachHostRoomListeners();
+          await broadcastState();
+          setConnection('Room restored', 'online');
+          return true;
+        }
+
+        const viewSnapshot = await get(ref(database, roomRefPath(`views/${myPlayerId}`)));
+        if (!viewSnapshot.exists()) {
+          localStorage.removeItem(ACTIVE_ROOM_KEY);
+          return false;
+        }
+        isHost = false;
+        state = viewSnapshot.val();
+        await set(ref(database, roomRefPath(`players/${myPlayerId}/connected`)), true);
+        installPresence(saved.name || playerName(myPlayerId));
+        attachGuestRoomListeners();
+        setConnection('Room restored', 'online');
+        render();
+        return true;
+      } catch (error) {
+        console.error('Could not restore room', error);
+        localStorage.removeItem(ACTIVE_ROOM_KEY);
+        return false;
+      } finally {
+        restoringRoom = false;
+      }
+    }
+
+    function sendAction(action, payload = {}) {
       if (isHost) {
         handleAction(myPlayerId, action, payload);
         return;
       }
-      if (!roomCode || !myPlayerId) return toast('You are not connected to a room.');
-      try {
-        await push(firebaseRoomRef(`actions/${myPlayerId}`), {
-          action,
-          payload: deepClone(payload),
-          createdAt: Date.now()
-        });
-      } catch (error) {
-        console.error(error);
-        toast('Your move could not be sent. Check your internet connection.');
-      }
+      if (!roomCode || !myPlayerId) return toast('You are not connected to the room.');
+      push(ref(database, roomRefPath(`actions/${myPlayerId}`)), {
+        action,
+        payload,
+        createdAt: serverTimestamp()
+      }).catch(() => toast('Your move could not be sent. Try again.'));
     }
 
     function handleAction(actorId, action, payload) {
       if (!isHost || !state) return;
       const actor = playerById(actorId);
-      if (!actor) return;
+      if (!actor?.connected) return;
 
       if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text);
       if (action === 'removeBuildCard') return hostRemoveBuildCard(actorId, payload.kind, payload.cardId);
       if (action === 'editBuildCard') return hostEditBuildCard(actorId, payload.kind, payload.cardId, payload.text);
       if (action === 'drawProblem') return hostDrawProblem(actorId);
+      if (action === 'readProblemDone') return hostReadProblemDone(actorId);
       if (action === 'playSolution') return hostPlaySolution(actorId, payload.instanceId, payload.explanation);
       if (action === 'submitCoop') return hostSubmitCoop(actorId, payload.instanceId);
       if (action === 'voteCoop') return hostVoteCoop(actorId, payload.vote);
@@ -1999,11 +2651,17 @@
       if (action === 'playAgain') return hostPlayAgain(actorId);
     }
 
-    function handlePlayerDisconnectState(playerId) {
+
+    function handlePlayerDisconnect(playerId) {
       if (!isHost || !state) return;
       const player = playerById(playerId);
       if (!player) return;
-      player.connected = false;
+      if (state.phase === 'room') {
+        state.players = state.players.filter(item => item.id !== playerId);
+      } else {
+        player.connected = false;
+      }
+
       if (state.phase === 'play' && state.game) {
         if (currentPickerId() === playerId) abortRoundAndRotatePicker();
         else if (state.game.phase === 'submit') {
@@ -2013,58 +2671,11 @@
           maybeResolveCoopVotes();
         }
       }
-      toast(`${player.name} is temporarily offline. Their place is saved.`);
+
+      toast(`${player.name} disconnected.`);
+      broadcastState();
     }
 
-    async function resumeSavedSession() {
-      if (inviteMode || entryParams.get('code')) return false;
-      let saved;
-      try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return false; }
-      if (!saved?.roomCode) return false;
-      try {
-        await ensureAuth();
-        roomCode = cleanCode(saved.roomCode);
-        myPlayerId = firebaseUser.uid;
-        const metaSnapshot = await get(firebaseRoomRef('meta'));
-        if (!metaSnapshot.exists() || metaSnapshot.val()?.closed) {
-          clearActiveSession();
-          roomCode = '';
-          myPlayerId = null;
-          return false;
-        }
-        const meta = metaSnapshot.val();
-        isHost = meta.hostUid === myPlayerId;
-        if (isHost) {
-          const stateSnapshot = await get(firebaseRoomRef('private/state'));
-          if (!stateSnapshot.exists()) throw new Error('missing-state');
-          state = stateSnapshot.val();
-          await setupPresence();
-          attachHostRoomListeners();
-          setConnection('Room restored online', 'online');
-          render();
-          broadcastState();
-          return true;
-        }
-        const playerSnapshot = await get(firebaseRoomRef(`players/${myPlayerId}`));
-        if (!playerSnapshot.exists()) throw new Error('missing-player');
-        const playersSnapshot = await get(firebaseRoomRef('players'));
-        state = minimalRoomState(meta, playersFromSnapshot(playersSnapshot.val()));
-        await setupPresence();
-        attachGuestRoomListeners();
-        setConnection('Room restored online', 'online');
-        render();
-        return true;
-      } catch (error) {
-        console.error(error);
-        cleanupConnection();
-        clearActiveSession();
-        roomCode = '';
-        myPlayerId = null;
-        state = null;
-        isHost = false;
-        return false;
-      }
-    }
 
     function abortRoundAndRotatePicker() {
       if (!state.game) return;
@@ -2384,7 +2995,7 @@
 
     function hostDrawProblem(actorId) {
       if (state.phase !== 'play' || state.game.phase !== 'draw') return;
-      if (actorId !== currentPickerId()) return rejectAction(actorId, `Only the ${isCoopMode() ? 'Round Leader' : 'Problem Picker'} can draw.`);
+      if (actorId !== currentPickerId()) return rejectAction(actorId, 'It is not your turn to draw the Problem Card.');
       state.game.problemId = drawProblemCardId();
       state.game.submissions = {};
       state.game.submittedPlayerIds = [];
@@ -2394,6 +3005,13 @@
       state.game.result = null;
       state.game.discussionCycles = 0;
       state.game.lastVoteSummary = null;
+      state.game.phase = isCoopMode() ? 'readProblem' : 'submit';
+      broadcastState();
+    }
+
+    function hostReadProblemDone(actorId) {
+      if (!isCoopMode() || state.phase !== 'play' || state.game.phase !== 'readProblem') return;
+      if (actorId !== currentPickerId()) return rejectAction(actorId, 'Only the person who drew the Problem Card can continue.');
       state.game.phase = 'submit';
       broadcastState();
     }
@@ -2597,7 +3215,7 @@
 
     function hostNextRound(actorId) {
       if (state.phase !== 'play' || state.game.phase !== 'roundResult') return;
-      if (actorId !== currentPickerId() && actorId !== state.hostId) return rejectAction(actorId, `The ${isCoopMode() ? 'Round Leader' : 'Problem Picker'} starts the next round.`);
+      if (actorId !== currentPickerId() && actorId !== state.hostId) return rejectAction(actorId, 'The current Problem drawer starts the next round.');
       state.game.round += 1;
       rotatePicker();
       state.game.problemId = null;
@@ -2650,7 +3268,7 @@
         let meta = player.id === state.hostId ? 'Host' : 'Player';
         if (options.showContributions) meta = `${player.problemsAdded || 0} problems • ${player.solutionsAdded || 0} solutions`;
         if (leaderId) {
-          if (state.game?.playMode === 'coop') meta = player.id === leaderId ? 'Round Leader' : (player.connected ? 'Teammate' : 'Disconnected');
+          if (state.game?.playMode === 'coop') meta = player.id === leaderId ? 'Drawing the Problem' : (player.connected ? 'Teammate' : 'Disconnected');
           else meta = player.id === leaderId ? 'Problem Picker' : (player.connected ? `Solver • ${state.game?.playerScores?.[player.id] || 0} pts` : 'Disconnected');
         }
         return `<div class="player-tile ${player.id === leaderId ? 'active' : ''} ${player.connected ? '' : 'offline'}">
@@ -2666,7 +3284,7 @@
       clearEntryTheme();
       document.body.classList.remove('coop-game', 'pvp-game');
       showScreen('roomScreen');
-      setConnection('Room open online', 'online');
+      setConnection('Room open', 'waiting');
       ui.roomPlayerCount.textContent = connectedPlayers().length;
       ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
       renderPlayerTiles(ui.roomPlayers);
@@ -2674,7 +3292,7 @@
       ui.guestRoomControls.classList.add('hidden');
       const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
       ui.shareInviteBtn.textContent = `Share ${inviteLabel} Invite`;
-      ui.inviteLinkHint.textContent = `The invitation opens only the ${inviteLabel} join page, pre-fills code ${roomCode}, and includes the code in the message.`;
+      ui.inviteLinkHint.textContent = `The shared link opens only the ${inviteLabel} join page. Your room code is included in the invitation message.`;
 
       if (isHost) {
         const saved = getSavedGames();
@@ -2709,8 +3327,7 @@
       ui.guestWaitingRoomCode.textContent = state.roomCode;
       renderPlayerTiles(ui.guestWaitingPlayers);
       const playerCount = connectedPlayers().length;
-      const hostStatus = state._hostOnline === false ? ' The host stepped away, but the online room is still saved.' : '';
-      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}${hostStatus}`;
+      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}`;
     }
 
 
@@ -2803,20 +3420,24 @@
 
     function cardBack(label) {
       if (isCoopMode()) {
-        return `<article class="play-card card-back coop-card-back"><div class="cord-bubble" aria-hidden="true"></div><div class="coop-back-mark"><strong>3 Fold Cord</strong><small>${escapeHtml(label)}</small></div></article>`;
+        return `<article class="play-card card-back coop-card-back"><img class="coop-back-bookmark" src="./three-fold-bookmark.png" alt=""><div class="coop-back-mark"><strong>3 Fold Cord</strong><small>${escapeHtml(label)}</small></div></article>`;
       }
       return `<article class="play-card card-back"><div class="back-mark"><strong>PROBLEM?</strong><em>SOLVED!</em><small>${escapeHtml(label)}</small></div></article>`;
     }
 
     function renderProblemCard() {
-      if (!state.game.problemId) {
-        ui.problemZone.innerHTML = cardBack('Problem Deck');
+      const game = state.game;
+      if (!game.problemId) {
+        const waitingLabel = isCoopMode() && game.phase === 'readProblem'
+          ? 'Listen as the Problem is read'
+          : 'Problem Deck';
+        ui.problemZone.innerHTML = cardBack(waitingLabel);
         return;
       }
       ui.problemZone.innerHTML = `<article class="play-card problem">
-        <div class="card-type"><span class="card-icon">!</span> Problem</div>
-        <div class="card-text">${escapeHtml(getProblemText(state.game.problemId))}</div>
-        <div class="card-number">Problem Card</div>
+        <div class="card-type"><span class="card-icon">?</span> Problem</div>
+        <div class="card-text">${escapeHtml(getProblemText(game.problemId))}</div>
+        <div class="card-number">Read this card aloud</div>
       </article>`;
     }
 
@@ -2851,7 +3472,10 @@
     }
 
     function renderPlayedCoopCards(entries) {
-      return `<div class="played-solutions">${entries.map(item => `<article class="played-solution-card"><div class="played-by">${escapeHtml(item.playerName || playerName(item.playerId))}</div><div class="played-card-label">Solution Card</div><div class="played-card-text">${escapeHtml(item.text)}</div><div class="played-card-footer">Explain your reasoning and principle aloud.</div></article>`).join('')}</div>`;
+      return `<div class="played-solutions">${entries.map((item, index) => {
+        const tilt = (index - (entries.length - 1) / 2) * 3;
+        return `<article class="played-solution-card" style="--card-tilt:${tilt}deg"><div class="played-card-text">${escapeHtml(item.text)}</div></article>`;
+      }).join('')}</div>`;
     }
 
     function renderGameSolutionZone() {
@@ -2859,20 +3483,22 @@
 
       if (isCoopMode()) {
         if (game.phase === 'coopVote') {
-          const entries = Object.values(game.submissions || {}).map(item => ({ ...item, playerName: playerName(item.playerId) }));
-          ui.solutionZone.innerHTML = `<div class="revealed-solutions-wrap"><h3>Cards Played by the Team</h3><p>Each player explains how their card could address the Problem and the principle behind it.</p>${renderPlayedCoopCards(entries)}</div>`;
+          const entries = Object.values(game.submissions || {});
+          ui.solutionZone.innerHTML = `<div class="revealed-solutions-wrap">${renderPlayedCoopCards(entries)}</div>`;
           return;
         }
+
         if (game.phase === 'roundResult') {
-          const entries = game.result?.entries || [];
-          ui.solutionZone.innerHTML = `<div class="revealed-solutions-wrap"><h3>Team Solution Cards</h3>${renderPlayedCoopCards(entries)}</div>`;
+          ui.solutionZone.innerHTML = '<div class="shared-card-backs" aria-label="Played cards clearing from the table"></div>';
           return;
         }
+
         const submittedCount = (game.submittedPlayerIds || []).length;
+        const requiredCount = connectedPlayerIds().length;
         if (game.phase === 'submit' && submittedCount) {
-          ui.solutionZone.innerHTML = `<article class="play-card solution coop-waiting-card"><div class="card-type"><span class="card-icon">3</span> Fold Cord</div><div class="card-text">${submittedCount} of ${connectedPlayerIds().length} players locked in a card.</div><div class="card-number">Cards reveal together after everyone submits.</div></article>`;
+          ui.solutionZone.innerHTML = `<div class="shared-card-backs">${Array.from({ length: submittedCount }, (_, index) => `<div class="shared-mini-back" style="animation-delay:${index * 70}ms"></div>`).join('')}</div>`;
         } else {
-          ui.solutionZone.innerHTML = cardBack('Solution Deck');
+          ui.solutionZone.innerHTML = `<div class="shared-card-backs"><div class="shared-mini-back" style="opacity:.28"></div></div>`;
         }
         return;
       }
@@ -2904,71 +3530,70 @@
 
     function renderGameActions() {
       const game = state.game;
-      const leader = playerName(currentPickerId());
+      const drawer = playerName(currentPickerId());
       let html = '';
 
       if (isCoopMode()) {
         const submitted = game.submittedPlayerIds || [];
         const voted = game.votedPlayerIds || [];
+
         if (game.phase === 'draw') {
           html = isMyTurnAsPicker()
-            ? `<h3>You are the Round Leader</h3><p>Draw the shared Problem Card. Every player—including you—will choose one card from their hand.</p><button id="drawProblemBtn" class="btn coop-primary wide" type="button">Draw a Problem</button>`
-            : `<h3>${escapeHtml(leader)} is the Round Leader</h3><p>Waiting for the shared Problem Card.</p>`;
+            ? `<div><h3>Your turn to draw the Problem Card</h3><p>The Problem will appear only on your screen so you can read it aloud.</p></div><button id="drawProblemBtn" class="btn coop-primary" type="button">Draw Problem</button>`
+            : `<div><h3>Waiting for ${escapeHtml(drawer)}</h3><p>They are picking up the next Problem Card.</p></div>`;
+        } else if (game.phase === 'readProblem') {
+          html = isMyTurnAsPicker()
+            ? `<div><h3>Read this problem to the group</h3><p>When everyone has heard it, continue to the card hand.</p></div><button id="readProblemBtn" class="btn coop-primary" type="button">I've Read It</button>`
+            : `<div><h3>Listen to the Problem</h3><p>${escapeHtml(drawer)} is reading it aloud.</p></div>`;
         } else if (game.phase === 'submit') {
           if (submitted.includes(myPlayerId)) {
-            html = `<h3>Your Solution Card is locked in</h3><p>${submitted.length} of ${connectedPlayerIds().length} players have submitted. The cards will reveal together.</p>`;
+            html = `<div><h3>Your card is on the table</h3><p>${submitted.length} of ${connectedPlayerIds().length} cards have been played.</p></div>`;
           } else {
-            html = `<h3>Choose One Solution Card</h3><p>Tap one card in your hand, then lock it in. You will explain the solution and its supporting principle aloud after all cards are revealed.</p><button id="submitCoopBtn" class="btn coop-primary wide" type="button" ${selectedSolutionInstanceId ? '' : 'disabled'}>Lock In Selected Card</button>`;
+            html = `<div><h3>Choose one card from your hand</h3><p>Swipe through the fan, then tap Play This Card.</p></div>`;
           }
         } else if (game.phase === 'coopVote') {
-          const discussionNotice = game.lastVoteSummary
-            ? `<div class="discussion-notice"><strong>More discussion was requested.</strong><span>Keep the same Problem and cards open, talk it through, then everyone votes again.</span><div class="vote-status">${(game.lastVoteSummary.votes || []).map(row => `<div class="vote-person"><span>${escapeHtml(row.playerName)}</span><strong>${escapeHtml(voteLabel(row.vote))}</strong></div>`).join('')}</div></div>`
-            : '';
           if (voted.includes(myPlayerId)) {
-            html = `${discussionNotice}<h3>Your vote is locked in</h3><p>${voted.length} of ${connectedPlayerIds().length} players have voted. Results appear after everyone votes.</p>`;
+            html = `<div><h3>Your vote is locked</h3><p>${voted.length} of ${connectedPlayerIds().length} players have voted.</p></div>`;
           } else {
-            html = `${discussionNotice}<h3>Discuss, Then Vote</h3><p><strong>Agree</strong> means you support the team’s solution. <strong>Disagree</strong> ends this round with no point. <strong>Needs More Discussion</strong> keeps this same round open for another conversation and vote.</p><div class="vote-button-grid"><button id="agreeCoopBtn" class="btn vote-agree" type="button">Agree</button><button id="disagreeCoopBtn" class="btn vote-disagree" type="button">Disagree</button><button id="discussCoopBtn" class="btn vote-discuss" type="button">Needs More Discussion</button></div>`;
+            const more = game.lastVoteSummary ? '<p>More discussion was requested. Talk it through and vote again.</p>' : '<p>Discuss the cards and the principles behind them.</p>';
+            html = `<div><h3>Vote on the group solution</h3>${more}<div class="vote-button-grid"><button id="agreeCoopBtn" class="btn vote-agree" type="button">Agree</button><button id="disagreeCoopBtn" class="btn vote-disagree" type="button">Disagree</button><button id="discussCoopBtn" class="btn vote-discuss" type="button">Needs More Discussion</button></div></div>`;
           }
         } else if (game.phase === 'roundResult') {
-          const agreed = game.result?.outcome === 'agreed';
-          const votes = game.result?.votes || [];
-          html = `<h3>${agreed ? 'Everyone Agreed — Team Point Earned!' : 'The Round Ended Without a Point'}</h3><p>${agreed ? 'Every player selected Agree, so the team moved one step closer to 12.' : 'At least one player selected Disagree. The played cards will be replaced and a new Problem can begin.'}</p><div class="vote-status">${votes.map(row => `<div class="vote-person"><span>${escapeHtml(row.playerName)}</span><strong>${escapeHtml(voteLabel(row.vote))}</strong></div>`).join('')}</div>${isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected) ? '<button id="nextRoundBtn" class="btn coop-primary wide" type="button">Next Shared Problem</button>' : `<p class="muted">Waiting for ${escapeHtml(leader)} to continue.</p>`}`;
+          html = isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected)
+            ? `<div><h3>Round complete</h3><p>The outcome is shown in the banner above.</p></div><button id="nextRoundBtn" class="btn coop-primary" type="button">Next Problem</button>`
+            : `<div><h3>Round complete</h3><p>Waiting for ${escapeHtml(drawer)} to begin the next Problem.</p></div>`;
         }
       } else {
         if (game.phase === 'draw') {
           html = isMyTurnAsPicker()
             ? `<h3>You are the Problem Picker</h3><p>Draw the next Problem Card and read it aloud.</p><button id="drawProblemBtn" class="btn primary wide" type="button">Draw a Problem</button>`
-            : `<h3>${escapeHtml(leader)} is the Problem Picker</h3><p>Waiting for the next Problem Card.</p>`;
+            : `<h3>${escapeHtml(drawer)} is the Problem Picker</h3><p>Waiting for the next Problem Card.</p>`;
         } else if (game.phase === 'submit') {
           const submitted = game.submittedPlayerIds || [];
           if (isMyTurnAsPicker()) {
-            html = `<h3>Solutions are coming in</h3><p>${submitted.length} of ${activeSolverIds().length} Solver${activeSolverIds().length === 1 ? '' : 's'} submitted.</p>`;
+            html = `<h3>Solutions are coming in</h3><p>${submitted.length} of ${activeSolverIds().length} submitted.</p>`;
           } else if (submitted.includes(myPlayerId)) {
-            html = `<h3>Your answer is locked in</h3><p>Waiting for the other Solvers. The Picker cannot see who played which card.</p>`;
+            html = `<h3>Your answer is locked in</h3><p>Waiting for the other players.</p>`;
           } else {
-            html = `<h3>Choose Your Solution</h3><p>Select one card from your hand. Any explanation happens aloud—there is no typing during gameplay.</p><button id="submitSolutionBtn" class="btn teal wide" type="button" ${selectedSolutionInstanceId ? '' : 'disabled'}>Submit Selected Card</button>`;
+            html = `<h3>Choose Your Solution</h3><p>Select one card from your hand.</p><button id="submitSolutionBtn" class="btn teal wide" type="button" ${selectedSolutionInstanceId ? '' : 'disabled'}>Submit Selected Card</button>`;
           }
         } else if (game.phase === 'judge') {
           html = isMyTurnAsPicker()
-            ? `<h3>Choose the best solution</h3><p>Tap the anonymous card that solves the Problem best—or choose none.</p><button id="noneWorkedBtn" class="btn danger wide" type="button">None of These Worked</button>`
-            : `<h3>The Picker is deciding</h3><p>${escapeHtml(leader)} is judging the anonymous cards.</p>`;
+            ? `<h3>Choose the best solution</h3><p>Tap the anonymous card that works best—or choose none.</p><button id="noneWorkedBtn" class="btn danger wide" type="button">None of These Worked</button>`
+            : `<h3>The Picker is deciding</h3><p>${escapeHtml(drawer)} is judging the answers.</p>`;
         } else if (game.phase === 'roundResult') {
           const solved = game.result?.outcome === 'solved';
           const pointName = game.result?.pointPlayerId ? playerName(game.result.pointPlayerId) : '';
-          html = `<h3>${solved ? `${escapeHtml(pointName)} Earned the Point!` : 'No Solution Was Chosen'}</h3><p>${solved ? 'The selected player moves one point closer to victory.' : 'Nobody scores this round.'}</p>${isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected) ? '<button id="nextRoundBtn" class="btn primary wide" type="button">Next Round</button>' : `<p class="muted">Waiting for ${escapeHtml(leader)} to continue.</p>`}`;
+          html = `<h3>${solved ? `${escapeHtml(pointName)} Earned the Point!` : 'No Solution Was Chosen'}</h3><p>${solved ? 'The selected player moves one point closer to victory.' : 'Nobody scores this round.'}</p>${isMyTurnAsPicker() || (isHost && !playerById(currentPickerId())?.connected) ? '<button id="nextRoundBtn" class="btn primary wide" type="button">Next Round</button>' : `<p class="muted">Waiting for ${escapeHtml(drawer)} to continue.</p>`}`;
         }
       }
 
       ui.actionPanel.innerHTML = html;
       document.getElementById('drawProblemBtn')?.addEventListener('click', () => sendAction('drawProblem'));
+      document.getElementById('readProblemBtn')?.addEventListener('click', () => sendAction('readProblemDone'));
       document.getElementById('submitSolutionBtn')?.addEventListener('click', () => {
         if (!selectedSolutionInstanceId) return;
         sendAction('playSolution', { instanceId: selectedSolutionInstanceId, explanation: '' });
-        selectedSolutionInstanceId = null;
-      });
-      document.getElementById('submitCoopBtn')?.addEventListener('click', () => {
-        if (!selectedSolutionInstanceId) return toast('Choose one Solution Card first.');
-        sendAction('submitCoop', { instanceId: selectedSolutionInstanceId });
         selectedSolutionInstanceId = null;
       });
       document.getElementById('agreeCoopBtn')?.addEventListener('click', () => sendAction('voteCoop', { vote: 'agree' }));
@@ -2982,46 +3607,178 @@
     function renderHand() {
       const game = state.game;
       const hand = game.hands?.[myPlayerId] || [];
-      if (selectedSolutionInstanceId && !hand.some(card => card.instanceId === selectedSolutionInstanceId)) selectedSolutionInstanceId = null;
       const submitted = (game.submittedPlayerIds || []).includes(myPlayerId);
       const selectable = game.phase === 'submit' && !submitted && (isCoopMode() ? connectedPlayerIds().includes(myPlayerId) : isMyTurnAsSolver());
 
-      if (isCoopMode()) {
-        ui.handHelp.textContent = selectable ? `Choose exactly one card. Your hand refills to ${game.handSize || DEFAULT_HAND_SIZE} after the round.` : submitted ? 'Your played card is locked until the team finishes this round.' : `Your hand returns to ${game.handSize || DEFAULT_HAND_SIZE} cards after each completed round.`;
-      } else {
-        ui.handHelp.textContent = selectable ? 'Tap one card, then submit it.' : isMyTurnAsPicker() ? 'You keep your hand while you are the Picker.' : submitted ? 'Your answer is already submitted.' : 'Your cards are ready for your next Solver turn.';
+      if (!isCoopMode()) {
+        if (selectedSolutionInstanceId && !hand.some(card => card.instanceId === selectedSolutionInstanceId)) selectedSolutionInstanceId = null;
+        ui.handHelp.textContent = selectable ? 'Tap one card, then submit it.' : isMyTurnAsPicker() ? 'You keep your hand while you are the Picker.' : submitted ? 'Your answer is already submitted.' : 'Your cards are ready for your next turn.';
+        ui.hand.className = 'hand';
+        ui.hand.innerHTML = hand.map(card => `<button type="button" class="hand-card ${selectedSolutionInstanceId === card.instanceId ? 'selected' : ''}" data-instance-id="${card.instanceId}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">Solution</span><span>${escapeHtml(card.text)}</span></button>`).join('');
+        ui.hand.querySelectorAll('[data-instance-id]').forEach(button => button.addEventListener('click', () => {
+          if (!selectable) return;
+          selectedSolutionInstanceId = selectedSolutionInstanceId === button.dataset.instanceId ? null : button.dataset.instanceId;
+          renderHand();
+          const submitButton = document.getElementById('submitSolutionBtn');
+          if (submitButton) submitButton.disabled = !selectedSolutionInstanceId;
+        }));
+        return;
       }
 
-      ui.hand.innerHTML = hand.map(card => `<button type="button" class="hand-card ${selectedSolutionInstanceId === card.instanceId ? 'selected' : ''}" data-instance-id="${card.instanceId}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">Solution</span><span>${escapeHtml(card.text)}</span></button>`).join('');
-      ui.hand.querySelectorAll('[data-instance-id]').forEach(button => button.addEventListener('click', () => {
-        if (!selectable) return;
-        const clicked = button.dataset.instanceId;
-        selectedSolutionInstanceId = selectedSolutionInstanceId === clicked ? null : clicked;
-        ui.hand.querySelectorAll('.hand-card').forEach(card => card.classList.toggle('selected', card.dataset.instanceId === selectedSolutionInstanceId));
-        const submitButton = document.getElementById(isCoopMode() ? 'submitCoopBtn' : 'submitSolutionBtn');
-        if (submitButton) submitButton.disabled = !selectedSolutionInstanceId;
+      if (!hand.length) {
+        handFocusIndex = 0;
+        selectedSolutionInstanceId = null;
+        ui.hand.innerHTML = '<div class="muted center" style="padding-top:60px">Your next card is being drawn.</div>';
+        ui.playFocusedCardBtn.disabled = true;
+        return;
+      }
+
+      handFocusIndex = Math.max(0, Math.min(hand.length - 1, handFocusIndex));
+      selectedSolutionInstanceId = selectable ? hand[handFocusIndex].instanceId : null;
+      ui.handWrap.classList.toggle('collapsed', handCollapsed);
+      ui.collapseHandBtn.innerHTML = handCollapsed ? '<span aria-hidden="true">⌄</span> Expand' : '<span aria-hidden="true">⌃</span> Collapse';
+      ui.handHelp.textContent = submitted
+        ? 'Your card is on the shared table.'
+        : selectable
+          ? 'Swipe left or right to choose.'
+          : 'Your cards will be ready when play begins.';
+
+      const spacing = hand.length <= 5 ? 66 : Math.max(18, 270 / Math.max(1, hand.length - 1));
+      const suits = ['◆', '★', '♥', '♣', '♠'];
+      ui.hand.innerHTML = hand.map((card, index) => {
+        const offset = index - handFocusIndex;
+        const abs = Math.abs(offset);
+        const tilt = Math.max(-14, Math.min(14, offset * 4));
+        const x = offset * spacing;
+        const opacity = Math.max(.55, 1 - abs * .08);
+        const z = 100 - abs;
+        return `<button type="button" class="hand-card ${index === handFocusIndex ? 'focused selected' : ''}" data-instance-id="${card.instanceId}" data-hand-index="${index}" style="--offset:${offset};--fan-x:${x}px;--fan-rot:${tilt}deg;--fan-opacity:${opacity};--fan-z:${z}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">${suits[index % suits.length]} &nbsp; Solution</span><span>${escapeHtml(card.text)}</span></button>`;
+      }).join('');
+
+      ui.hand.querySelectorAll('[data-hand-index]').forEach(button => button.addEventListener('click', event => {
+        if (ui.hand.dataset.dragging === 'true') return;
+        handFocusIndex = Number(button.dataset.handIndex);
+        if (handCollapsed) handCollapsed = false;
+        renderHand();
       }));
+
+      ui.playFocusedCardBtn.disabled = !selectable || !selectedSolutionInstanceId;
+      installHandGestures();
+    }
+
+    function installHandGestures() {
+      if (ui.hand.dataset.gesturesBound === 'true') return;
+      ui.hand.dataset.gesturesBound = 'true';
+      let startX = 0;
+      let startY = 0;
+      let pointerId = null;
+
+      ui.hand.addEventListener('pointerdown', event => {
+        pointerId = event.pointerId;
+        startX = event.clientX;
+        startY = event.clientY;
+        ui.hand.dataset.dragging = 'false';
+        ui.hand.setPointerCapture?.(pointerId);
+      });
+
+      ui.hand.addEventListener('pointermove', event => {
+        if (event.pointerId !== pointerId) return;
+        if (Math.abs(event.clientX - startX) > 9 || Math.abs(event.clientY - startY) > 9) ui.hand.dataset.dragging = 'true';
+      });
+
+      ui.hand.addEventListener('pointerup', event => {
+        if (event.pointerId !== pointerId) return;
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        pointerId = null;
+
+        if (Math.abs(dy) > 48 && Math.abs(dy) > Math.abs(dx)) {
+          handCollapsed = dy > 0;
+          renderHand();
+          return;
+        }
+
+        if (Math.abs(dx) > 38) {
+          handFocusIndex = Math.max(0, Math.min((state.game.hands?.[myPlayerId] || []).length - 1, handFocusIndex + (dx < 0 ? 1 : -1)));
+          renderHand();
+        }
+        setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 0);
+      });
+
+      ui.hand.addEventListener('pointercancel', () => {
+        pointerId = null;
+        ui.hand.dataset.dragging = 'false';
+      });
+    }
+
+    function animateFocusedCardToTable(callback) {
+      const focused = ui.hand.querySelector('.hand-card.focused');
+      if (!focused) {
+        callback();
+        return;
+      }
+      const from = focused.getBoundingClientRect();
+      const to = ui.solutionZone.getBoundingClientRect();
+      const clone = focused.cloneNode(true);
+      clone.classList.add('card-flight');
+      Object.assign(clone.style, {
+        left: `${from.left}px`,
+        top: `${from.top}px`,
+        width: `${from.width}px`,
+        height: `${from.height}px`,
+        transform: 'rotate(0deg) scale(1)',
+        opacity: '1'
+      });
+      document.body.appendChild(clone);
+      requestAnimationFrame(() => {
+        clone.style.left = `${to.left + to.width / 2 - 30}px`;
+        clone.style.top = `${to.top + to.height / 2 - 42}px`;
+        clone.style.width = '60px';
+        clone.style.height = '84px';
+        clone.style.transform = 'rotate(-2deg) scale(.92)';
+        clone.style.opacity = '.92';
+      });
+      setTimeout(() => {
+        clone.remove();
+        callback();
+      }, 500);
     }
 
 
     function renderGameStatus() {
       const game = state.game;
-      const leader = playerName(currentPickerId());
+      const drawer = playerName(currentPickerId());
       const submitted = game.submittedPlayerIds || [];
       const voted = game.votedPlayerIds || [];
       let text = '';
+
       if (isCoopMode()) {
-        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn: draw the shared Problem.' : `${leader} is drawing the shared Problem.`;
-        if (game.phase === 'submit') text = submitted.includes(myPlayerId) ? `Your card is locked. ${submitted.length} of ${connectedPlayerIds().length} ready.` : 'Choose one Solution Card from your hand.';
-        if (game.phase === 'coopVote') text = voted.includes(myPlayerId) ? `Your vote is locked. ${voted.length} of ${connectedPlayerIds().length} voted.` : game.lastVoteSummary ? 'More discussion was requested. Talk it through, then vote again.' : 'Explain the cards aloud, discuss the principles, then vote.';
-        if (game.phase === 'roundResult') text = game.result?.outcome === 'agreed' ? 'Everyone agreed — the team earned one point!' : 'A Disagree vote ended the round with no point.';
+        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`;
+        if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem to the group' : `Listen while ${drawer} reads the Problem`;
+        if (game.phase === 'submit') text = submitted.includes(myPlayerId)
+          ? `Card placed — ${submitted.length} of ${connectedPlayerIds().length} ready`
+          : 'Choose a Solution Card from your hand';
+        if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
+          ? `Vote placed — ${voted.length} of ${connectedPlayerIds().length} ready`
+          : game.lastVoteSummary
+            ? 'Needs More Discussion — talk it through and vote again'
+            : 'Discuss the played cards, then vote';
+        if (game.phase === 'roundResult') text = game.result?.outcome === 'agreed'
+          ? 'Point Earned! Great discussion!'
+          : 'No point this round';
       } else {
-        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn: draw a Problem Card.' : `${leader} is drawing the Problem.`;
+        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn: draw a Problem Card.' : `${drawer} is drawing the Problem.`;
         if (game.phase === 'submit') text = isMyTurnAsPicker() ? `${submitted.length} of ${activeSolverIds().length} answers submitted.` : submitted.includes(myPlayerId) ? 'Your solution is submitted.' : 'Your turn: play a private Solution Card.';
-        if (game.phase === 'judge') text = isMyTurnAsPicker() ? 'Your turn: choose the solution that works best.' : `${leader} is judging the answers.`;
+        if (game.phase === 'judge') text = isMyTurnAsPicker() ? 'Your turn: choose the solution that works best.' : `${drawer} is judging the answers.`;
         if (game.phase === 'roundResult') text = game.result?.outcome === 'solved' ? `${playerName(game.result.pointPlayerId)} earned one point.` : 'No player scored this round.';
       }
+
       ui.statusBanner.textContent = text;
+      if (text !== lastBannerText) {
+        lastBannerText = text;
+        ui.statusBanner.classList.remove('banner-flash');
+        requestAnimationFrame(() => ui.statusBanner.classList.add('banner-flash'));
+      }
     }
 
 
@@ -3071,7 +3828,7 @@
       url.search = '';
       url.hash = '';
       url.searchParams.set('join', mode === 'pvp' ? 'pvp' : 'coop');
-      url.searchParams.set('code', roomCode);
+      if (roomCode) url.searchParams.set('code', roomCode);
       return url.toString();
     }
 
@@ -3080,31 +3837,16 @@
       const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
       const label = mode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
       const url = inviteUrlForMode(mode);
-      const message = `You’re invited to play ${label}!
-
-To join the game, use this code: ${roomCode}
-
-Go to this link:
-${url}
-
-Enter your name and tap Join Waiting Room.`;
+      const message = `You’re invited to play ${label}!\n\nTo join the game, use this code: ${roomCode}\n\nGo to this link:\n${url}\n\nEnter your name and tap Join Waiting Room.`;
       try {
         if (navigator.share) {
           await navigator.share({ title: `${label} game invite`, text: message });
-          toast('Invite shared. Your room is still open.');
           return;
         }
         await navigator.clipboard.writeText(message);
-        toast(`${label} link and code copied.`);
+        toast(`${label} invite copied.`);
       } catch (error) {
-        if (error?.name !== 'AbortError') {
-          try {
-            await navigator.clipboard.writeText(message);
-            toast('Invite copied instead.');
-          } catch {
-            toast(`Share code ${roomCode} and the game link.`);
-          }
-        }
+        if (error?.name !== 'AbortError') toast(`Share this code: ${roomCode}`);
       }
     }
 
@@ -3125,13 +3867,32 @@ Enter your name and tap Join Waiting Room.`;
     ui.inviteJoinCode.addEventListener('input', () => { ui.inviteJoinCode.value = cleanCode(ui.inviteJoinCode.value); });
     ui.inviteJoinCode.addEventListener('keydown', event => { if (event.key === 'Enter') guestJoinRoom(); });
     ui.inviteGuestName.addEventListener('keydown', event => { if (event.key === 'Enter') ui.inviteJoinCode.focus(); });
-    ui.cancelConnectingBtn.addEventListener('click', () => { void resetToLobby(); });
+    ui.cancelConnectingBtn.addEventListener('click', () => resetToLobby());
     ui.copyCodeBtn.addEventListener('click', copyRoomCode);
     ui.shareInviteBtn.addEventListener('click', shareRoomInvite);
-    ui.leaveRoomBtn.addEventListener('click', () => { void resetToLobby(isHost ? 'Room closed.' : 'You left the room.'); });
-    ui.guestLeaveRoomBtn.addEventListener('click', () => { void resetToLobby('You left the waiting room.'); });
-    ui.leaveGameBtn.addEventListener('click', () => { void resetToLobby(isHost ? 'Room closed.' : 'You left the game.'); });
-    ui.endLeaveBtn.addEventListener('click', () => { void resetToLobby(); });
+    ui.leaveRoomBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the room.'));
+    ui.guestLeaveRoomBtn.addEventListener('click', () => resetToLobby('You left the waiting room.'));
+    ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
+    ui.coopLeaveBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
+    ui.coopMenuBtn.addEventListener('click', () => ui.coopMenuSheet.classList.toggle('hidden'));
+    ui.coopMenuRulesBtn.addEventListener('click', () => {
+      ui.coopMenuSheet.classList.add('hidden');
+      ui.rulesDialog.showModal();
+    });
+    ui.collapseHandBtn.addEventListener('click', () => {
+      handCollapsed = !handCollapsed;
+      renderHand();
+    });
+    ui.playFocusedCardBtn.addEventListener('click', () => {
+      if (!isCoopMode() || !selectedSolutionInstanceId) return;
+      const instanceId = selectedSolutionInstanceId;
+      ui.playFocusedCardBtn.disabled = true;
+      animateFocusedCardToTable(() => {
+        sendAction('submitCoop', { instanceId });
+        selectedSolutionInstanceId = null;
+      });
+    });
+    ui.endLeaveBtn.addEventListener('click', () => resetToLobby());
 
     ui.playStyleSelect.addEventListener('change', hostSetRoomSettings);
     ui.handSizeInput.addEventListener('change', hostSetRoomSettings);
@@ -3159,25 +3920,23 @@ Enter your name and tap Join Waiting Room.`;
 
     setInterval(updateBuildTimer, 250);
     renderSavedGames();
-    showEntryScreen();
 
-    void (async () => {
-      setConnection('Preparing online rooms…', 'waiting');
-      const restored = await resumeSavedSession();
-      if (!restored && !inviteMode) setConnection('Ready', 'waiting');
+    (async () => {
+      try {
+        await ensureFirebaseAuth();
+        const restored = await restoreActiveRoom();
+        if (!restored) showEntryScreen();
+      } catch (error) {
+        console.error(error);
+        showEntryScreen();
+        toast('Online rooms could not start. Check your connection.');
+      }
     })();
 
     window.addEventListener('pagehide', () => {
-      saveActiveSession();
+      // Firebase keeps the room in the cloud when Android backgrounds the app.
     });
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible' || !roomCode || !myPlayerId) return;
-      void setupPresence().then(() => {
-        if (isHost && state) broadcastState();
-      }).catch(() => {});
-    });
-  
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js').catch(() => {});

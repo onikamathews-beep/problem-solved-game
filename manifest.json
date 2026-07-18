@@ -1,22 +1,15 @@
 {
-  "name": "3 Fold Cord & Problem? Solved!",
+  "name": "Problem? Solved! & 3 Fold Cord",
   "short_name": "3 Fold Cord",
-  "description": "A 2\u20136 player multiplayer card game with cooperative and player-vs-player modes.",
+  "description": "A multiplayer card game with 3 Fold Cord cooperative play and Problem? Solved! competitive play.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fff8e8",
-  "theme_color": "#b9a36a",
+  "background_color": "#102f1e",
+  "theme_color": "#102f1e",
+  "orientation": "portrait",
   "icons": [
-    {
-      "src": "./icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "./icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
