@@ -555,6 +555,17 @@
 
     /* 3 Fold Cord cooperative identity */
     .setup-help { margin: 6px 0 2px; line-height: 1.35; }
+    .selected-deck-ready {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid #c9b985;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #fbf6e8, #f2e6c6);
+      color: #34422d;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.55);
+    }
+    .selected-deck-ready strong { display:block; margin-bottom:4px; font-size:1rem; }
+    .selected-deck-ready span { display:block; color:#6a634f; font-size:.82rem; line-height:1.35; }
     .score-caption { margin-top: 7px; color: var(--muted); font-size: .76rem; }
     .coop-score-grid { grid-template-columns: 1fr; }
     .coop-game-brand {
@@ -1767,6 +1778,10 @@
             <option value="300">5 minutes</option>
           </select>
         </div>
+        <div id="selectedDeckReadyWrap" class="selected-deck-ready hidden" aria-live="polite">
+          <strong id="selectedDeckReadyTitle">Deck ready</strong>
+          <span id="selectedDeckReadyText">This deck will start immediately. There is no card-building timer.</span>
+        </div>
         <button id="startRoomBtn" class="btn primary wide" type="button">Start 2-Minute Build</button>
       </div>
 
@@ -2109,6 +2124,7 @@
     let firebaseReady = false;
     let restoringRoom = false;
     let lastBannerText = '';
+    let pendingHostDeckSelection = null;
     const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
@@ -2192,7 +2208,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 8,
+        version: 9,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -2374,6 +2390,7 @@
       selectedSolutionInstanceId = null;
       handFocusIndex = 0;
       handCollapsed = false;
+      pendingHostDeckSelection = null;
       document.body.classList.remove('coop-game', 'pvp-game');
       setConnection('Not connected');
       showEntryScreen();
@@ -2695,6 +2712,25 @@
     }
 
 
+    function syncHostSetupControls() {
+      if (!ui.roomModeSelect || !ui.startRoomBtn) return;
+      const value = ui.roomModeSelect.value || 'build';
+      const building = value === 'build';
+      ui.buildSettingsWrap.classList.toggle('hidden', !building);
+      ui.selectedDeckReadyWrap.classList.toggle('hidden', building);
+
+      const seconds = Number(ui.buildTimeSelect.value) || 120;
+      if (building) {
+        ui.startRoomBtn.textContent = `Start ${seconds / 60}-Minute Build`;
+      } else {
+        const gameName = state?.settings?.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+        ui.startRoomBtn.textContent = `Start ${gameName}`;
+        const selectedLabel = (ui.roomModeSelect.selectedOptions?.[0]?.textContent || 'Selected deck').replace(/^Saved:\s*/i, '');
+        ui.selectedDeckReadyTitle.textContent = `${selectedLabel} ready`;
+        ui.selectedDeckReadyText.textContent = 'The game will begin with this deck immediately. The card-building timer will not run.';
+      }
+    }
+
     function hostSetRoomSettings() {
       if (!isHost || state?.phase !== 'room') return;
       const playMode = ui.playStyleSelect.value === 'pvp' ? 'pvp' : 'coop';
@@ -2702,6 +2738,7 @@
       state.settings.playModeLabel = playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
 
       const value = ui.roomModeSelect.value;
+      pendingHostDeckSelection = value;
       if (value === 'build') {
         state.settings.mode = 'build';
         state.settings.modeLabel = 'Build Together';
@@ -2721,6 +2758,7 @@
       state.settings.deckName = clampText(ui.deckNameInput.value, 50) || state.settings.deckName;
       state.settings.buildSeconds = Number(ui.buildTimeSelect.value) || 120;
       state.settings.handSize = Math.max(1, Math.min(20, Number.parseInt(ui.handSizeInput.value, 10) || DEFAULT_HAND_SIZE));
+      syncHostSetupControls();
       broadcastState();
     }
 
@@ -3297,6 +3335,7 @@
       if (isHost) {
         const saved = getSavedGames();
         const currentValue = state.settings.mode === 'saved' ? `saved:${state.settings.savedDeckId}` : state.settings.mode;
+        const desiredValue = pendingHostDeckSelection || currentValue;
         ui.playStyleSelect.value = state.settings.playMode || 'coop';
         ui.handSizeInput.value = String(state.settings.handSize || DEFAULT_HAND_SIZE);
         ui.roomModeSelect.innerHTML = [
@@ -3304,13 +3343,10 @@
           '<option value="starter">Play Starter Deck</option>',
           ...saved.map(deck => `<option value="saved:${escapeHtml(deck.id)}">Saved: ${escapeHtml(deck.name)}</option>`)
         ].join('');
-        ui.roomModeSelect.value = [...ui.roomModeSelect.options].some(option => option.value === currentValue) ? currentValue : 'build';
+        ui.roomModeSelect.value = [...ui.roomModeSelect.options].some(option => option.value === desiredValue) ? desiredValue : ([...ui.roomModeSelect.options].some(option => option.value === currentValue) ? currentValue : 'build');
         ui.deckNameInput.value = state.settings.deckName;
         ui.buildTimeSelect.value = String(state.settings.buildSeconds);
-        const building = ui.roomModeSelect.value === 'build';
-        ui.buildSettingsWrap.classList.toggle('hidden', !building);
-        const seconds = Number(ui.buildTimeSelect.value) || 120;
-        ui.startRoomBtn.textContent = building ? `Start ${seconds / 60}-Minute Build` : `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'}`;
+        syncHostSetupControls();
         ui.startRoomBtn.disabled = connectedPlayers().length < 2;
       }
     }
@@ -3896,6 +3932,7 @@
 
     ui.playStyleSelect.addEventListener('change', hostSetRoomSettings);
     ui.handSizeInput.addEventListener('change', hostSetRoomSettings);
+    ui.roomModeSelect.addEventListener('input', hostSetRoomSettings);
     ui.roomModeSelect.addEventListener('change', hostSetRoomSettings);
     ui.buildTimeSelect.addEventListener('change', hostSetRoomSettings);
     ui.deckNameInput.addEventListener('change', hostSetRoomSettings);
