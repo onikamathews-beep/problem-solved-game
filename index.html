@@ -958,7 +958,7 @@
 
       <div class="panel">
         <h2>Play 3 Fold Cord or Problem? Solved! with 2–6 devices</h2>
-        <p class="muted">One person hosts. Everyone else joins with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
+        <p class="muted">One person hosts. Everyone else joins through the shared link or with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
         <div class="grid-2">
           <div class="choice">
             <h3>Create a room</h3>
@@ -986,7 +986,7 @@
         <label for="importDeckInput">Import a saved game</label>
         <input id="importDeckInput" type="file" accept="application/json,.json">
       </div>
-      <p class="footer-note">All devices must be online, and the host must keep the webpage open.</p>
+      <p class="footer-note">Rooms are stored online. You can open the Share sheet, switch apps, or return to the game without closing the room.</p>
     </section>
 
     <section id="inviteJoinScreen" class="screen">
@@ -1020,7 +1020,7 @@
     <section id="connectingScreen" class="screen">
       <div class="panel center">
         <h2 id="connectingTitle">Opening the room…</h2>
-        <p id="connectingText" class="muted">Connecting securely through the browser.</p>
+        <p id="connectingText" class="muted">Connecting to the online game room.</p>
         <button id="cancelConnectingBtn" class="btn danger wide" type="button">Cancel</button>
       </div>
     </section>
@@ -1034,7 +1034,7 @@
             <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
             <button id="shareInviteBtn" type="button" class="btn teal small">Share 3 Fold Cord Invite</button>
           </div>
-          <p id="inviteLinkHint" class="invite-helper">The shared link opens only the 3 Fold Cord join page. Your room code is included in the invitation message.</p>
+          <p id="inviteLinkHint" class="invite-helper">The shared invitation opens the correct join page, pre-fills the room code, and also displays the code in the message.</p>
         </div>
         <div class="metric-grid">
           <div class="metric"><strong id="roomPlayerCount">1</strong><span>Players</span></div>
@@ -1247,7 +1247,9 @@
   </dialog>
 
   <script type="module">
-    import { Peer } from 'https://cdn.jsdelivr.net/npm/peerjs@1.5.5/+esm';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js';
+    import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js';
+    import { getDatabase, ref, get, set, update, remove, onValue, onDisconnect, push } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js';
 
     const MAX_PLAYERS = 6;
     const DEFAULT_HAND_SIZE = 5;
@@ -1357,17 +1359,32 @@
     const ui = {};
     document.querySelectorAll('[id]').forEach(element => { ui[element.id] = element; });
 
-    let peer = null;
-    let hostConn = null;
-    let hostConnections = new Map();
+    const FIREBASE_CONFIG = {
+      apiKey: 'AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI',
+      authDomain: 'planning-with-ai-642ec.firebaseapp.com',
+      databaseURL: 'https://planning-with-ai-642ec-default-rtdb.firebaseio.com',
+      projectId: 'planning-with-ai-642ec',
+      storageBucket: 'planning-with-ai-642ec.firebasestorage.app',
+      messagingSenderId: '560868808729',
+      appId: '1:560868808729:web:1b0b6fc13eadb1c1047288'
+    };
+    const firebaseApp = initializeApp(FIREBASE_CONFIG);
+    const auth = getAuth(firebaseApp);
+    const db = getDatabase(firebaseApp);
+    const SESSION_KEY = 'problemSolved.activeRoom.v1';
+
+    let firebaseUser = null;
+    let roomUnsubscribers = [];
+    let actionUnsubscribers = new Map();
+    let actionQueuesBusy = new Set();
+    let stateSyncPromise = Promise.resolve();
+    let lastNoticeId = null;
     let isHost = false;
     let myPlayerId = null;
     let roomCode = '';
     let state = null;
     let selectedSolutionInstanceId = null;
     let toastTimer = null;
-    let pendingJoinName = '';
-    let reconnecting = false;
     let intentionalClose = false;
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
@@ -1383,7 +1400,6 @@
     }
 
     function cleanCode(value) { return String(value || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6); }
-    function peerIdFromCode(code) { return `problem-solved-v2-${String(code).toLowerCase()}`; }
     function clampText(value, max = 220) { return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max); }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
     function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
@@ -1450,15 +1466,15 @@
     function isMyTurnAsPicker() { return myPlayerId === currentPickerId(); }
     function isMyTurnAsSolver() { return activeSolverIds().includes(myPlayerId); }
 
-    function createRoomState(hostName, code) {
+    function createRoomState(hostName, code, hostId) {
       return {
-        version: 6,
+        version: 7,
         roomCode: code,
         phase: 'room',
-        hostId: 'host',
+        hostId,
         createdAt: Date.now(),
         players: [{
-          id: 'host',
+          id: hostId,
           name: hostName,
           connected: true,
           joinedAt: Date.now(),
@@ -1514,149 +1530,376 @@
     }
 
 
-    function broadcastState() {
-      if (!isHost || !state) return;
-      for (const [playerId, connection] of hostConnections.entries()) {
-        if (connection.open) connection.send({ type: 'state', state: sanitizeStateFor(playerId) });
-      }
-      render();
+    function firebaseRoomRef(path = '') {
+      const suffix = path ? `/${path.replace(/^\/+/, '')}` : '';
+      return ref(db, `rooms/${roomCode}${suffix}`);
     }
 
-    function sendNotice(playerId, message) {
-      if (playerId === 'host') toast(message);
-      else {
-        const connection = hostConnections.get(playerId);
-        if (connection?.open) connection.send({ type: 'notice', message });
+    async function ensureAuth() {
+      try { await setPersistence(auth, browserLocalPersistence); } catch {}
+      if (!auth.currentUser) {
+        await new Promise(resolve => {
+          let unsubscribe = () => {};
+          unsubscribe = onAuthStateChanged(auth, () => {
+            unsubscribe();
+            resolve();
+          });
+        });
       }
+      if (auth.currentUser) {
+        firebaseUser = auth.currentUser;
+        return firebaseUser;
+      }
+      const credential = await signInAnonymously(auth);
+      firebaseUser = credential.user;
+      return firebaseUser;
     }
 
-    function rejectAction(playerId, message) { sendNotice(playerId, message); }
+    function saveActiveSession() {
+      if (!roomCode || !myPlayerId || !state) return;
+      const player = playerById(myPlayerId);
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        roomCode,
+        uid: myPlayerId,
+        isHost,
+        playerName: player?.name || '',
+        mode: state.settings?.playMode || state.game?.playMode || inviteMode || 'coop'
+      }));
+    }
+
+    function clearActiveSession() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function detachRoomListeners() {
+      for (const unsubscribe of roomUnsubscribers.splice(0)) {
+        try { unsubscribe(); } catch {}
+      }
+      for (const unsubscribe of actionUnsubscribers.values()) {
+        try { unsubscribe(); } catch {}
+      }
+      actionUnsubscribers.clear();
+      actionQueuesBusy.clear();
+    }
 
     function cleanupConnection() {
-      try { hostConn?.close(); } catch {}
-      for (const connection of hostConnections.values()) {
-        try { connection.close(); } catch {}
-      }
-      hostConnections.clear();
-      try { peer?.destroy(); } catch {}
-      peer = null;
-      hostConn = null;
-      reconnecting = false;
+      detachRoomListeners();
+      stateSyncPromise = Promise.resolve();
     }
 
-    function resetToLobby(message = '') {
-      intentionalClose = true;
+    async function setupPresence() {
+      if (!roomCode || !myPlayerId) return;
+      const playerRef = firebaseRoomRef(`players/${myPlayerId}`);
+      const connectedRef = firebaseRoomRef(`players/${myPlayerId}/connected`);
+      await update(playerRef, { connected: true, lastSeen: Date.now() });
+      try { await onDisconnect(connectedRef).set(false); } catch {}
       if (isHost) {
-        for (const connection of hostConnections.values()) {
-          try { if (connection.open) connection.send({ type: 'hostClosing' }); } catch {}
-        }
+        const hostOnlineRef = firebaseRoomRef('meta/hostOnline');
+        await set(hostOnlineRef, true);
+        try { await onDisconnect(hostOnlineRef).set(false); } catch {}
       }
+    }
+
+    async function persistRoomState() {
+      if (!isHost || !state || !roomCode) return;
+      state._hostOnline = true;
+      const updates = {
+        'private/state': deepClone(state),
+        'meta/phase': state.phase,
+        'meta/playMode': state.settings?.playMode || state.game?.playMode || 'coop',
+        'meta/playModeLabel': state.settings?.playModeLabel || (isCoopMode() ? '3 Fold Cord' : 'Problem? Solved!'),
+        'meta/mode': state.settings?.mode || '',
+        'meta/modeLabel': state.settings?.modeLabel || '',
+        'meta/handSize': Number(state.settings?.handSize || state.game?.handSize || DEFAULT_HAND_SIZE),
+        'meta/hostOnline': true,
+        'meta/closed': false,
+        'meta/updatedAt': Date.now()
+      };
+      for (const player of state.players || []) {
+        updates[`views/${player.id}/state`] = sanitizeStateFor(player.id);
+        updates[`players/${player.id}/name`] = player.name;
+        updates[`players/${player.id}/joinedAt`] = player.joinedAt || Date.now();
+        updates[`players/${player.id}/problemsAdded`] = player.problemsAdded || 0;
+        updates[`players/${player.id}/solutionsAdded`] = player.solutionsAdded || 0;
+      }
+      await update(firebaseRoomRef(), updates);
+      saveActiveSession();
+    }
+
+    function broadcastState() {
+      if (!state) return;
+      render();
+      if (!isHost) return;
+      stateSyncPromise = stateSyncPromise
+        .then(() => persistRoomState())
+        .catch(error => {
+          console.error(error);
+          setConnection('Sync interrupted', 'error');
+          toast('The room could not sync. Check your internet connection.');
+        });
+    }
+
+    async function sendNotice(playerId, message) {
+      if (playerId === myPlayerId) {
+        toast(message);
+        return;
+      }
+      if (!isHost || !roomCode) return;
+      try {
+        await update(firebaseRoomRef(`views/${playerId}`), {
+          notice: { id: uid('notice'), message: clampText(message, 220), createdAt: Date.now() }
+        });
+      } catch {}
+    }
+
+    function rejectAction(playerId, message) { void sendNotice(playerId, message); }
+
+    function minimalRoomState(meta, players) {
+      return {
+        version: 7,
+        roomCode,
+        phase: 'room',
+        hostId: meta.hostUid,
+        createdAt: meta.createdAt || Date.now(),
+        players,
+        settings: {
+          playMode: meta.playMode || inviteMode || 'coop',
+          playModeLabel: meta.playModeLabel || ((meta.playMode || inviteMode) === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'),
+          mode: meta.mode || 'build',
+          modeLabel: meta.modeLabel || 'Build Together',
+          savedDeckId: '',
+          deckName: 'Shared Game',
+          buildSeconds: 120,
+          handSize: Number(meta.handSize) || DEFAULT_HAND_SIZE
+        },
+        builder: { startedAt: null, endsAt: null, problems: [], solutions: [], savedAt: null },
+        activeDeck: null,
+        game: null,
+        _hostOnline: meta.hostOnline !== false
+      };
+    }
+
+    function playersFromSnapshot(value) {
+      return Object.entries(value || {}).map(([id, player]) => ({
+        id,
+        name: clampText(player?.name || 'Player', 24),
+        connected: player?.connected !== false,
+        joinedAt: Number(player?.joinedAt) || Date.now(),
+        problemsAdded: Number(player?.problemsAdded) || 0,
+        solutionsAdded: Number(player?.solutionsAdded) || 0
+      })).sort((a, b) => a.joinedAt - b.joinedAt);
+    }
+
+    async function resetToLobby(message = '') {
+      intentionalClose = true;
+      const leavingCode = roomCode;
+      const leavingPlayerId = myPlayerId;
+      const leavingAsHost = isHost;
       cleanupConnection();
-      setTimeout(() => { intentionalClose = false; }, 0);
+      if (leavingCode && leavingPlayerId) {
+        try {
+          if (leavingAsHost) {
+            await update(ref(db, `rooms/${leavingCode}/meta`), { closed: true, hostOnline: false, closedAt: Date.now() });
+          } else {
+            await remove(ref(db, `rooms/${leavingCode}/players/${leavingPlayerId}`));
+          }
+        } catch {}
+      }
+      clearActiveSession();
       isHost = false;
       myPlayerId = null;
       roomCode = '';
       state = null;
       selectedSolutionInstanceId = null;
+      lastNoticeId = null;
       document.body.classList.remove('coop-game', 'pvp-game');
       setConnection('Not connected');
       showEntryScreen();
       renderSavedGames();
+      intentionalClose = false;
       if (message) toast(message);
     }
 
-    function readablePeerError(error) {
-      const type = error?.type || '';
-      if (type === 'peer-unavailable') return 'Room not found. Check the code and make sure the host is still waiting.';
-      if (type === 'network') return 'The network interrupted the connection. Try again.';
-      if (type === 'browser-incompatible') return 'This browser does not support the connection needed for multiplayer.';
-      if (type === 'ssl-unavailable') return 'This game needs to be opened from a secure HTTPS website.';
-      return 'The devices could not connect. Try another network or reopen the room.';
+    function readableFirebaseError(error) {
+      const code = String(error?.code || '');
+      if (code.includes('permission-denied')) return 'Firebase blocked the room request. Check the database rules.';
+      if (code.includes('network')) return 'The network interrupted the connection. Try again.';
+      if (code.includes('auth')) return 'Guest sign-in could not start. Check Firebase Authentication.';
+      return 'The online room could not be opened. Try again.';
     }
 
-    function hostCreateRoom() {
+    async function hostCreateRoom() {
       const name = clampText(ui.hostName.value, 24);
       if (!name) return toast('Enter your name first.');
       cleanupConnection();
-      isHost = true;
-      myPlayerId = 'host';
-      roomCode = randomCode();
-      state = createRoomState(name, roomCode);
-      ui.connectingTitle.textContent = 'Opening your room…';
-      ui.connectingText.textContent = 'Creating a code for up to six players.';
+      ui.connectingTitle.textContent = 'Opening your online room…';
+      ui.connectingText.textContent = 'Creating a room that stays saved while you share or switch apps.';
       showScreen('connectingScreen');
-      setConnection('Opening room…', 'waiting');
-      openHostPeer(0);
+      setConnection('Signing in…', 'waiting');
+      try {
+        await ensureAuth();
+        isHost = true;
+        myPlayerId = firebaseUser.uid;
+        let created = false;
+        for (let attempt = 0; attempt < 8 && !created; attempt++) {
+          roomCode = randomCode();
+          const metaRef = ref(db, `rooms/${roomCode}/meta`);
+          const existing = await get(metaRef);
+          if (existing.exists()) continue;
+          state = createRoomState(name, roomCode, myPlayerId);
+          await set(metaRef, {
+            hostUid: myPlayerId,
+            roomCode,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            phase: 'room',
+            playMode: 'coop',
+            playModeLabel: '3 Fold Cord',
+            mode: 'build',
+            modeLabel: 'Build Together',
+            handSize: DEFAULT_HAND_SIZE,
+            hostOnline: true,
+            closed: false
+          });
+          await set(ref(db, `rooms/${roomCode}/players/${myPlayerId}`), state.players[0]);
+          await set(ref(db, `rooms/${roomCode}/private/state`), state);
+          await set(ref(db, `rooms/${roomCode}/views/${myPlayerId}/state`), sanitizeStateFor(myPlayerId));
+          created = true;
+        }
+        if (!created) throw new Error('room-code-collision');
+        await setupPresence();
+        attachHostRoomListeners();
+        saveActiveSession();
+        setConnection('Room open online', 'online');
+        render();
+      } catch (error) {
+        console.error(error);
+        await resetToLobby(readableFirebaseError(error));
+      }
     }
 
-    function openHostPeer(attempt) {
-      peer = new Peer(peerIdFromCode(roomCode), { debug: 1 });
-      peer.on('open', () => {
-        setConnection('Room open', 'waiting');
-        render();
-      });
-      peer.on('connection', incoming => prepareIncomingConnection(incoming));
-      peer.on('error', error => {
-        if (error?.type === 'unavailable-id' && attempt < 4) {
-          try { peer.destroy(); } catch {}
-          roomCode = randomCode();
-          state.roomCode = roomCode;
-          openHostPeer(attempt + 1);
+    function attachActionListener(playerId) {
+      if (!isHost || actionUnsubscribers.has(playerId)) return;
+      const unsubscribe = onValue(firebaseRoomRef(`actions/${playerId}`), () => {
+        void processActionQueueFor(playerId);
+      }, error => console.error(error));
+      actionUnsubscribers.set(playerId, unsubscribe);
+    }
+
+    async function processActionQueueFor(playerId) {
+      if (!isHost || actionQueuesBusy.has(playerId)) return;
+      actionQueuesBusy.add(playerId);
+      try {
+        while (isHost && state) {
+          const snapshot = await get(firebaseRoomRef(`actions/${playerId}`));
+          const entries = Object.entries(snapshot.val() || {})
+            .map(([id, value]) => ({ id, ...(value || {}) }))
+            .sort((a, b) => (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
+          if (!entries.length) break;
+          const item = entries[0];
+          handleAction(playerId, item.action, item.payload || {});
+          await remove(firebaseRoomRef(`actions/${playerId}/${item.id}`));
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        actionQueuesBusy.delete(playerId);
+      }
+    }
+
+    function syncPlayersIntoHost(dbPlayers) {
+      if (!state || !isHost) return false;
+      let changed = false;
+      const incomingIds = new Set(dbPlayers.map(player => player.id));
+      for (const incoming of dbPlayers) {
+        const current = playerById(incoming.id);
+        if (!current) {
+          state.players.push(incoming);
+          toast(`${incoming.name} joined the room.`);
+          changed = true;
+        } else {
+          const wasConnected = current.connected;
+          current.name = incoming.name;
+          current.connected = incoming.connected;
+          current.joinedAt = incoming.joinedAt;
+          if (wasConnected !== current.connected) changed = true;
+          if (wasConnected && !current.connected && state.phase !== 'room') handlePlayerDisconnectState(current.id);
+        }
+        attachActionListener(incoming.id);
+      }
+      if (state.phase === 'room') {
+        const before = state.players.length;
+        state.players = state.players.filter(player => player.id === state.hostId || incomingIds.has(player.id));
+        if (state.players.length !== before) changed = true;
+      }
+      state.players.sort((a, b) => a.joinedAt - b.joinedAt);
+      return changed;
+    }
+
+    function attachHostRoomListeners() {
+      detachRoomListeners();
+      const playersUnsub = onValue(firebaseRoomRef('players'), snapshot => {
+        if (!isHost || !state) return;
+        const changed = syncPlayersIntoHost(playersFromSnapshot(snapshot.val()));
+        if (changed) broadcastState();
+        else render();
+      }, error => console.error(error));
+      const metaUnsub = onValue(firebaseRoomRef('meta'), snapshot => {
+        const meta = snapshot.val();
+        if (!meta || meta.closed) {
+          if (!intentionalClose) void resetToLobby('This room has been closed.');
+        }
+      }, error => console.error(error));
+      roomUnsubscribers.push(playersUnsub, metaUnsub);
+      for (const player of state.players || []) attachActionListener(player.id);
+    }
+
+    function attachGuestRoomListeners() {
+      detachRoomListeners();
+      const metaUnsub = onValue(firebaseRoomRef('meta'), snapshot => {
+        const meta = snapshot.val();
+        if (!meta || meta.closed) {
+          if (!intentionalClose) void resetToLobby('The host closed this room.');
           return;
         }
-        setConnection('Room error', 'error');
-        resetToLobby(readablePeerError(error));
-      });
-    }
-
-    function prepareIncomingConnection(connection) {
-      connection.on('data', message => handleHostIncoming(connection, message));
-      connection.on('error', () => {});
-      connection.on('close', () => {
-        const playerId = connection._problemSolvedPlayerId;
-        if (playerId) handlePlayerDisconnect(playerId);
-      });
-    }
-
-    function handleHostIncoming(connection, message) {
-      if (!message || typeof message !== 'object') return;
-      if (message.type === 'join') {
-        if (connection._problemSolvedPlayerId) return;
-        const name = clampText(message.name, 24);
-        const expectedMode = ['coop', 'pvp'].includes(message.expectedMode) ? message.expectedMode : null;
-        if (!name) return connection.send({ type: 'rejected', message: 'Enter a player name.' });
-        if (expectedMode && expectedMode !== state.settings.playMode) {
-          const requested = expectedMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
-          const current = state.settings.playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
-          return connection.send({ type: 'rejected', message: `This link is for ${requested}, but the host is currently setting up ${current}. Ask the host for the current invite link.` });
+        if (state) {
+          state._hostOnline = meta.hostOnline !== false;
+          state.settings ||= {};
+          state.settings.playMode = meta.playMode || state.settings.playMode || inviteMode || 'coop';
+          state.settings.playModeLabel = meta.playModeLabel || (state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord');
+          state.settings.mode = meta.mode || state.settings.mode || 'build';
+          state.settings.modeLabel = meta.modeLabel || state.settings.modeLabel || 'Build Together';
+          state.settings.handSize = Number(meta.handSize) || state.settings.handSize || DEFAULT_HAND_SIZE;
+          render();
         }
-        if (state.phase !== 'room') return connection.send({ type: 'rejected', message: 'This game has already started.' });
-        if (connectedPlayers().length >= MAX_PLAYERS) return connection.send({ type: 'rejected', message: 'This room already has six players.' });
-
-        const playerId = uid('player');
-        connection._problemSolvedPlayerId = playerId;
-        hostConnections.set(playerId, connection);
-        state.players.push({
-          id: playerId,
-          name,
-          connected: true,
-          joinedAt: Date.now(),
-          problemsAdded: 0,
-          solutionsAdded: 0
-        });
-        connection.send({ type: 'welcome', playerId, state: sanitizeStateFor(playerId) });
-        toast(`${name} joined the room.`);
-        broadcastState();
-        return;
-      }
-
-      if (message.type === 'action') {
-        const playerId = connection._problemSolvedPlayerId;
-        if (playerId) handleAction(playerId, message.action, message.payload || {});
-      }
+      }, error => console.error(error));
+      const playersUnsub = onValue(firebaseRoomRef('players'), snapshot => {
+        const players = playersFromSnapshot(snapshot.val());
+        if (!state) return;
+        state.players = players;
+        render();
+      }, error => console.error(error));
+      const viewUnsub = onValue(firebaseRoomRef(`views/${myPlayerId}`), snapshot => {
+        const record = snapshot.val() || {};
+        if (record.state) {
+          state = record.state;
+          roomCode = state.roomCode;
+          setConnection('Connected online', 'online');
+          saveActiveSession();
+          render();
+        }
+        if (record.notice?.id && record.notice.id !== lastNoticeId) {
+          lastNoticeId = record.notice.id;
+          toast(record.notice.message || 'The host could not complete that action.');
+        }
+      }, error => {
+        console.error(error);
+        setConnection('Waiting for host', 'waiting');
+      });
+      roomUnsubscribers.push(metaUnsub, playersUnsub, viewUnsub);
     }
 
-    function guestJoinRoom() {
+    async function guestJoinRoom() {
       const usingInvite = Boolean(inviteMode);
       const nameInput = usingInvite ? ui.inviteGuestName : ui.guestName;
       const codeInput = usingInvite ? ui.inviteJoinCode : ui.joinCode;
@@ -1666,69 +1909,83 @@
       if (code.length !== 6) return toast('Enter the six-character room code.');
 
       cleanupConnection();
-      isHost = false;
-      myPlayerId = null;
-      pendingJoinName = name;
-      roomCode = code;
-      ui.connectingTitle.textContent = 'Joining the room…';
+      ui.connectingTitle.textContent = 'Joining the online room…';
       ui.connectingText.textContent = `Looking for room ${code}.`;
       showScreen('connectingScreen');
-      setConnection('Connecting…', 'waiting');
-
-      peer = new Peer(undefined, { debug: 1 });
-      peer.on('open', () => {
-        const connection = peer.connect(peerIdFromCode(code), { reliable: true });
-        hostConn = connection;
-        connection.on('open', () => connection.send({ type: 'join', name, expectedMode: inviteMode || null }));
-        connection.on('data', handleGuestIncoming);
-        connection.on('close', () => {
-          if (!intentionalClose && !reconnecting && state) {
-            setConnection('Host disconnected', 'error');
-            setTimeout(() => resetToLobby('The host left or the connection closed.'), 0);
-          }
-        });
-        connection.on('error', error => {
-          setConnection('Connection error', 'error');
-          toast(readablePeerError(error));
-        });
-      });
-      peer.on('error', error => {
-        setConnection('Connection error', 'error');
-        resetToLobby(readablePeerError(error));
-      });
-    }
-
-    function handleGuestIncoming(message) {
-      if (!message || typeof message !== 'object') return;
-      if (message.type === 'welcome') {
-        myPlayerId = message.playerId;
-        state = message.state;
-        roomCode = state.roomCode;
-        setConnection('Connected', 'online');
+      setConnection('Signing in…', 'waiting');
+      try {
+        await ensureAuth();
+        isHost = false;
+        myPlayerId = firebaseUser.uid;
+        roomCode = code;
+        const metaSnapshot = await get(firebaseRoomRef('meta'));
+        if (!metaSnapshot.exists() || metaSnapshot.val()?.closed) throw new Error('room-not-found');
+        const meta = metaSnapshot.val();
+        const expectedMode = inviteMode || null;
+        if (expectedMode && expectedMode !== meta.playMode) {
+          const requested = expectedMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+          const current = meta.playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+          throw new Error(`mode-mismatch:${requested}:${current}`);
+        }
+        if (meta.phase !== 'room') throw new Error('game-started');
+        const playersSnapshot = await get(firebaseRoomRef('players'));
+        const players = playersFromSnapshot(playersSnapshot.val());
+        const existing = players.find(player => player.id === myPlayerId);
+        if (!existing && players.filter(player => player.connected).length >= MAX_PLAYERS) throw new Error('room-full');
+        const player = existing || {
+          id: myPlayerId,
+          name,
+          connected: true,
+          joinedAt: Date.now(),
+          problemsAdded: 0,
+          solutionsAdded: 0
+        };
+        player.name = name;
+        player.connected = true;
+        await set(firebaseRoomRef(`players/${myPlayerId}`), player);
+        const mergedPlayers = [...players.filter(item => item.id !== myPlayerId), player].sort((a, b) => a.joinedAt - b.joinedAt);
+        state = minimalRoomState(meta, mergedPlayers);
+        await setupPresence();
+        attachGuestRoomListeners();
+        saveActiveSession();
+        setConnection('In waiting room', 'online');
         render();
-      } else if (message.type === 'state') {
-        state = message.state;
-        setConnection('Connected', 'online');
-        render();
-      } else if (message.type === 'notice') {
-        toast(message.message);
-      } else if (message.type === 'rejected') {
-        resetToLobby(message.message || 'Could not join the room.');
-      } else if (message.type === 'hostClosing') {
-        resetToLobby('The host ended the room.');
+      } catch (error) {
+        console.error(error);
+        const message = String(error?.message || '');
+        if (message === 'room-not-found') return void resetToLobby('Room not found. Check the code and try again.');
+        if (message === 'game-started') return void resetToLobby('This game has already started.');
+        if (message === 'room-full') return void resetToLobby('This room already has six players.');
+        if (message.startsWith('mode-mismatch:')) {
+          const [, requested, current] = message.split(':');
+          return void resetToLobby(`This invitation is for ${requested}, but the room is set to ${current}. Ask the host for the current invite.`);
+        }
+        return void resetToLobby(readableFirebaseError(error));
       }
     }
 
-    function sendAction(action, payload = {}) {
-      if (isHost) handleAction(myPlayerId, action, payload);
-      else if (hostConn?.open) hostConn.send({ type: 'action', action, payload });
-      else toast('You are not connected to the host.');
+    async function sendAction(action, payload = {}) {
+      if (isHost) {
+        handleAction(myPlayerId, action, payload);
+        return;
+      }
+      if (!roomCode || !myPlayerId) return toast('You are not connected to a room.');
+      try {
+        await push(firebaseRoomRef(`actions/${myPlayerId}`), {
+          action,
+          payload: deepClone(payload),
+          createdAt: Date.now()
+        });
+      } catch (error) {
+        console.error(error);
+        toast('Your move could not be sent. Check your internet connection.');
+      }
     }
 
     function handleAction(actorId, action, payload) {
       if (!isHost || !state) return;
       const actor = playerById(actorId);
-      if (!actor?.connected) return;
+      if (!actor) return;
 
       if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text);
       if (action === 'removeBuildCard') return hostRemoveBuildCard(actorId, payload.kind, payload.cardId);
@@ -1742,19 +1999,11 @@
       if (action === 'playAgain') return hostPlayAgain(actorId);
     }
 
-
-    function handlePlayerDisconnect(playerId) {
+    function handlePlayerDisconnectState(playerId) {
       if (!isHost || !state) return;
       const player = playerById(playerId);
       if (!player) return;
-      hostConnections.delete(playerId);
-
-      if (state.phase === 'room') {
-        state.players = state.players.filter(item => item.id !== playerId);
-      } else {
-        player.connected = false;
-      }
-
+      player.connected = false;
       if (state.phase === 'play' && state.game) {
         if (currentPickerId() === playerId) abortRoundAndRotatePicker();
         else if (state.game.phase === 'submit') {
@@ -1764,11 +2013,58 @@
           maybeResolveCoopVotes();
         }
       }
-
-      toast(`${player.name} disconnected.`);
-      broadcastState();
+      toast(`${player.name} is temporarily offline. Their place is saved.`);
     }
 
+    async function resumeSavedSession() {
+      if (inviteMode || entryParams.get('code')) return false;
+      let saved;
+      try { saved = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return false; }
+      if (!saved?.roomCode) return false;
+      try {
+        await ensureAuth();
+        roomCode = cleanCode(saved.roomCode);
+        myPlayerId = firebaseUser.uid;
+        const metaSnapshot = await get(firebaseRoomRef('meta'));
+        if (!metaSnapshot.exists() || metaSnapshot.val()?.closed) {
+          clearActiveSession();
+          roomCode = '';
+          myPlayerId = null;
+          return false;
+        }
+        const meta = metaSnapshot.val();
+        isHost = meta.hostUid === myPlayerId;
+        if (isHost) {
+          const stateSnapshot = await get(firebaseRoomRef('private/state'));
+          if (!stateSnapshot.exists()) throw new Error('missing-state');
+          state = stateSnapshot.val();
+          await setupPresence();
+          attachHostRoomListeners();
+          setConnection('Room restored online', 'online');
+          render();
+          broadcastState();
+          return true;
+        }
+        const playerSnapshot = await get(firebaseRoomRef(`players/${myPlayerId}`));
+        if (!playerSnapshot.exists()) throw new Error('missing-player');
+        const playersSnapshot = await get(firebaseRoomRef('players'));
+        state = minimalRoomState(meta, playersFromSnapshot(playersSnapshot.val()));
+        await setupPresence();
+        attachGuestRoomListeners();
+        setConnection('Room restored online', 'online');
+        render();
+        return true;
+      } catch (error) {
+        console.error(error);
+        cleanupConnection();
+        clearActiveSession();
+        roomCode = '';
+        myPlayerId = null;
+        state = null;
+        isHost = false;
+        return false;
+      }
+    }
 
     function abortRoundAndRotatePicker() {
       if (!state.game) return;
@@ -2370,7 +2666,7 @@
       clearEntryTheme();
       document.body.classList.remove('coop-game', 'pvp-game');
       showScreen('roomScreen');
-      setConnection('Room open', 'waiting');
+      setConnection('Room open online', 'online');
       ui.roomPlayerCount.textContent = connectedPlayers().length;
       ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
       renderPlayerTiles(ui.roomPlayers);
@@ -2378,7 +2674,7 @@
       ui.guestRoomControls.classList.add('hidden');
       const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
       ui.shareInviteBtn.textContent = `Share ${inviteLabel} Invite`;
-      ui.inviteLinkHint.textContent = `The shared link opens only the ${inviteLabel} join page. Your room code is included in the invitation message.`;
+      ui.inviteLinkHint.textContent = `The invitation opens only the ${inviteLabel} join page, pre-fills code ${roomCode}, and includes the code in the message.`;
 
       if (isHost) {
         const saved = getSavedGames();
@@ -2413,7 +2709,8 @@
       ui.guestWaitingRoomCode.textContent = state.roomCode;
       renderPlayerTiles(ui.guestWaitingPlayers);
       const playerCount = connectedPlayers().length;
-      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}`;
+      const hostStatus = state._hostOnline === false ? ' The host stepped away, but the online room is still saved.' : '';
+      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}${hostStatus}`;
     }
 
 
@@ -2774,6 +3071,7 @@
       url.search = '';
       url.hash = '';
       url.searchParams.set('join', mode === 'pvp' ? 'pvp' : 'coop');
+      url.searchParams.set('code', roomCode);
       return url.toString();
     }
 
@@ -2782,16 +3080,31 @@
       const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
       const label = mode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
       const url = inviteUrlForMode(mode);
-      const message = `Join my ${label} game.\n\nOpen this link: ${url}\nRoom code: ${roomCode}`;
+      const message = `You’re invited to play ${label}!
+
+To join the game, use this code: ${roomCode}
+
+Go to this link:
+${url}
+
+Enter your name and tap Join Waiting Room.`;
       try {
         if (navigator.share) {
-          await navigator.share({ title: `${label} game invite`, text: `Room code: ${roomCode}`, url });
+          await navigator.share({ title: `${label} game invite`, text: message });
+          toast('Invite shared. Your room is still open.');
           return;
         }
         await navigator.clipboard.writeText(message);
-        toast(`${label} invite copied.`);
+        toast(`${label} link and code copied.`);
       } catch (error) {
-        if (error?.name !== 'AbortError') toast(`Share this code: ${roomCode}`);
+        if (error?.name !== 'AbortError') {
+          try {
+            await navigator.clipboard.writeText(message);
+            toast('Invite copied instead.');
+          } catch {
+            toast(`Share code ${roomCode} and the game link.`);
+          }
+        }
       }
     }
 
@@ -2812,13 +3125,13 @@
     ui.inviteJoinCode.addEventListener('input', () => { ui.inviteJoinCode.value = cleanCode(ui.inviteJoinCode.value); });
     ui.inviteJoinCode.addEventListener('keydown', event => { if (event.key === 'Enter') guestJoinRoom(); });
     ui.inviteGuestName.addEventListener('keydown', event => { if (event.key === 'Enter') ui.inviteJoinCode.focus(); });
-    ui.cancelConnectingBtn.addEventListener('click', () => resetToLobby());
+    ui.cancelConnectingBtn.addEventListener('click', () => { void resetToLobby(); });
     ui.copyCodeBtn.addEventListener('click', copyRoomCode);
     ui.shareInviteBtn.addEventListener('click', shareRoomInvite);
-    ui.leaveRoomBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the room.'));
-    ui.guestLeaveRoomBtn.addEventListener('click', () => resetToLobby('You left the waiting room.'));
-    ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
-    ui.endLeaveBtn.addEventListener('click', () => resetToLobby());
+    ui.leaveRoomBtn.addEventListener('click', () => { void resetToLobby(isHost ? 'Room closed.' : 'You left the room.'); });
+    ui.guestLeaveRoomBtn.addEventListener('click', () => { void resetToLobby('You left the waiting room.'); });
+    ui.leaveGameBtn.addEventListener('click', () => { void resetToLobby(isHost ? 'Room closed.' : 'You left the game.'); });
+    ui.endLeaveBtn.addEventListener('click', () => { void resetToLobby(); });
 
     ui.playStyleSelect.addEventListener('change', hostSetRoomSettings);
     ui.handSizeInput.addEventListener('change', hostSetRoomSettings);
@@ -2848,13 +3161,21 @@
     renderSavedGames();
     showEntryScreen();
 
-    window.addEventListener('beforeunload', () => {
-      if (isHost) {
-        for (const connection of hostConnections.values()) {
-          try { connection.send({ type: 'hostClosing' }); } catch {}
-        }
-      }
-      cleanupConnection();
+    void (async () => {
+      setConnection('Preparing online rooms…', 'waiting');
+      const restored = await resumeSavedSession();
+      if (!restored && !inviteMode) setConnection('Ready', 'waiting');
+    })();
+
+    window.addEventListener('pagehide', () => {
+      saveActiveSession();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' || !roomCode || !myPlayerId) return;
+      void setupPresence().then(() => {
+        if (isHost && state) broadcastState();
+      }).catch(() => {});
     });
   
     if ('serviceWorker' in navigator) {

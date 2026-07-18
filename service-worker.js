@@ -1,4 +1,4 @@
-const CACHE_NAME = 'problem-solved-v6';
+const CACHE_NAME = 'problem-solved-v7-firebase';
 const APP_FILES = [
   './',
   './index.html',
