@@ -1,4 +1,4 @@
-const CACHE_NAME = 'problem-solved-v5';
+const CACHE_NAME = 'problem-solved-v6';
 const APP_FILES = [
   './',
   './index.html',

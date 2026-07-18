@@ -834,6 +834,100 @@
       .played-solution-card { min-height: 190px; padding: 10px; }
     }
 
+
+    /* Mode-specific invite and guest waiting rooms */
+    .invite-shell { width: min(680px, 100%); margin: 0 auto; }
+    .mode-invite-hero {
+      overflow: hidden;
+      margin-bottom: 16px;
+      padding: 22px 18px;
+      border-radius: 26px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .mode-invite-hero h1 { margin: 8px 0 5px; font-size: clamp(2rem, 9vw, 3.7rem); line-height: .98; }
+    .mode-invite-hero p { margin: 0; line-height: 1.42; }
+    .mode-invite-hero.coop {
+      color: #594b38;
+      border: 1px solid #c9b894;
+      background:
+        radial-gradient(circle at 12% 5%, rgba(217,180,95,.20), transparent 31%),
+        radial-gradient(circle at 88% 12%, rgba(142,175,186,.18), transparent 30%),
+        #fffaf0;
+    }
+    .mode-invite-hero.coop img { display: block; width: min(100%, 330px); max-height: 300px; margin: -12px auto -20px; object-fit: contain; }
+    .mode-invite-hero.pvp {
+      color: var(--ink);
+      border: 4px solid var(--ink);
+      background: var(--cream);
+    }
+    .invite-pvp-logo { display: grid; justify-items: center; width: fit-content; margin: 8px auto 18px; line-height: .9; }
+    .invite-pvp-logo .problem-word { font-size: clamp(2rem, 11vw, 4.4rem); }
+    .invite-pvp-logo .solved-word { font-size: clamp(2.2rem, 12vw, 4.8rem); }
+    .invite-form-panel { margin-top: 0; }
+    .invite-mode-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #efe5cf;
+      color: #66563f;
+      font-size: .75rem;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .invite-mode-chip::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #7f9d82; }
+    .host-invite-actions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; margin-top: 10px; }
+    .invite-helper { margin: 9px 0 0; color: #746b5d; font-size: .78rem; line-height: 1.35; text-align: center; }
+    .guest-waiting-shell { width: min(760px, 100%); margin: 0 auto; }
+    .guest-waiting-brand {
+      margin-bottom: 15px;
+      padding: 18px;
+      border-radius: 25px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .guest-waiting-brand.coop {
+      color: #5b4d3b;
+      border: 1px solid #c9b894;
+      background: rgba(255,250,240,.97);
+    }
+    .guest-waiting-brand.coop img { display: block; width: min(100%, 300px); max-height: 235px; margin: -20px auto -25px; object-fit: contain; }
+    .guest-waiting-brand.pvp { color: var(--ink); border: 4px solid var(--ink); background: var(--cream); }
+    .guest-waiting-brand h1 { margin: 4px 0 5px; font-size: clamp(1.8rem, 8vw, 3rem); }
+    .guest-waiting-brand p { margin: 0; }
+    .waiting-room-code {
+      display: inline-block;
+      margin: 4px 0 12px;
+      padding: 8px 13px;
+      border: 1px solid #cabd9f;
+      border-radius: 12px;
+      background: #fffdf7;
+      font-weight: 950;
+      letter-spacing: .16em;
+    }
+    .waiting-message { margin: 10px 0 0; padding: 12px; border-radius: 13px; background: #e5eef0; color: #566768; line-height: 1.4; }
+    body.entry-coop {
+      color: #514535;
+      background:
+        radial-gradient(circle at 8% 4%, rgba(218,180,95,.18), transparent 28%),
+        radial-gradient(circle at 92% 18%, rgba(142,175,186,.18), transparent 31%),
+        radial-gradient(circle at 70% 92%, rgba(148,157,124,.16), transparent 32%),
+        linear-gradient(145deg, #f8f2e8 0%, #eee6d8 52%, #f8f3e8 100%);
+    }
+    body.entry-coop .topbar { padding: 8px 11px; border: 1px solid rgba(177,151,101,.35); border-radius: 16px; background: rgba(255,250,240,.82); }
+    body.entry-coop .mini-logo, body.entry-coop .brand-divider { display: none !important; }
+    body.entry-coop .coop-mini { display: inline-flex !important; color: #65543d; text-shadow: none; }
+    body.entry-coop .connection-pill { color: #665a49; background: #f7efe1; border-color: #d5c5a5; }
+    body.entry-pvp .coop-mini, body.entry-pvp .brand-divider { display: none !important; }
+    @media (max-width: 560px) {
+      .host-invite-actions { grid-template-columns: 1fr; }
+      .mode-invite-hero { padding: 16px 12px; }
+    }
+
   </style>
 </head>
 <body>
@@ -895,6 +989,34 @@
       <p class="footer-note">All devices must be online, and the host must keep the webpage open.</p>
     </section>
 
+    <section id="inviteJoinScreen" class="screen">
+      <div class="invite-shell">
+        <div id="inviteCoopHero" class="mode-invite-hero coop">
+          <img src="./3-fold-cord-logo.png" alt="3 Fold Cord — Discuss, Discover, Grow Together">
+          <span class="invite-mode-chip">Cooperative game</span>
+          <h1>Join 3 Fold Cord</h1>
+          <p>Enter the room code your host shared. You will go directly into the 3 Fold Cord waiting room.</p>
+        </div>
+        <div id="invitePvpHero" class="mode-invite-hero pvp hidden">
+          <div class="invite-pvp-logo" aria-label="Problem Solved">
+            <div class="problem-word">PROBLEM?</div>
+            <div class="solved-word">SOLVED!</div>
+          </div>
+          <span class="invite-mode-chip">Player vs. Player</span>
+          <h1>Join Problem? Solved!</h1>
+          <p>Enter the room code your host shared. You will go directly into the competitive waiting room.</p>
+        </div>
+        <div class="panel invite-form-panel">
+          <h2 id="inviteJoinTitle">Enter the game</h2>
+          <label for="inviteGuestName">Your name</label>
+          <input id="inviteGuestName" maxlength="24" autocomplete="nickname" placeholder="Player name">
+          <label for="inviteJoinCode">Room code</label>
+          <input id="inviteJoinCode" maxlength="6" inputmode="text" autocomplete="off" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-weight:900">
+          <button id="inviteJoinRoomBtn" class="btn teal wide" type="button">Join Waiting Room</button>
+        </div>
+      </div>
+    </section>
+
     <section id="connectingScreen" class="screen">
       <div class="panel center">
         <h2 id="connectingTitle">Opening the room…</h2>
@@ -908,7 +1030,11 @@
         <div class="room-card">
           <div>ROOM CODE</div>
           <strong id="roomCodeDisplay" class="room-code">------</strong>
-          <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
+          <div class="host-invite-actions">
+            <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
+            <button id="shareInviteBtn" type="button" class="btn teal small">Share 3 Fold Cord Invite</button>
+          </div>
+          <p id="inviteLinkHint" class="invite-helper">The shared link opens only the 3 Fold Cord join page. Your room code is included in the invitation message.</p>
         </div>
         <div class="metric-grid">
           <div class="metric"><strong id="roomPlayerCount">1</strong><span>Players</span></div>
@@ -951,6 +1077,34 @@
       </div>
 
       <button id="leaveRoomBtn" class="btn danger wide" type="button">Leave Room</button>
+    </section>
+
+    <section id="guestWaitingScreen" class="screen">
+      <div class="guest-waiting-shell">
+        <div id="guestWaitingCoopBrand" class="guest-waiting-brand coop">
+          <img src="./3-fold-cord-logo.png" alt="3 Fold Cord">
+          <h1>3 Fold Cord Waiting Room</h1>
+          <p>Discuss • Discover • Grow Together</p>
+        </div>
+        <div id="guestWaitingPvpBrand" class="guest-waiting-brand pvp hidden">
+          <div class="invite-pvp-logo" aria-label="Problem Solved">
+            <div class="problem-word">PROBLEM?</div>
+            <div class="solved-word">SOLVED!</div>
+          </div>
+          <h1>Problem? Solved! Waiting Room</h1>
+          <p>Wait here while the host finishes setting up the game.</p>
+        </div>
+        <div class="panel">
+          <div class="center">
+            <div class="muted small-text">ROOM CODE</div>
+            <div id="guestWaitingRoomCode" class="waiting-room-code">------</div>
+          </div>
+          <h2>Players who have joined</h2>
+          <div id="guestWaitingPlayers" class="player-grid"></div>
+          <p id="guestWaitingText" class="waiting-message">The host is preparing the game.</p>
+        </div>
+        <button id="guestLeaveRoomBtn" class="btn danger wide" type="button">Leave Waiting Room</button>
+      </div>
     </section>
 
     <section id="buildScreen" class="screen">
@@ -1215,6 +1369,8 @@
     let pendingJoinName = '';
     let reconnecting = false;
     let intentionalClose = false;
+    const entryParams = new URLSearchParams(window.location.search);
+    let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
 
     function uid(prefix = 'id') {
       const random = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -1256,6 +1412,33 @@
       document.querySelectorAll('.screen').forEach(screen => screen.classList.toggle('active', screen.id === screenId));
     }
 
+    function clearEntryTheme() {
+      document.body.classList.remove('entry-coop', 'entry-pvp');
+    }
+
+    function showInviteJoin(mode = 'coop') {
+      inviteMode = mode === 'pvp' ? 'pvp' : 'coop';
+      document.body.classList.remove('coop-game', 'pvp-game');
+      clearEntryTheme();
+      document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
+      ui.inviteCoopHero.classList.toggle('hidden', inviteMode !== 'coop');
+      ui.invitePvpHero.classList.toggle('hidden', inviteMode !== 'pvp');
+      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Enter the 3 Fold Cord game' : 'Enter the Problem? Solved! game';
+      ui.inviteJoinRoomBtn.className = `btn ${inviteMode === 'coop' ? 'teal' : 'primary'} wide`;
+      const suppliedCode = cleanCode(entryParams.get('code') || '');
+      if (suppliedCode && !ui.inviteJoinCode.value) ui.inviteJoinCode.value = suppliedCode;
+      showScreen('inviteJoinScreen');
+      setConnection('Ready to join', 'waiting');
+    }
+
+    function showEntryScreen() {
+      if (inviteMode) return showInviteJoin(inviteMode);
+      clearEntryTheme();
+      document.body.classList.remove('coop-game', 'pvp-game');
+      showScreen('lobbyScreen');
+      setConnection('Not connected');
+    }
+
     function playerById(id) { return state?.players?.find(player => player.id === id); }
     function playerName(id) { return playerById(id)?.name || 'Player'; }
     function connectedPlayers() { return state?.players?.filter(player => player.connected) || []; }
@@ -1269,7 +1452,7 @@
 
     function createRoomState(hostName, code) {
       return {
-        version: 5,
+        version: 6,
         roomCode: code,
         phase: 'room',
         hostId: 'host',
@@ -1377,7 +1560,7 @@
       selectedSolutionInstanceId = null;
       document.body.classList.remove('coop-game', 'pvp-game');
       setConnection('Not connected');
-      showScreen('lobbyScreen');
+      showEntryScreen();
       renderSavedGames();
       if (message) toast(message);
     }
@@ -1440,7 +1623,13 @@
       if (message.type === 'join') {
         if (connection._problemSolvedPlayerId) return;
         const name = clampText(message.name, 24);
+        const expectedMode = ['coop', 'pvp'].includes(message.expectedMode) ? message.expectedMode : null;
         if (!name) return connection.send({ type: 'rejected', message: 'Enter a player name.' });
+        if (expectedMode && expectedMode !== state.settings.playMode) {
+          const requested = expectedMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+          const current = state.settings.playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+          return connection.send({ type: 'rejected', message: `This link is for ${requested}, but the host is currently setting up ${current}. Ask the host for the current invite link.` });
+        }
         if (state.phase !== 'room') return connection.send({ type: 'rejected', message: 'This game has already started.' });
         if (connectedPlayers().length >= MAX_PLAYERS) return connection.send({ type: 'rejected', message: 'This room already has six players.' });
 
@@ -1468,8 +1657,11 @@
     }
 
     function guestJoinRoom() {
-      const name = clampText(ui.guestName.value, 24);
-      const code = cleanCode(ui.joinCode.value);
+      const usingInvite = Boolean(inviteMode);
+      const nameInput = usingInvite ? ui.inviteGuestName : ui.guestName;
+      const codeInput = usingInvite ? ui.inviteJoinCode : ui.joinCode;
+      const name = clampText(nameInput.value, 24);
+      const code = cleanCode(codeInput.value);
       if (!name) return toast('Enter your name first.');
       if (code.length !== 6) return toast('Enter the six-character room code.');
 
@@ -1487,7 +1679,7 @@
       peer.on('open', () => {
         const connection = peer.connect(peerIdFromCode(code), { reliable: true });
         hostConn = connection;
-        connection.on('open', () => connection.send({ type: 'join', name }));
+        connection.on('open', () => connection.send({ type: 'join', name, expectedMode: inviteMode || null }));
         connection.on('data', handleGuestIncoming);
         connection.on('close', () => {
           if (!intentionalClose && !reconnecting && state) {
@@ -2142,8 +2334,7 @@
 
     function render() {
       if (!state) {
-        document.body.classList.remove('coop-game', 'pvp-game');
-        showScreen('lobbyScreen');
+        showEntryScreen();
         return;
       }
       if (!['play', 'end'].includes(state.phase)) document.body.classList.remove('coop-game', 'pvp-game');
@@ -2175,14 +2366,19 @@
 
 
     function renderRoom() {
+      if (!isHost) return renderGuestWaitingRoom();
+      clearEntryTheme();
+      document.body.classList.remove('coop-game', 'pvp-game');
       showScreen('roomScreen');
-      setConnection(isHost ? 'Room open' : 'Connected', isHost ? 'waiting' : 'online');
+      setConnection('Room open', 'waiting');
       ui.roomPlayerCount.textContent = connectedPlayers().length;
       ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
       renderPlayerTiles(ui.roomPlayers);
-      ui.hostRoomControls.classList.toggle('hidden', !isHost);
-      ui.guestRoomControls.classList.toggle('hidden', isHost);
-      ui.guestModeText.textContent = `${state.settings.playModeLabel} • ${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards each. ${connectedPlayers().length < 2 ? 'Waiting for another player.' : 'The host can start whenever everyone is ready.'}`;
+      ui.hostRoomControls.classList.remove('hidden');
+      ui.guestRoomControls.classList.add('hidden');
+      const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+      ui.shareInviteBtn.textContent = `Share ${inviteLabel} Invite`;
+      ui.inviteLinkHint.textContent = `The shared link opens only the ${inviteLabel} join page. Your room code is included in the invitation message.`;
 
       if (isHost) {
         const saved = getSavedGames();
@@ -2203,6 +2399,21 @@
         ui.startRoomBtn.textContent = building ? `Start ${seconds / 60}-Minute Build` : `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'}`;
         ui.startRoomBtn.disabled = connectedPlayers().length < 2;
       }
+    }
+
+    function renderGuestWaitingRoom() {
+      const coop = state.settings.playMode !== 'pvp';
+      clearEntryTheme();
+      document.body.classList.toggle('coop-game', coop);
+      document.body.classList.toggle('pvp-game', !coop);
+      showScreen('guestWaitingScreen');
+      setConnection(`${coop ? '3 Fold Cord' : 'Problem? Solved!'} connected`, 'online');
+      ui.guestWaitingCoopBrand.classList.toggle('hidden', !coop);
+      ui.guestWaitingPvpBrand.classList.toggle('hidden', coop);
+      ui.guestWaitingRoomCode.textContent = state.roomCode;
+      renderPlayerTiles(ui.guestWaitingPlayers);
+      const playerCount = connectedPlayers().length;
+      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}`;
     }
 
 
@@ -2558,6 +2769,32 @@
       }
     }
 
+    function inviteUrlForMode(mode) {
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = '';
+      url.searchParams.set('join', mode === 'pvp' ? 'pvp' : 'coop');
+      return url.toString();
+    }
+
+    async function shareRoomInvite() {
+      if (!isHost || state?.phase !== 'room') return;
+      const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
+      const label = mode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+      const url = inviteUrlForMode(mode);
+      const message = `Join my ${label} game.\n\nOpen this link: ${url}\nRoom code: ${roomCode}`;
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: `${label} game invite`, text: `Room code: ${roomCode}`, url });
+          return;
+        }
+        await navigator.clipboard.writeText(message);
+        toast(`${label} invite copied.`);
+      } catch (error) {
+        if (error?.name !== 'AbortError') toast(`Share this code: ${roomCode}`);
+      }
+    }
+
     function addCardFromInput(kind) {
       const input = kind === 'problem' ? ui.problemInput : ui.solutionInput;
       const text = clampText(input.value, 220);
@@ -2569,11 +2806,17 @@
 
     ui.createRoomBtn.addEventListener('click', hostCreateRoom);
     ui.joinRoomBtn.addEventListener('click', guestJoinRoom);
+    ui.inviteJoinRoomBtn.addEventListener('click', guestJoinRoom);
     ui.joinCode.addEventListener('input', () => { ui.joinCode.value = cleanCode(ui.joinCode.value); });
     ui.joinCode.addEventListener('keydown', event => { if (event.key === 'Enter') guestJoinRoom(); });
+    ui.inviteJoinCode.addEventListener('input', () => { ui.inviteJoinCode.value = cleanCode(ui.inviteJoinCode.value); });
+    ui.inviteJoinCode.addEventListener('keydown', event => { if (event.key === 'Enter') guestJoinRoom(); });
+    ui.inviteGuestName.addEventListener('keydown', event => { if (event.key === 'Enter') ui.inviteJoinCode.focus(); });
     ui.cancelConnectingBtn.addEventListener('click', () => resetToLobby());
     ui.copyCodeBtn.addEventListener('click', copyRoomCode);
+    ui.shareInviteBtn.addEventListener('click', shareRoomInvite);
     ui.leaveRoomBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the room.'));
+    ui.guestLeaveRoomBtn.addEventListener('click', () => resetToLobby('You left the waiting room.'));
     ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
     ui.endLeaveBtn.addEventListener('click', () => resetToLobby());
 
@@ -2603,6 +2846,7 @@
 
     setInterval(updateBuildTimer, 250);
     renderSavedGames();
+    showEntryScreen();
 
     window.addEventListener('beforeunload', () => {
       if (isHost) {
