@@ -2129,6 +2129,8 @@
     let toastTimer = null;
     let roomUnsubscribers = [];
     let processedActionIds = new Set();
+    let broadcastQueue = Promise.resolve();
+    let broadcastRevision = 0;
     let firebaseReady = false;
     let restoringRoom = false;
     let lastBannerText = '';
@@ -2207,16 +2209,21 @@
     function playerName(id) { return playerById(id)?.name || 'Player'; }
     function connectedPlayers() { return state?.players?.filter(player => player.connected) || []; }
     function connectedPlayerIds() { return connectedPlayers().map(player => player.id); }
-    function currentPickerId() { return state?.game?.turnOrder?.[state.game.pickerPosition] || null; }
+    function pickerIdFor(sourceState) { return sourceState?.game?.turnOrder?.[sourceState.game.pickerPosition] || null; }
+    function currentPickerId() { return pickerIdFor(state); }
+    function activeGamePlayerIds() {
+      const order = state?.game?.turnOrder || [];
+      return order.filter(id => Boolean(playerById(id)));
+    }
     function isCoopMode() { return (state?.game?.playMode || state?.settings?.playMode || 'coop') === 'coop'; }
-    function requiredSubmitterIds() { return isCoopMode() ? connectedPlayerIds() : activeSolverIds(); }
-    function activeSolverIds() { return connectedPlayerIds().filter(id => id !== currentPickerId()); }
+    function requiredSubmitterIds() { return isCoopMode() ? activeGamePlayerIds() : activeSolverIds(); }
+    function activeSolverIds() { return activeGamePlayerIds().filter(id => id !== currentPickerId()); }
     function isMyTurnAsPicker() { return myPlayerId === currentPickerId(); }
     function isMyTurnAsSolver() { return activeSolverIds().includes(myPlayerId); }
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 9,
+        version: 11,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -2251,19 +2258,19 @@
       };
     }
 
-    function sanitizeStateFor(viewerId) {
-      const view = deepClone(state);
+    function sanitizeStateFor(viewerId, sourceState = state) {
+      const view = deepClone(sourceState);
       if (!view?.game) return view;
 
       const game = view.game;
       const ownHand = game.hands?.[viewerId] || [];
       game.hands = { [viewerId]: ownHand };
-      game.submittedPlayerIds = Object.keys(state.game.submissions || {});
-      game.votedPlayerIds = Object.keys(state.game.votes || {});
+      game.submittedPlayerIds = Object.keys(sourceState.game.submissions || {});
+      game.votedPlayerIds = Object.keys(sourceState.game.votes || {});
 
-      if (state.game.playMode === 'coop') {
+      if (sourceState.game.playMode === 'coop') {
         game.judgeCards = [];
-        if (viewerId !== currentPickerId()) game.problemId = null;
+        if (viewerId !== pickerIdFor(sourceState)) game.problemId = null;
         if (!['coopVote', 'roundResult', 'end'].includes(game.phase)) game.submissions = {};
         if (!['roundResult', 'end'].includes(game.phase)) game.votes = {};
       } else {
@@ -2320,30 +2327,44 @@
       onDisconnect(presence).set({ connected: false, lastSeen: serverTimestamp(), name }).catch(() => {});
     }
 
-    async function broadcastState() {
+    function broadcastState() {
       if (!isHost || !state || !roomCode) {
         render();
-        return;
+        return Promise.resolve();
       }
+
       render();
-      try {
-        const writes = [
-          set(ref(database, roomRefPath('private/state')), state),
-          update(ref(database, roomRefPath('meta')), {
-            phase: state.phase,
-            playMode: state.settings?.playMode || state.game?.playMode || 'coop',
-            updatedAt: serverTimestamp()
-          })
-        ];
-        for (const player of state.players || []) {
-          writes.push(set(ref(database, roomRefPath(`views/${player.id}`)), sanitizeStateFor(player.id)));
-        }
-        await Promise.all(writes);
-      } catch (error) {
-        console.error('Could not sync room state', error);
-        setConnection('Sync interrupted', 'error');
-      }
+      const targetRoomCode = roomCode;
+      const snapshot = deepClone(state);
+      snapshot.syncRevision = ++broadcastRevision;
+
+      broadcastQueue = broadcastQueue
+        .catch(() => {})
+        .then(async () => {
+          if (!isHost || !state || roomCode !== targetRoomCode) return;
+          const base = `rooms/${targetRoomCode}`;
+          const writes = [
+            set(ref(database, `${base}/private/state`), snapshot),
+            update(ref(database, `${base}/meta`), {
+              phase: snapshot.phase,
+              playMode: snapshot.settings?.playMode || snapshot.game?.playMode || 'coop',
+              syncRevision: snapshot.syncRevision,
+              updatedAt: serverTimestamp()
+            })
+          ];
+          for (const player of snapshot.players || []) {
+            writes.push(set(ref(database, `${base}/views/${player.id}`), sanitizeStateFor(player.id, snapshot)));
+          }
+          await Promise.all(writes);
+        })
+        .catch(error => {
+          console.error('Could not sync room state', error);
+          setConnection('Sync interrupted', 'error');
+        });
+
+      return broadcastQueue;
     }
+
 
     function sendNotice(playerId, message) {
       if (playerId === myPlayerId) {
@@ -2451,8 +2472,11 @@
             const key = `${actorId}/${actionId}`;
             if (processedActionIds.has(key)) continue;
             processedActionIds.add(key);
-            remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
-            handleAction(actorId, row.action, row.payload || {});
+            try {
+              handleAction(actorId, row.action, row.payload || {});
+            } finally {
+              remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
+            }
           }
         }
       }));
@@ -2661,7 +2685,11 @@
     function handleAction(actorId, action, payload) {
       if (!isHost || !state) return;
       const actor = playerById(actorId);
-      if (!actor?.connected) return;
+      if (!actor) return;
+      if (!actor.connected) {
+        actor.connected = true;
+        set(ref(database, roomRefPath(`players/${actorId}/connected`)), true).catch(() => {});
+      }
 
       if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text);
       if (action === 'removeBuildCard') return hostRemoveBuildCard(actorId, payload.kind, payload.cardId);
@@ -3104,7 +3132,7 @@
     function hostSubmitCoop(actorId, instanceId) {
       if (!isCoopMode()) return rejectAction(actorId, 'This is not a 3 Fold Cord round.');
       if (state.phase !== 'play' || state.game.phase !== 'submit') return rejectAction(actorId, 'Solution Cards are not being accepted right now.');
-      if (!connectedPlayerIds().includes(actorId)) return;
+      if (!activeGamePlayerIds().includes(actorId)) return;
       if (state.game.submissions[actorId]) return rejectAction(actorId, 'You already played a card this round.');
       if (!instanceId) return rejectAction(actorId, 'Choose one Solution Card from your hand.');
 
@@ -3122,13 +3150,15 @@
         submittedAt: Date.now()
       };
       state.game.submittedPlayerIds = Object.keys(state.game.submissions);
+      state.game.lastCardPlacedBy = actorId;
+      state.game.lastCardPlacedAt = Date.now();
       maybeAdvanceCoopToVote();
       broadcastState();
     }
 
     function maybeAdvanceCoopToVote() {
       if (!state.game || !isCoopMode() || state.game.phase !== 'submit') return;
-      const required = connectedPlayerIds();
+      const required = activeGamePlayerIds();
       if (required.length < 2) return;
       if (!required.every(id => state.game.submissions[id])) return;
       state.game.phase = 'coopVote';
@@ -3139,7 +3169,7 @@
 
     function hostVoteCoop(actorId, vote) {
       if (!isCoopMode() || state.phase !== 'play' || state.game.phase !== 'coopVote') return rejectAction(actorId, 'Voting is not open right now.');
-      if (!connectedPlayerIds().includes(actorId)) return;
+      if (!activeGamePlayerIds().includes(actorId)) return;
       const cleanVote = ['agree', 'disagree', 'discuss'].includes(vote) ? vote : '';
       if (!cleanVote) return rejectAction(actorId, 'Choose Agree, Disagree, or Needs More Discussion.');
       if (Object.prototype.hasOwnProperty.call(state.game.votes, actorId)) return rejectAction(actorId, 'Your vote is already locked in.');
@@ -3151,7 +3181,7 @@
 
     function maybeResolveCoopVotes() {
       if (!state.game || !isCoopMode() || state.game.phase !== 'coopVote') return;
-      const voters = connectedPlayerIds();
+      const voters = activeGamePlayerIds();
       if (voters.length < 2) return;
       if (!voters.every(id => Object.prototype.hasOwnProperty.call(state.game.votes, id))) return;
 
@@ -3538,7 +3568,7 @@
         }
 
         const submittedCount = (game.submittedPlayerIds || []).length;
-        const requiredCount = connectedPlayerIds().length;
+        const requiredCount = activeGamePlayerIds().length;
         if (game.phase === 'submit' && submittedCount) {
           ui.solutionZone.innerHTML = `<div class="shared-card-backs">${Array.from({ length: submittedCount }, (_, index) => `<div class="shared-mini-back" style="animation-delay:${index * 70}ms"></div>`).join('')}</div>`;
         } else {
@@ -3591,13 +3621,13 @@
             : `<div><h3>Listen to the Problem</h3><p>${escapeHtml(drawer)} is reading it aloud.</p></div>`;
         } else if (game.phase === 'submit') {
           if (submitted.includes(myPlayerId)) {
-            html = `<div><h3>Your card is on the table</h3><p>${submitted.length} of ${connectedPlayerIds().length} cards have been played.</p></div>`;
+            html = `<div><h3>Your card is on the table</h3><p>${submitted.length} of ${activeGamePlayerIds().length} cards have been played.</p></div>`;
           } else {
             html = `<div><h3>Choose one card from your hand</h3><p>Swipe through the fan, then tap Play This Card.</p></div>`;
           }
         } else if (game.phase === 'coopVote') {
           if (voted.includes(myPlayerId)) {
-            html = `<div><h3>Your vote is locked</h3><p>${voted.length} of ${connectedPlayerIds().length} players have voted.</p></div>`;
+            html = `<div><h3>Your vote is locked</h3><p>${voted.length} of ${activeGamePlayerIds().length} players have voted.</p></div>`;
           } else {
             const more = game.lastVoteSummary ? '<p>More discussion was requested. Talk it through and vote again.</p>' : '<p>Discuss the cards and the principles behind them.</p>';
             html = `<div><h3>Vote on the group solution</h3>${more}<div class="vote-button-grid"><button id="agreeCoopBtn" class="btn vote-agree" type="button">Agree</button><button id="disagreeCoopBtn" class="btn vote-disagree" type="button">Disagree</button><button id="discussCoopBtn" class="btn vote-discuss" type="button">Needs More Discussion</button></div></div>`;
@@ -3715,7 +3745,7 @@
       const game = state.game;
       const hand = game.hands?.[myPlayerId] || [];
       const submitted = (game.submittedPlayerIds || []).includes(myPlayerId);
-      const selectable = game.phase === 'submit' && !submitted && (isCoopMode() ? connectedPlayerIds().includes(myPlayerId) : isMyTurnAsSolver());
+      const selectable = game.phase === 'submit' && !submitted && (isCoopMode() ? activeGamePlayerIds().includes(myPlayerId) : isMyTurnAsSolver());
 
       if (!isCoopMode()) {
         if (selectedSolutionInstanceId && !hand.some(card => card.instanceId === selectedSolutionInstanceId)) selectedSolutionInstanceId = null;
@@ -3910,10 +3940,10 @@
         if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`;
         if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem to the group' : `Listen while ${drawer} reads the Problem`;
         if (game.phase === 'submit') text = submitted.includes(myPlayerId)
-          ? `Card placed — ${submitted.length} of ${connectedPlayerIds().length} ready`
+          ? `Card placed — ${submitted.length} of ${activeGamePlayerIds().length} ready`
           : 'Choose a Solution Card from your hand';
         if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
-          ? `Vote placed — ${voted.length} of ${connectedPlayerIds().length} ready`
+          ? `Vote placed — ${voted.length} of ${activeGamePlayerIds().length} ready`
           : game.lastVoteSummary
             ? 'Needs More Discussion — talk it through and vote again'
             : 'Discuss the played cards, then vote';
