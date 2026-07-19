@@ -1212,6 +1212,19 @@
       max-width: 100%;
     }
 
+    /* Keep the Problem Card private and remove the old green deck placeholder. */
+    body.coop-game.coop-problem-private .table-area {
+      grid-template-rows: auto 0 minmax(86px, .35fr);
+    }
+    body.coop-game .problem-stage.problem-empty {
+      min-height: 0;
+      height: 0;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      visibility: hidden;
+    }
+
     body.coop-game .play-card {
       width: min(100%, 430px);
       max-height: 100%;
@@ -1625,7 +1638,6 @@
       min-height: 138px;
       padding-top: 24px;
       overflow: hidden;
-      touch-action: none;
     }
     body.coop-game.coop-vote-phase .hand-wrap {
       flex-basis: 72px !important;
@@ -1728,7 +1740,7 @@
       grid-template-columns: 38px minmax(0,1fr) 38px;
       align-items: center;
       gap: 8px;
-      touch-action: none;
+      touch-action: pan-y;
     }
     .played-viewer-nav {
       width: 38px;
@@ -1828,6 +1840,12 @@
       .dock-button.play { font-size: .91rem; }
     }
 
+
+    @media (max-width: 760px) {
+      body.coop-game.coop-problem-private .table-area {
+        grid-template-rows: auto 0 minmax(74px, auto) !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -3840,13 +3858,23 @@
 
     function renderProblemCard() {
       const game = state.game;
-      if (!game.problemId) {
-        const waitingLabel = isCoopMode() && game.phase === 'readProblem'
-          ? 'Listen as the Problem is read'
-          : 'Problem Deck';
-        ui.problemZone.innerHTML = cardBack(waitingLabel);
+      const coop = isCoopMode();
+      const maySeePrivateProblem = !coop || isMyTurnAsPicker();
+      const showProblem = Boolean(game.problemId && maySeePrivateProblem);
+
+      // In 3 Fold Cord, the Problem Card is private to the player who drew it.
+      // The host also uses the full private room state, so this viewer-side check
+      // is required to prevent the host from seeing another player's card.
+      document.body.classList.toggle('coop-problem-private', coop && !showProblem);
+      ui.problemZone.classList.toggle('problem-empty', coop && !showProblem);
+
+      if (!showProblem) {
+        // Do not show a decorative deck-back placeholder. The action panel already
+        // explains whether the player should draw or listen to the problem aloud.
+        ui.problemZone.replaceChildren();
         return;
       }
+
       ui.problemZone.innerHTML = `<article class="play-card problem">
         <div class="card-type"><span class="card-icon">?</span> Problem</div>
         <div class="card-text">${escapeHtml(getProblemText(game.problemId))}</div>
