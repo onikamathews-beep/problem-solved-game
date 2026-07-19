@@ -2128,6 +2128,7 @@
     let handCollapsed = false;
     let toastTimer = null;
     let roomUnsubscribers = [];
+    let hostActionUnsubscribers = new Map();
     let processedActionIds = new Set();
     let broadcastQueue = Promise.resolve();
     let broadcastRevision = 0;
@@ -2223,7 +2224,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 11,
+        version: 12,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -2314,6 +2315,10 @@
       for (const unsubscribe of roomUnsubscribers.splice(0)) {
         try { unsubscribe(); } catch {}
       }
+      for (const unsubscribe of hostActionUnsubscribers.values()) {
+        try { unsubscribe(); } catch {}
+      }
+      hostActionUnsubscribers.clear();
       processedActionIds.clear();
     }
 
@@ -2456,29 +2461,66 @@
       return changed;
     }
 
+    function processPlayerActions(actorId, actionRows = {}) {
+      if (!isHost || !state || !actorId) return;
+      const rows = Object.entries(actionRows || {}).sort(([, a], [, b]) => {
+        const aTime = typeof a?.createdAt === 'number' ? a.createdAt : 0;
+        const bTime = typeof b?.createdAt === 'number' ? b.createdAt : 0;
+        return aTime - bTime;
+      });
+
+      for (const [actionId, row] of rows) {
+        const key = `${actorId}/${actionId}`;
+        if (processedActionIds.has(key)) continue;
+        processedActionIds.add(key);
+        try {
+          handleAction(actorId, row?.action, row?.payload || {});
+        } catch (error) {
+          console.error('Could not process player action', actorId, actionId, error);
+          processedActionIds.delete(key);
+        } finally {
+          remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
+        }
+      }
+    }
+
+    function ensureHostActionListener(actorId) {
+      if (!actorId || hostActionUnsubscribers.has(actorId)) return;
+      // Firebase Realtime Database read rules are evaluated at the exact path.
+      // Listen to each player's action inbox instead of the parent /actions node,
+      // which the host is not permitted to read under the published room rules.
+      const unsubscribe = onValue(
+        ref(database, roomRefPath(`actions/${actorId}`)),
+        snapshot => processPlayerActions(actorId, snapshot.val() || {}),
+        error => {
+          console.error(`Could not listen for ${actorId}'s actions`, error);
+          setConnection('Move sync interrupted', 'error');
+        }
+      );
+      hostActionUnsubscribers.set(actorId, unsubscribe);
+    }
+
+    function syncHostActionListeners(rawPlayers = {}) {
+      const validIds = new Set(Object.keys(rawPlayers || {}));
+      for (const actorId of validIds) ensureHostActionListener(actorId);
+      for (const [actorId, unsubscribe] of hostActionUnsubscribers.entries()) {
+        if (validIds.has(actorId)) continue;
+        try { unsubscribe(); } catch {}
+        hostActionUnsubscribers.delete(actorId);
+      }
+    }
+
     function attachHostRoomListeners() {
       clearRoomListeners();
 
       roomUnsubscribers.push(onValue(ref(database, roomRefPath('players')), snapshot => {
         if (!isHost || !state) return;
-        if (mergeFirebasePlayers(snapshot.val() || {})) broadcastState();
-      }));
-
-      roomUnsubscribers.push(onValue(ref(database, roomRefPath('actions')), snapshot => {
-        if (!isHost || !state) return;
-        const all = snapshot.val() || {};
-        for (const [actorId, actionRows] of Object.entries(all)) {
-          for (const [actionId, row] of Object.entries(actionRows || {})) {
-            const key = `${actorId}/${actionId}`;
-            if (processedActionIds.has(key)) continue;
-            processedActionIds.add(key);
-            try {
-              handleAction(actorId, row.action, row.payload || {});
-            } finally {
-              remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
-            }
-          }
-        }
+        const rawPlayers = snapshot.val() || {};
+        syncHostActionListeners(rawPlayers);
+        if (mergeFirebasePlayers(rawPlayers)) broadcastState();
+      }, error => {
+        console.error('Could not listen for room players', error);
+        setConnection('Player sync interrupted', 'error');
       }));
 
       roomUnsubscribers.push(onValue(ref(database, roomRefPath('meta')), snapshot => {
@@ -2672,14 +2714,21 @@
     function sendAction(action, payload = {}) {
       if (isHost) {
         handleAction(myPlayerId, action, payload);
-        return;
+        return Promise.resolve();
       }
-      if (!roomCode || !myPlayerId) return toast('You are not connected to the room.');
-      push(ref(database, roomRefPath(`actions/${myPlayerId}`)), {
+      if (!roomCode || !myPlayerId) {
+        toast('You are not connected to the room.');
+        return Promise.reject(new Error('Not connected'));
+      }
+      return push(ref(database, roomRefPath(`actions/${myPlayerId}`)), {
         action,
         payload,
         createdAt: serverTimestamp()
-      }).catch(() => toast('Your move could not be sent. Try again.'));
+      }).catch(error => {
+        console.error('Could not send player action', action, error);
+        toast('Your move could not be sent. Try again.');
+        throw error;
+      });
     }
 
     function handleAction(actorId, action, payload) {
@@ -4071,9 +4120,16 @@
       if (!isCoopMode() || !selectedSolutionInstanceId) return;
       const instanceId = selectedSolutionInstanceId;
       ui.playFocusedCardBtn.disabled = true;
-      animateFocusedCardToTable(() => {
-        sendAction('submitCoop', { instanceId });
-        selectedSolutionInstanceId = null;
+      animateFocusedCardToTable(async () => {
+        try {
+          await sendAction('submitCoop', { instanceId });
+          selectedSolutionInstanceId = null;
+          if (!isHost) toast('Card sent to the table.');
+        } catch {
+          selectedSolutionInstanceId = instanceId;
+          ui.playFocusedCardBtn.disabled = false;
+          renderHand();
+        }
       });
     });
     ui.endLeaveBtn.addEventListener('click', () => resetToLobby());

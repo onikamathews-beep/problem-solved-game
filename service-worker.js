@@ -1,4 +1,4 @@
-const CACHE_NAME = 'problem-solved-v11-20260718';
+const CACHE_NAME = 'problem-solved-v12-20260718';
 const CORE_ASSETS = [
   './',
   './index.html',
