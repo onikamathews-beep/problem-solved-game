@@ -1625,6 +1625,7 @@
       min-height: 138px;
       padding-top: 24px;
       overflow: hidden;
+      touch-action: none;
     }
     body.coop-game.coop-vote-phase .hand-wrap {
       flex-basis: 72px !important;
@@ -1727,7 +1728,7 @@
       grid-template-columns: 38px minmax(0,1fr) 38px;
       align-items: center;
       gap: 8px;
-      touch-action: pan-y;
+      touch-action: none;
     }
     .played-viewer-nav {
       width: 38px;
@@ -2189,7 +2190,7 @@
     <div class="played-viewer-footer">
       <div id="playedViewerCounter">Card 1 of 1</div>
       <div id="playedViewerDots" class="played-viewer-dots" aria-hidden="true"></div>
-      <div>Swipe left or right to review every card, then close this panel to vote.</div>
+      <div>Swipe left or right to review every card. Flick down or tap × to close.</div>
     </div>
   </dialog>
 
@@ -2341,6 +2342,7 @@
     let playedViewerCards = [];
     let playedViewerIndex = 0;
     let playedViewerPointerStartX = null;
+    let playedViewerPointerStartY = null;
     const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
@@ -3060,6 +3062,7 @@
       state.game.result = null;
       state.game.discussionCycles = 0;
       state.game.lastVoteSummary = null;
+      state.game.lastOutcome = null;
       state.game.problemId = null;
       state.game.round += 1;
       rotatePicker();
@@ -3371,6 +3374,7 @@
         result: null,
         discussionCycles: 0,
         lastVoteSummary: null,
+        lastOutcome: null,
         winner: null,
         winnerPlayerId: null
       };
@@ -3398,6 +3402,7 @@
       state.game.result = null;
       state.game.discussionCycles = 0;
       state.game.lastVoteSummary = null;
+      state.game.lastOutcome = null;
       state.game.phase = isCoopMode() ? 'readProblem' : 'submit';
       broadcastState();
     }
@@ -3529,9 +3534,10 @@
         return;
       }
 
+      const outcome = allAgree ? 'agreed' : 'disagree';
       if (allAgree) state.game.solved += 1;
       state.game.result = {
-        outcome: allAgree ? 'agreed' : 'disagree',
+        outcome,
         entries,
         votes: voteRows
       };
@@ -3542,7 +3548,20 @@
         state.game.phase = 'end';
         state.phase = 'end';
       } else {
-        state.game.phase = 'roundResult';
+        // Move directly to the next draw. Nobody has to press a Next Round button.
+        state.game.lastOutcome = { outcome, at: Date.now() };
+        state.game.round += 1;
+        rotatePicker();
+        state.game.problemId = null;
+        state.game.submissions = {};
+        state.game.submittedPlayerIds = [];
+        state.game.votes = {};
+        state.game.votedPlayerIds = [];
+        state.game.judgeCards = [];
+        state.game.result = null;
+        state.game.discussionCycles = 0;
+        state.game.lastVoteSummary = null;
+        state.game.phase = 'draw';
       }
     }
 
@@ -3622,6 +3641,7 @@
       state.game.result = null;
       state.game.discussionCycles = 0;
       state.game.lastVoteSummary = null;
+      state.game.lastOutcome = null;
       state.game.phase = 'draw';
       selectedSolutionInstanceId = null;
       broadcastState();
@@ -3868,7 +3888,7 @@
     }
 
     function renderPlayedCoopCards(entries) {
-      return `<div class="played-solutions-shell"><button type="button" class="played-card-pull" data-open-played-index="0">⌃ Pull up played cards</button><div class="played-solutions">${entries.map((item, index) => {
+      return `<div class="played-solutions-shell"><button type="button" class="played-card-pull" data-open-played-index="0">⌃ Expand played cards</button><div class="played-solutions">${entries.map((item, index) => {
         const tilt = (index - (entries.length - 1) / 2) * 3;
         return `<button type="button" class="played-solution-card" data-open-played-index="${index}" style="--card-tilt:${tilt}deg" aria-label="Open played Solution Card ${index + 1}"><span class="played-card-text">${escapeHtml(item.text)}</span></button>`;
       }).join('')}</div></div>`;
@@ -3924,11 +3944,11 @@
         }
 
         const submittedCount = coopSubmittedCount(game);
-        const requiredCount = activeGamePlayerIds().length;
         if (game.phase === 'submit' && submittedCount) {
           ui.solutionZone.innerHTML = `<div class="shared-card-backs">${Array.from({ length: submittedCount }, (_, index) => `<div class="shared-mini-back" style="animation-delay:${index * 70}ms"></div>`).join('')}</div>`;
         } else {
-          ui.solutionZone.innerHTML = `<div class="shared-card-backs"><div class="shared-mini-back" style="opacity:.28"></div></div>`;
+          // Keep the shared area empty until a player actually places a card.
+          ui.solutionZone.innerHTML = '';
         }
         return;
       }
@@ -4318,7 +4338,16 @@
       let text = '';
 
       if (isCoopMode()) {
-        if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`;
+        if (game.phase === 'draw') {
+          const outcomeText = game.lastOutcome?.outcome === 'agreed'
+            ? 'Point Earned!'
+            : game.lastOutcome?.outcome === 'disagree'
+              ? 'No point this round.'
+              : '';
+          text = outcomeText
+            ? (isMyTurnAsPicker() ? `${outcomeText} Your turn to draw the next Problem Card` : `${outcomeText} ${drawer} draws the next Problem Card`)
+            : (isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`);
+        }
         if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem to the group' : `Listen while ${drawer} reads the Problem`;
         if (game.phase === 'submit') text = submitted.includes(myPlayerId)
           ? `Card placed — ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
@@ -4464,14 +4493,26 @@
       delete ui.solutionZone.dataset.pullStartY;
       if (state?.game?.phase === 'coopVote' && startY - event.clientY > 38) openPlayedCards(0);
     });
-    ui.playedViewerSwipeArea.addEventListener('pointerdown', event => { playedViewerPointerStartX = event.clientX; });
+    ui.playedViewerSwipeArea.addEventListener('pointerdown', event => {
+      playedViewerPointerStartX = event.clientX;
+      playedViewerPointerStartY = event.clientY;
+    });
     ui.playedViewerSwipeArea.addEventListener('pointerup', event => {
-      if (playedViewerPointerStartX == null) return;
+      if (playedViewerPointerStartX == null || playedViewerPointerStartY == null) return;
       const dx = event.clientX - playedViewerPointerStartX;
+      const dy = event.clientY - playedViewerPointerStartY;
       playedViewerPointerStartX = null;
+      playedViewerPointerStartY = null;
+      if (dy > 48 && Math.abs(dy) > Math.abs(dx)) {
+        ui.playedCardsDialog.close();
+        return;
+      }
       if (Math.abs(dx) > 38) movePlayedViewer(dx < 0 ? 1 : -1);
     });
-    ui.playedViewerSwipeArea.addEventListener('pointercancel', () => { playedViewerPointerStartX = null; });
+    ui.playedViewerSwipeArea.addEventListener('pointercancel', () => {
+      playedViewerPointerStartX = null;
+      playedViewerPointerStartY = null;
+    });
 
     ui.collapseHandBtn.addEventListener('click', () => {
       handCollapsed = !handCollapsed;
