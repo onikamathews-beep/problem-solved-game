@@ -2136,6 +2136,7 @@
     let restoringRoom = false;
     let lastBannerText = '';
     let pendingHostDeckSelection = null;
+    let pendingCoopSubmission = null;
     const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
@@ -2154,6 +2155,29 @@
     function clampText(value, max = 220) { return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max); }
     function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
     function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
+
+    function serverSubmittedIds(game = state?.game) {
+      return Array.isArray(game?.submittedPlayerIds) ? game.submittedPlayerIds : Object.keys(game?.submissions || {});
+    }
+
+    function hasPendingCoopSubmission(game = state?.game) {
+      if (!pendingCoopSubmission || !game || game.playMode !== 'coop') return false;
+      if (pendingCoopSubmission.round !== game.round || game.phase !== 'submit') return false;
+      return !serverSubmittedIds(game).includes(myPlayerId);
+    }
+
+    function hasSubmittedCoopCard(game = state?.game) {
+      return serverSubmittedIds(game).includes(myPlayerId) || hasPendingCoopSubmission(game);
+    }
+
+    function coopSubmittedCount(game = state?.game) {
+      const submitted = serverSubmittedIds(game);
+      return submitted.length + (hasPendingCoopSubmission(game) && !submitted.includes(myPlayerId) ? 1 : 0);
+    }
+
+    function clearPendingCoopSubmission() {
+      pendingCoopSubmission = null;
+    }
     function shuffle(items) {
       const copy = [...items];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -2389,6 +2413,7 @@
     }
 
     async function resetToLobby(message = '') {
+      clearPendingCoopSubmission();
       const oldRoom = roomCode;
       const oldUid = myPlayerId;
       const wasHost = isHost;
@@ -2461,16 +2486,16 @@
       return changed;
     }
 
-    function processPlayerActions(actorId, actionRows = {}) {
+    function processPlayerActions(actorId, actionRows = {}, source = 'actions') {
       if (!isHost || !state || !actorId) return;
       const rows = Object.entries(actionRows || {}).sort(([, a], [, b]) => {
-        const aTime = typeof a?.createdAt === 'number' ? a.createdAt : 0;
-        const bTime = typeof b?.createdAt === 'number' ? b.createdAt : 0;
+        const aTime = typeof a?.createdAt === 'number' ? a.createdAt : (typeof a?.clientCreatedAt === 'number' ? a.clientCreatedAt : 0);
+        const bTime = typeof b?.createdAt === 'number' ? b.createdAt : (typeof b?.clientCreatedAt === 'number' ? b.clientCreatedAt : 0);
         return aTime - bTime;
       });
 
       for (const [actionId, row] of rows) {
-        const key = `${actorId}/${actionId}`;
+        const key = `${source}/${actorId}/${actionId}`;
         if (processedActionIds.has(key)) continue;
         processedActionIds.add(key);
         try {
@@ -2479,8 +2504,18 @@
           console.error('Could not process player action', actorId, actionId, error);
           processedActionIds.delete(key);
         } finally {
-          remove(ref(database, roomRefPath(`actions/${actorId}/${actionId}`))).catch(() => {});
+          const actionPath = source === 'outbox'
+            ? `players/${actorId}/outbox/${actionId}`
+            : `actions/${actorId}/${actionId}`;
+          remove(ref(database, roomRefPath(actionPath))).catch(() => {});
         }
+      }
+    }
+
+    function processPlayerOutboxes(rawPlayers = {}) {
+      if (!isHost || !state) return;
+      for (const [actorId, rawPlayer] of Object.entries(rawPlayers || {})) {
+        processPlayerActions(actorId, rawPlayer?.outbox || {}, 'outbox');
       }
     }
 
@@ -2516,7 +2551,8 @@
       roomUnsubscribers.push(onValue(ref(database, roomRefPath('players')), snapshot => {
         if (!isHost || !state) return;
         const rawPlayers = snapshot.val() || {};
-        syncHostActionListeners(rawPlayers);
+        processPlayerOutboxes(rawPlayers);
+        syncHostActionListeners(rawPlayers); // Legacy fallback for rooms created before v13.
         if (mergeFirebasePlayers(rawPlayers)) broadcastState();
       }, error => {
         console.error('Could not listen for room players', error);
@@ -2535,13 +2571,19 @@
       roomUnsubscribers.push(onValue(ref(database, roomRefPath(`views/${myPlayerId}`)), snapshot => {
         const view = snapshot.val();
         if (!view) return;
-        if (view.notice?.message && Number(view.notice.at) > lastNoticeAt) {
+        const noticeMessage = view.notice?.message || '';
+        if (noticeMessage && Number(view.notice.at) > lastNoticeAt) {
           lastNoticeAt = Number(view.notice.at);
-          toast(view.notice.message);
+          if (pendingCoopSubmission) clearPendingCoopSubmission();
+          toast(noticeMessage);
         }
         delete view.notice;
         state = view;
         roomCode = state.roomCode || roomCode;
+        const submittedOnServer = serverSubmittedIds(state.game).includes(myPlayerId);
+        const roundChanged = pendingCoopSubmission && pendingCoopSubmission.round !== state.game?.round;
+        const phaseAdvanced = pendingCoopSubmission && state.game?.phase !== 'submit';
+        if (pendingCoopSubmission && (submittedOnServer || roundChanged || phaseAdvanced)) clearPendingCoopSubmission();
         setConnection('Connected', 'online');
         render();
       }));
@@ -2714,20 +2756,44 @@
     function sendAction(action, payload = {}) {
       if (isHost) {
         handleAction(myPlayerId, action, payload);
-        return Promise.resolve();
+        return Promise.resolve('host-action');
       }
       if (!roomCode || !myPlayerId) {
         toast('You are not connected to the room.');
         return Promise.reject(new Error('Not connected'));
       }
-      return push(ref(database, roomRefPath(`actions/${myPlayerId}`)), {
+      const actionId = uid('action');
+      return set(ref(database, roomRefPath(`players/${myPlayerId}/outbox/${actionId}`)), {
         action,
         payload,
+        clientCreatedAt: Date.now(),
         createdAt: serverTimestamp()
-      }).catch(error => {
+      }).then(() => actionId).catch(error => {
         console.error('Could not send player action', action, error);
         toast('Your move could not be sent. Try again.');
         throw error;
+      });
+    }
+
+    function waitForOutboxAcknowledgement(actionId, timeoutMs = 12000) {
+      if (isHost || !actionId || actionId === 'host-action') return Promise.resolve(true);
+      return new Promise(resolve => {
+        const actionRef = ref(database, roomRefPath(`players/${myPlayerId}/outbox/${actionId}`));
+        let sawAction = true; // The write completed before this listener was attached.
+        let unsubscribe = null;
+        const finish = acknowledged => {
+          clearTimeout(timer);
+          try { unsubscribe?.(); } catch {}
+          resolve(acknowledged);
+        };
+        const timer = setTimeout(() => finish(false), timeoutMs);
+        unsubscribe = onValue(actionRef, snapshot => {
+          if (snapshot.exists()) {
+            sawAction = true;
+            return;
+          }
+          if (sawAction) finish(true);
+        }, () => finish(false));
       });
     }
 
@@ -3616,7 +3682,7 @@
           return;
         }
 
-        const submittedCount = (game.submittedPlayerIds || []).length;
+        const submittedCount = coopSubmittedCount(game);
         const requiredCount = activeGamePlayerIds().length;
         if (game.phase === 'submit' && submittedCount) {
           ui.solutionZone.innerHTML = `<div class="shared-card-backs">${Array.from({ length: submittedCount }, (_, index) => `<div class="shared-mini-back" style="animation-delay:${index * 70}ms"></div>`).join('')}</div>`;
@@ -3657,7 +3723,9 @@
       let html = '';
 
       if (isCoopMode()) {
-        const submitted = game.submittedPlayerIds || [];
+        const submitted = serverSubmittedIds(game);
+        const pendingMyCard = hasPendingCoopSubmission(game);
+        const submittedOrPendingCount = coopSubmittedCount(game);
         const voted = game.votedPlayerIds || [];
 
         if (game.phase === 'draw') {
@@ -3670,7 +3738,9 @@
             : `<div><h3>Listen to the Problem</h3><p>${escapeHtml(drawer)} is reading it aloud.</p></div>`;
         } else if (game.phase === 'submit') {
           if (submitted.includes(myPlayerId)) {
-            html = `<div><h3>Your card is on the table</h3><p>${submitted.length} of ${activeGamePlayerIds().length} cards have been played.</p></div>`;
+            html = `<div><h3>Your card is on the table</h3><p>${submittedOrPendingCount} of ${activeGamePlayerIds().length} cards have been played.</p></div>`;
+          } else if (pendingMyCard) {
+            html = `<div><h3>Your card was sent</h3><p>It is being added to the shared table. ${submittedOrPendingCount} of ${activeGamePlayerIds().length} cards are ready.</p></div>`;
           } else {
             html = `<div><h3>Choose one card from your hand</h3><p>Swipe through the fan, then tap Play This Card.</p></div>`;
           }
@@ -3793,7 +3863,9 @@
     function renderHand(options = {}) {
       const game = state.game;
       const hand = game.hands?.[myPlayerId] || [];
-      const submitted = (game.submittedPlayerIds || []).includes(myPlayerId);
+      const submitted = isCoopMode()
+        ? hasSubmittedCoopCard(game)
+        : serverSubmittedIds(game).includes(myPlayerId);
       const selectable = game.phase === 'submit' && !submitted && (isCoopMode() ? activeGamePlayerIds().includes(myPlayerId) : isMyTurnAsSolver());
 
       if (!isCoopMode()) {
@@ -3981,7 +4053,9 @@
     function renderGameStatus() {
       const game = state.game;
       const drawer = playerName(currentPickerId());
-      const submitted = game.submittedPlayerIds || [];
+      const submitted = serverSubmittedIds(game);
+      const submittedOrPendingCount = isCoopMode() ? coopSubmittedCount(game) : submitted.length;
+      const pendingMyCard = isCoopMode() && hasPendingCoopSubmission(game);
       const voted = game.votedPlayerIds || [];
       let text = '';
 
@@ -3989,8 +4063,10 @@
         if (game.phase === 'draw') text = isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`;
         if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem to the group' : `Listen while ${drawer} reads the Problem`;
         if (game.phase === 'submit') text = submitted.includes(myPlayerId)
-          ? `Card placed — ${submitted.length} of ${activeGamePlayerIds().length} ready`
-          : 'Choose a Solution Card from your hand';
+          ? `Card placed — ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
+          : pendingMyCard
+            ? `Card sent — ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
+            : 'Choose a Solution Card from your hand';
         if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
           ? `Vote placed — ${voted.length} of ${activeGamePlayerIds().length} ready`
           : game.lastVoteSummary
@@ -4117,18 +4193,30 @@
       renderHand();
     });
     ui.playFocusedCardBtn.addEventListener('click', () => {
-      if (!isCoopMode() || !selectedSolutionInstanceId) return;
+      if (!isCoopMode() || !selectedSolutionInstanceId || hasSubmittedCoopCard()) return;
       const instanceId = selectedSolutionInstanceId;
+      const round = state.game?.round;
       ui.playFocusedCardBtn.disabled = true;
       animateFocusedCardToTable(async () => {
         try {
-          await sendAction('submitCoop', { instanceId });
-          selectedSolutionInstanceId = null;
-          if (!isHost) toast('Card sent to the table.');
+          if (!isHost) {
+            pendingCoopSubmission = { instanceId, round, actionId: null };
+            selectedSolutionInstanceId = null;
+            renderGame();
+          }
+          const actionId = await sendAction('submitCoop', { instanceId });
+          if (pendingCoopSubmission) pendingCoopSubmission.actionId = actionId;
+          if (isHost) {
+            selectedSolutionInstanceId = null;
+          } else {
+            const acknowledged = await waitForOutboxAcknowledgement(actionId);
+            toast(acknowledged ? 'Card received by the game.' : 'Card sent. Waiting for the host to reconnect.');
+          }
         } catch {
+          clearPendingCoopSubmission();
           selectedSolutionInstanceId = instanceId;
           ui.playFocusedCardBtn.disabled = false;
-          renderHand();
+          renderGame();
         }
       });
     });
