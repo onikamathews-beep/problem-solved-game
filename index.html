@@ -1503,10 +1503,11 @@
       line-height: 1.17;
       text-align: center;
       transform-origin: 50% 120%;
-      transform: translateX(calc(-50% + var(--fan-x))) rotate(var(--fan-rot)) scale(var(--fan-scale, .88));
+      transform: translateX(calc(-50% + var(--fan-x) + var(--drag-x, 0px) + var(--settle-x, 0px))) translateY(var(--settle-y, 0px)) rotate(var(--fan-rot)) scale(var(--fan-scale, .88));
       opacity: var(--fan-opacity, .86);
       z-index: var(--fan-z, 1);
-      transition: transform .26s cubic-bezier(.2,.75,.25,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease;
+      transition: transform .38s cubic-bezier(.18,.82,.22,1), opacity .24s ease, filter .2s ease, box-shadow .2s ease;
+      will-change: transform;
       cursor: pointer;
       overflow: hidden;
     }
@@ -1531,7 +1532,7 @@
         linear-gradient(90deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
         linear-gradient(0deg, transparent 0 10px, rgba(112,77,30,.12) 10px 11px, transparent 11px calc(100% - 11px), rgba(112,77,30,.12) calc(100% - 11px) calc(100% - 10px), transparent calc(100% - 10px)),
         #f8e9c8;
-      transform: translateX(calc(-50% + var(--fan-x))) rotate(var(--fan-rot)) scale(var(--fan-scale, 1));
+      transform: translateX(calc(-50% + var(--fan-x) + var(--drag-x, 0px) + var(--settle-x, 0px))) translateY(var(--settle-y, 0px)) rotate(var(--fan-rot)) scale(var(--fan-scale, 1));
     }
     body.coop-game .hand-card-kicker {
       color: #6c542b;
@@ -1539,6 +1540,13 @@
       letter-spacing: .12em;
     }
     body.coop-game .hand-card:disabled { opacity: var(--fan-opacity, .78); }
+    body.coop-game .hand.is-dragging .hand-card {
+      transition: none !important;
+      cursor: grabbing;
+    }
+    body.coop-game .hand.is-settling .hand-card {
+      pointer-events: none;
+    }
 
     .hand-gesture-hint {
       position: absolute;
@@ -3640,7 +3648,70 @@
     }
 
 
-    function renderHand() {
+    function captureHandCardRects() {
+      const rects = new Map();
+      ui.hand.querySelectorAll('[data-instance-id]').forEach(card => {
+        rects.set(card.dataset.instanceId, card.getBoundingClientRect());
+      });
+      return rects;
+    }
+
+    function animateHandToNewPositions(previousRects) {
+      if (!previousRects || previousRects.size === 0) return;
+      const cards = [...ui.hand.querySelectorAll('[data-instance-id]')];
+      if (!cards.length) return;
+
+      ui.hand.classList.add('is-settling');
+      cards.forEach(card => {
+        const oldRect = previousRects.get(card.dataset.instanceId);
+        if (!oldRect) return;
+        const newRect = card.getBoundingClientRect();
+        card.style.transition = 'none';
+        card.style.setProperty('--settle-x', `${oldRect.left - newRect.left}px`);
+        card.style.setProperty('--settle-y', `${oldRect.top - newRect.top}px`);
+      });
+
+      void ui.hand.offsetWidth;
+      requestAnimationFrame(() => {
+        cards.forEach(card => {
+          card.style.transition = '';
+          card.style.setProperty('--settle-x', '0px');
+          card.style.setProperty('--settle-y', '0px');
+        });
+        window.setTimeout(() => {
+          ui.hand.classList.remove('is-settling');
+          cards.forEach(card => {
+            card.style.removeProperty('--settle-x');
+            card.style.removeProperty('--settle-y');
+          });
+        }, 430);
+      });
+    }
+
+    function clearHandDragOffset(animate = true) {
+      ui.hand.classList.toggle('is-dragging', !animate);
+      ui.hand.querySelectorAll('.hand-card').forEach(card => {
+        if (animate) card.style.transition = '';
+        card.style.setProperty('--drag-x', '0px');
+      });
+      if (animate) window.setTimeout(() => ui.hand.classList.remove('is-dragging'), 420);
+    }
+
+    function moveHandFocus(nextIndex) {
+      const hand = state.game?.hands?.[myPlayerId] || [];
+      const clamped = Math.max(0, Math.min(hand.length - 1, nextIndex));
+      if (clamped === handFocusIndex) {
+        clearHandDragOffset(true);
+        return;
+      }
+      ui.hand.classList.remove('is-dragging');
+      const previousRects = captureHandCardRects();
+      handFocusIndex = clamped;
+      renderHand({ animateFromRects: previousRects });
+    }
+
+
+    function renderHand(options = {}) {
       const game = state.game;
       const hand = game.hands?.[myPlayerId] || [];
       const submitted = (game.submittedPlayerIds || []).includes(myPlayerId);
@@ -3691,11 +3762,16 @@
         return `<button type="button" class="hand-card ${index === handFocusIndex ? 'focused selected' : ''}" data-instance-id="${card.instanceId}" data-hand-index="${index}" style="--offset:${offset};--fan-x:${x}px;--fan-rot:${tilt}deg;--fan-opacity:${opacity};--fan-z:${z}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">${suits[index % suits.length]} &nbsp; Solution</span><span>${escapeHtml(card.text)}</span></button>`;
       }).join('');
 
+      if (options.animateFromRects) animateHandToNewPositions(options.animateFromRects);
+
       ui.hand.querySelectorAll('[data-hand-index]').forEach(button => button.addEventListener('click', event => {
         if (ui.hand.dataset.dragging === 'true') return;
-        handFocusIndex = Number(button.dataset.handIndex);
-        if (handCollapsed) handCollapsed = false;
-        renderHand();
+        const nextIndex = Number(button.dataset.handIndex);
+        if (handCollapsed) {
+          handCollapsed = false;
+          ui.handWrap.classList.remove('collapsed');
+        }
+        moveHandFocus(nextIndex);
       }));
 
       ui.playFocusedCardBtn.disabled = !selectable || !selectedSolutionInstanceId;
@@ -3707,42 +3783,84 @@
       ui.hand.dataset.gesturesBound = 'true';
       let startX = 0;
       let startY = 0;
+      let lastX = 0;
+      let lastTime = 0;
+      let velocityX = 0;
       let pointerId = null;
+      let axis = null;
 
       ui.hand.addEventListener('pointerdown', event => {
+        if (ui.hand.classList.contains('is-settling')) return;
         pointerId = event.pointerId;
-        startX = event.clientX;
+        startX = lastX = event.clientX;
         startY = event.clientY;
+        lastTime = performance.now();
+        velocityX = 0;
+        axis = null;
         ui.hand.dataset.dragging = 'false';
+        ui.hand.classList.add('is-dragging');
         ui.hand.setPointerCapture?.(pointerId);
       });
 
       ui.hand.addEventListener('pointermove', event => {
         if (event.pointerId !== pointerId) return;
-        if (Math.abs(event.clientX - startX) > 9 || Math.abs(event.clientY - startY) > 9) ui.hand.dataset.dragging = 'true';
-      });
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        const now = performance.now();
+        const elapsed = Math.max(1, now - lastTime);
+        velocityX = (event.clientX - lastX) / elapsed;
+        lastX = event.clientX;
+        lastTime = now;
+
+        if (!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+          axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+          ui.hand.dataset.dragging = 'true';
+        }
+        if (axis !== 'x') return;
+
+        event.preventDefault();
+        const hand = state.game?.hands?.[myPlayerId] || [];
+        const atFirst = handFocusIndex === 0 && dx > 0;
+        const atLast = handFocusIndex === hand.length - 1 && dx < 0;
+        const resistance = atFirst || atLast ? 0.22 : 0.72;
+        const dragX = dx * resistance;
+        ui.hand.querySelectorAll('.hand-card').forEach(card => {
+          card.style.setProperty('--drag-x', `${dragX}px`);
+        });
+      }, { passive: false });
 
       ui.hand.addEventListener('pointerup', event => {
         if (event.pointerId !== pointerId) return;
         const dx = event.clientX - startX;
         const dy = event.clientY - startY;
+        const horizontalFlick = axis === 'x' && (Math.abs(dx) > 34 || Math.abs(velocityX) > 0.42);
         pointerId = null;
 
-        if (Math.abs(dy) > 48 && Math.abs(dy) > Math.abs(dx)) {
+        if (axis === 'y' && Math.abs(dy) > 45) {
+          ui.hand.classList.remove('is-dragging');
+          clearHandDragOffset(true);
           handCollapsed = dy > 0;
-          renderHand();
+          ui.handWrap.classList.toggle('collapsed', handCollapsed);
+          ui.collapseHandBtn.innerHTML = handCollapsed ? '<span aria-hidden="true">⌄</span> Expand' : '<span aria-hidden="true">⌃</span> Collapse';
+          window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 330);
           return;
         }
 
-        if (Math.abs(dx) > 38) {
-          handFocusIndex = Math.max(0, Math.min((state.game.hands?.[myPlayerId] || []).length - 1, handFocusIndex + (dx < 0 ? 1 : -1)));
-          renderHand();
+        if (horizontalFlick) {
+          const direction = dx < 0 || (Math.abs(dx) <= 34 && velocityX < 0) ? 1 : -1;
+          moveHandFocus(handFocusIndex + direction);
+        } else {
+          ui.hand.classList.remove('is-dragging');
+          clearHandDragOffset(true);
         }
-        setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 0);
+        window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 430);
       });
 
       ui.hand.addEventListener('pointercancel', () => {
         pointerId = null;
+        axis = null;
+        ui.hand.classList.remove('is-dragging');
+        clearHandDragOffset(true);
         ui.hand.dataset.dragging = 'false';
       });
     }
