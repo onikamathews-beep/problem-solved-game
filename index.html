@@ -13,10 +13,10 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=21">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=21">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=21">
-  <title>Principles in Practice & Problem? Solved! — Multiplayer Card Game</title>
+  <link rel="manifest" href="./manifest.json?v=22">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=22">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=22">
+  <title>Principles in Practice & Problem? Solved! | Multiplayer Card Game</title>
   <style>
     :root {
       --yellow: #f2c62c;
@@ -989,7 +989,7 @@
 
   
     /* =========================================================
-       PRINCIPLES IN PRACTICE VINTAGE TABLETOP REDESIGN — v8
+       PRINCIPLES IN PRACTICE VINTAGE TABLETOP REDESIGN, v8
        ========================================================= */
     body.coop-game {
       --forest: #102f1e;
@@ -2293,8 +2293,8 @@
         <h2>Choose how to play</h2>
         <label for="playStyleSelect">Play style</label>
         <select id="playStyleSelect">
-          <option value="coop" selected>Principles in Practice — play cards, discuss, and reach 12 team points</option>
-          <option value="pvp">Problem? Solved! — best solution earns the point</option>
+          <option value="coop" selected>Principles in Practice: play cards, discuss, and reach 12 team points</option>
+          <option value="pvp">Problem? Solved!: best solution earns the point</option>
         </select>
         <label for="handSizeInput">Starting Solution Cards per player</label>
         <input id="handSizeInput" type="number" min="1" max="20" step="1" inputmode="numeric" value="5">
@@ -2392,7 +2392,7 @@
           <h2>Add a Solution</h2>
           <p class="muted small-text">Write a practical action and a short applicable scripture excerpt from jw.org.</p>
           <textarea id="solutionInput" maxlength="220" placeholder="Listen fully before answering.
-“Be quick to listen, slow to speak.” — James 1:19"></textarea>
+“Be quick to listen, slow to speak.”\nJames 1:19"></textarea>
           <div class="solution-destination">
             <label for="solutionDestinationSelect">Save this Solution Card to</label>
             <select id="solutionDestinationSelect">
@@ -2530,7 +2530,7 @@
     <ol class="rules-list">
       <li>A room supports <strong>2–6 players</strong>, each on their own device. The host chooses the starting hand size.</li>
       <li>Typing is used only during <strong>Build Together</strong>, when everyone can add Problem and Solution Cards to the deck.</li>
-      <li><strong>Principles in Practice:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text first and reads it aloud. Every player then privately plays exactly one Solution Card from their hand.</li>
+      <li><strong>Principles in Practice:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text at first. After they read it aloud, the Problem appears for everyone and remains on the table until the next Problem is drawn. Every player then privately plays exactly one Solution Card from their hand.</li>
       <li>After everyone plays, the Solution Cards are revealed in the shared play area. Players explain aloud how the cards could help and what principles support them. The round ends with a brief outcome banner rather than a separate reveal screen.</li>
       <li>Everyone votes <strong>Agree</strong>, <strong>Disagree</strong>, or <strong>Needs More Discussion</strong>. All Agree earns one team point. Any Disagree ends the round with no point. Needs More Discussion keeps the same cards and Problem open for another discussion and vote.</li>
       <li>Played cards are discarded after an Agree or Disagree result, and every player draws back up to the host-selected hand size. The team wins when it reaches <strong>12 points</strong>.</li>
@@ -2703,54 +2703,54 @@
 
 
     const SHARED_BIBLE_SOLUTIONS = [
-      "Listen completely before answering.\n“Be quick to listen, slow to speak.” — James 1:19",
-      "Lower your tone and answer gently.\n“A mild answer turns away rage.” — Proverbs 15:1",
-      "Pause and think before you respond.\n“Meditates before answering.” — Proverbs 15:28",
-      "Hear the facts before forming a conclusion.\n“Before he hears the facts.” — Proverbs 18:13",
-      "Speak truthfully and directly.\n“Speak truth each one of you.” — Ephesians 4:25",
-      "Use words that build up.\n“What is good for building up.” — Ephesians 4:29",
-      "Show kindness even while correcting.\n“Become kind to one another.” — Ephesians 4:32",
-      "Forgive instead of keeping score.\n“Freely forgiving one another.” — Colossians 3:13",
-      "Overlook a minor offense.\n“To overlook an offense.” — Proverbs 19:11",
-      "Protect love by not repeating the matter.\n“Whoever forgives a transgression seeks love.” — Proverbs 17:9",
-      "Consider the other person’s interests.\n“The interests of others.” — Philippians 2:4",
-      "Put the other person’s advantage first.\n“Not his own advantage.” — 1 Corinthians 10:24",
-      "Show honor first.\n“In showing honor to one another, take the lead.” — Romans 12:10",
-      "Work toward peace as far as you can.\n“Be peaceable with all men.” — Romans 12:18",
-      "Carry some of the other person’s burden.\n“Go on carrying the burdens of one another.” — Galatians 6:2",
-      "Encourage rather than criticize.\n“Keep encouraging one another.” — 1 Thessalonians 5:11",
-      "Look for a way to motivate good.\n“Incite to love and fine works.” — Hebrews 10:24",
-      "Be patient and kind.\n“Love is patient and kind.” — 1 Corinthians 13:4",
-      "Refuse to keep a record of hurt.\n“Does not keep account of the injury.” — 1 Corinthians 13:5",
-      "Use healing words.\n“The tongue of the wise is a healing.” — Proverbs 12:18",
-      "Slow down your anger.\n“The one slow to anger.” — Proverbs 16:32",
-      "Do not take offense too quickly.\n“Do not be quick to take offense.” — Ecclesiastes 7:9",
-      "Ask for advice before acting.\n“There is accomplishment through many advisers.” — Proverbs 15:22",
-      "Think through the next step.\n“The shrewd one ponders each step.” — Proverbs 14:15",
-      "Notice the danger early and step back.\n“The shrewd one sees the danger.” — Proverbs 22:3",
-      "Focus your mind on what is true and worthwhile.\n“Whatever things are true... continue considering these things.” — Philippians 4:8",
-      "Make the best use of your time.\n“Making the best use of your time.” — Ephesians 5:16",
-      "Put spiritual priorities first.\n“Keep on, then, seeking first the Kingdom.” — Matthew 6:33",
-      "Ask Jehovah for wisdom.\n“Let him keep asking God.” — James 1:5",
-      "Trust Jehovah instead of relying only on yourself.\n“Trust in Jehovah with all your heart.” — Proverbs 3:5",
-      "Commit the matter to Jehovah in prayer.\n“Commit your way to Jehovah.” — Psalm 37:5",
-      "Make a careful plan and follow through.\n“The plans of the diligent surely lead to success.” — Proverbs 21:5",
-      "Count the cost before deciding.\n“First sit down and calculate the expense.” — Luke 14:28",
-      "Let a trusted friend sharpen your thinking.\n“One man sharpens his friend.” — Proverbs 27:17",
-      "Accept faithful correction.\n“The wounds inflicted by a friend are faithful.” — Proverbs 27:6",
-      "Give sincere counsel with warmth.\n“Sweet friendship springs from sincere counsel.” — Proverbs 27:9",
-      "Choose the right time to speak.\n“A word spoken at the right time.” — Proverbs 25:11",
-      "Say less rather than too much.\n“When words are many, transgression cannot be avoided.” — Proverbs 10:19",
-      "Recognize when silence is wiser.\n“A time to be silent and a time to speak.” — Ecclesiastes 3:7",
-      "Let love cover small imperfections.\n“Love covers a multitude of sins.” — 1 Peter 4:8",
-      "Show mildness and self-control.\n“Mildness, self-control.” — Galatians 5:23",
-      "Choose justice, loyalty, and modesty.\n“Exercise justice... cherish loyalty... walk in modesty.” — Micah 6:8",
-      "Make your mind over before deciding.\n“Be transformed by making your mind over.” — Romans 12:2",
-      "Be gentle instead of argumentative.\n“Does not need to fight... gentle toward all.” — 2 Timothy 2:24",
-      "Admit the mistake and change course.\n“Whoever confesses and abandons them will be shown mercy.” — Proverbs 28:13",
-      "Take the first step toward peace.\n“First make your peace with your brother.” — Matthew 5:24",
-      "Address the matter privately.\n“Between you and him alone.” — Matthew 18:15",
-      "Treat the other person as you want to be treated.\n“Do the same way to them.” — Luke 6:31"
+      "Listen completely before answering.\n“Be quick to listen, slow to speak.”\nJames 1:19",
+      "Lower your tone and answer gently.\n“A mild answer turns away rage.”\nProverbs 15:1",
+      "Pause and think before you respond.\n“Meditates before answering.”\nProverbs 15:28",
+      "Hear the facts before forming a conclusion.\n“Before he hears the facts.”\nProverbs 18:13",
+      "Speak truthfully and directly.\n“Speak truth each one of you.”\nEphesians 4:25",
+      "Use words that build up.\n“What is good for building up.”\nEphesians 4:29",
+      "Show kindness even while correcting.\n“Become kind to one another.”\nEphesians 4:32",
+      "Forgive instead of keeping score.\n“Freely forgiving one another.”\nColossians 3:13",
+      "Overlook a minor offense.\n“To overlook an offense.”\nProverbs 19:11",
+      "Protect love by not repeating the matter.\n“Whoever forgives a transgression seeks love.”\nProverbs 17:9",
+      "Consider the other person’s interests.\n“The interests of others.”\nPhilippians 2:4",
+      "Put the other person’s advantage first.\n“Not his own advantage.”\n1 Corinthians 10:24",
+      "Show honor first.\n“In showing honor to one another, take the lead.”\nRomans 12:10",
+      "Work toward peace as far as you can.\n“Be peaceable with all men.”\nRomans 12:18",
+      "Carry some of the other person’s burden.\n“Go on carrying the burdens of one another.”\nGalatians 6:2",
+      "Encourage rather than criticize.\n“Keep encouraging one another.”\n1 Thessalonians 5:11",
+      "Look for a way to motivate good.\n“Incite to love and fine works.”\nHebrews 10:24",
+      "Be patient and kind.\n“Love is patient and kind.”\n1 Corinthians 13:4",
+      "Refuse to keep a record of hurt.\n“Does not keep account of the injury.”\n1 Corinthians 13:5",
+      "Use healing words.\n“The tongue of the wise is a healing.”\nProverbs 12:18",
+      "Slow down your anger.\n“The one slow to anger.”\nProverbs 16:32",
+      "Do not take offense too quickly.\n“Do not be quick to take offense.”\nEcclesiastes 7:9",
+      "Ask for advice before acting.\n“There is accomplishment through many advisers.”\nProverbs 15:22",
+      "Think through the next step.\n“The shrewd one ponders each step.”\nProverbs 14:15",
+      "Notice the danger early and step back.\n“The shrewd one sees the danger.”\nProverbs 22:3",
+      "Focus your mind on what is true and worthwhile.\n“Whatever things are true... continue considering these things.”\nPhilippians 4:8",
+      "Make the best use of your time.\n“Making the best use of your time.”\nEphesians 5:16",
+      "Put spiritual priorities first.\n“Keep on, then, seeking first the Kingdom.”\nMatthew 6:33",
+      "Ask Jehovah for wisdom.\n“Let him keep asking God.”\nJames 1:5",
+      "Trust Jehovah instead of relying only on yourself.\n“Trust in Jehovah with all your heart.”\nProverbs 3:5",
+      "Commit the matter to Jehovah in prayer.\n“Commit your way to Jehovah.”\nPsalm 37:5",
+      "Make a careful plan and follow through.\n“The plans of the diligent surely lead to success.”\nProverbs 21:5",
+      "Count the cost before deciding.\n“First sit down and calculate the expense.”\nLuke 14:28",
+      "Let a trusted friend sharpen your thinking.\n“One man sharpens his friend.”\nProverbs 27:17",
+      "Accept faithful correction.\n“The wounds inflicted by a friend are faithful.”\nProverbs 27:6",
+      "Give sincere counsel with warmth.\n“Sweet friendship springs from sincere counsel.”\nProverbs 27:9",
+      "Choose the right time to speak.\n“A word spoken at the right time.”\nProverbs 25:11",
+      "Say less rather than too much.\n“When words are many, transgression cannot be avoided.”\nProverbs 10:19",
+      "Recognize when silence is wiser.\n“A time to be silent and a time to speak.”\nEcclesiastes 3:7",
+      "Let love cover small imperfections.\n“Love covers a multitude of sins.”\n1 Peter 4:8",
+      "Show mildness and self-control.\n“Mildness, self-control.”\nGalatians 5:23",
+      "Choose justice, loyalty, and modesty.\n“Exercise justice... cherish loyalty... walk in modesty.”\nMicah 6:8",
+      "Make your mind over before deciding.\n“Be transformed by making your mind over.”\nRomans 12:2",
+      "Be gentle instead of argumentative.\n“Does not need to fight... gentle toward all.”\n2 Timothy 2:24",
+      "Admit the mistake and change course.\n“Whoever confesses and abandons them will be shown mercy.”\nProverbs 28:13",
+      "Take the first step toward peace.\n“First make your peace with your brother.”\nMatthew 5:24",
+      "Address the matter privately.\n“Between you and him alone.”\nMatthew 18:15",
+      "Treat the other person as you want to be treated.\n“Do the same way to them.”\nLuke 6:31"
 ];
 
     const DEFAULT_COOP_DECKS = [
@@ -2781,18 +2781,18 @@
                   "Someone you care about makes a choice you strongly disagree with and does not want advice."
             ],
             "deckSolutions": [
-                  "Make time to be a loyal friend.\n“A true friend shows love at all times.” — Proverbs 17:17",
-                  "Stay close when support is needed.\n“A friend who sticks closer than a brother.” — Proverbs 18:24",
-                  "Speak openly instead of letting resentment grow.\n“Open reproof is better than concealed love.” — Proverbs 27:5",
-                  "Be generous without expecting repayment.\n“There is more happiness in giving than there is in receiving.” — Acts 20:35",
-                  "Show warm affection through your actions.\n“Have tender affection for one another.” — Romans 12:10",
-                  "Respect the other person’s needs and boundaries.\n“Does not look for its own interests.” — 1 Corinthians 13:5",
-                  "Help someone recover without humiliating them.\n“Try to readjust such a man in a spirit of mildness.” — Galatians 6:1",
-                  "Keep private matters confidential.\n“The trustworthy person keeps a confidence.” — Proverbs 11:13",
-                  "Share both joy and pain with the person.\n“Rejoice with those who rejoice; weep with those who weep.” — Romans 12:15",
-                  "Open your home or time to strengthen the relationship.\n“Follow the course of hospitality.” — Romans 12:13",
-                  "Do not repay hurt with another hurt.\n“See that no one repays injury for injury.” — 1 Thessalonians 5:15",
-                  "Reach out instead of withdrawing into resentment.\n“Whoever isolates himself pursues his own selfish desires.” — Proverbs 18:1"
+                  "Make time to be a loyal friend.\n“A true friend shows love at all times.”\nProverbs 17:17",
+                  "Stay close when support is needed.\n“A friend who sticks closer than a brother.”\nProverbs 18:24",
+                  "Speak openly instead of letting resentment grow.\n“Open reproof is better than concealed love.”\nProverbs 27:5",
+                  "Be generous without expecting repayment.\n“There is more happiness in giving than there is in receiving.”\nActs 20:35",
+                  "Show warm affection through your actions.\n“Have tender affection for one another.”\nRomans 12:10",
+                  "Respect the other person’s needs and boundaries.\n“Does not look for its own interests.”\n1 Corinthians 13:5",
+                  "Help someone recover without humiliating them.\n“Try to readjust such a man in a spirit of mildness.”\nGalatians 6:1",
+                  "Keep private matters confidential.\n“The trustworthy person keeps a confidence.”\nProverbs 11:13",
+                  "Share both joy and pain with the person.\n“Rejoice with those who rejoice; weep with those who weep.”\nRomans 12:15",
+                  "Open your home or time to strengthen the relationship.\n“Follow the course of hospitality.”\nRomans 12:13",
+                  "Do not repay hurt with another hurt.\n“See that no one repays injury for injury.”\n1 Thessalonians 5:15",
+                  "Reach out instead of withdrawing into resentment.\n“Whoever isolates himself pursues his own selfish desires.”\nProverbs 18:1"
             ]
       },
       {
@@ -2822,18 +2822,18 @@
                   "A past disagreement resurfaces when two people are asked to work together again."
             ],
             "deckSolutions": [
-                  "Welcome someone who may feel left out.\n“Welcome one another.” — Romans 15:7",
-                  "Refuse to show favoritism.\n“Showing favoritism.” — James 2:1",
-                  "Cooperate with the congregation’s arrangements.\n“Let all things take place decently and by arrangement.” — 1 Corinthians 14:40",
-                  "Show genuine concern for every member.\n“Have mutual concern for one another.” — 1 Corinthians 12:25",
-                  "Support those who are struggling and remain patient.\n“Support the weak, be patient toward all.” — 1 Thessalonians 5:14",
-                  "Appeal respectfully rather than speaking harshly.\n“Appeal to him as a father.” — 1 Timothy 5:1",
-                  "Choose humility when opinions differ.\n“Clothe yourselves with humility.” — 1 Peter 5:5",
-                  "Let love guide the way the task is handled.\n“Let everything you do be done with love.” — 1 Corinthians 16:14",
-                  "Avoid complaining and arguing about the arrangement.\n“Keep doing all things free from murmuring and arguments.” — Philippians 2:14",
-                  "Cooperate with those taking the lead.\n“Be obedient to those who are taking the lead among you.” — Hebrews 13:17",
-                  "Speak consolingly to someone who is discouraged.\n“Speak consolingly to those who are depressed.” — 1 Thessalonians 5:14",
-                  "Help the group cooperate instead of competing.\n“Harmoniously joined together and made to cooperate.” — Ephesians 4:16"
+                  "Welcome someone who may feel left out.\n“Welcome one another.”\nRomans 15:7",
+                  "Refuse to show favoritism.\n“Showing favoritism.”\nJames 2:1",
+                  "Cooperate with the congregation’s arrangements.\n“Let all things take place decently and by arrangement.”\n1 Corinthians 14:40",
+                  "Show genuine concern for every member.\n“Have mutual concern for one another.”\n1 Corinthians 12:25",
+                  "Support those who are struggling and remain patient.\n“Support the weak, be patient toward all.”\n1 Thessalonians 5:14",
+                  "Appeal respectfully rather than speaking harshly.\n“Appeal to him as a father.”\n1 Timothy 5:1",
+                  "Choose humility when opinions differ.\n“Clothe yourselves with humility.”\n1 Peter 5:5",
+                  "Let love guide the way the task is handled.\n“Let everything you do be done with love.”\n1 Corinthians 16:14",
+                  "Avoid complaining and arguing about the arrangement.\n“Keep doing all things free from murmuring and arguments.”\nPhilippians 2:14",
+                  "Cooperate with those taking the lead.\n“Be obedient to those who are taking the lead among you.”\nHebrews 13:17",
+                  "Speak consolingly to someone who is discouraged.\n“Speak consolingly to those who are depressed.”\n1 Thessalonians 5:14",
+                  "Help the group cooperate instead of competing.\n“Harmoniously joined together and made to cooperate.”\nEphesians 4:16"
             ]
       },
       {
@@ -2863,18 +2863,18 @@
                   "Repeated disappointments in the ministry have made you less eager to start conversations."
             ],
             "deckSolutions": [
-                  "Answer with mildness and respect.\n“With a mild temper and deep respect.” — 1 Peter 3:15",
-                  "Make your words gracious and appealing.\n“Let your words always be gracious.” — Colossians 4:6",
-                  "Adapt your approach to the person.\n“I have become all things to people of all sorts.” — 1 Corinthians 9:22",
-                  "Research the answer carefully.\n“Carefully examining the Scriptures daily.” — Acts 17:11",
-                  "Remember that Jehovah produces spiritual growth.\n“God kept making it grow.” — 1 Corinthians 3:6",
-                  "Show personal interest, not just a presentation.\n“Not only the good news... but also our own selves.” — 1 Thessalonians 2:8",
-                  "Be cautious while remaining innocent and sincere.\n“Cautious as serpents and yet innocent as doves.” — Matthew 10:16",
-                  "Keep sowing patiently even when results are slow.\n“Sow your seed in the morning.” — Ecclesiastes 11:6",
-                  "Use accurate knowledge rather than guessing.\n“The tongue of the wise makes good use of knowledge.” — Proverbs 15:2",
-                  "Refuse to turn the conversation into a fight.\n“A slave of the Lord does not need to fight.” — 2 Timothy 2:24",
-                  "Teach patiently instead of rushing the person.\n“With all patience and art of teaching.” — 2 Timothy 4:2",
-                  "Reason from the Scriptures rather than from opinion.\n“He reasoned with them from the Scriptures.” — Acts 17:2"
+                  "Answer with mildness and respect.\n“With a mild temper and deep respect.”\n1 Peter 3:15",
+                  "Make your words gracious and appealing.\n“Let your words always be gracious.”\nColossians 4:6",
+                  "Adapt your approach to the person.\n“I have become all things to people of all sorts.”\n1 Corinthians 9:22",
+                  "Research the answer carefully.\n“Carefully examining the Scriptures daily.”\nActs 17:11",
+                  "Remember that Jehovah produces spiritual growth.\n“God kept making it grow.”\n1 Corinthians 3:6",
+                  "Show personal interest, not just a presentation.\n“Not only the good news... but also our own selves.”\n1 Thessalonians 2:8",
+                  "Be cautious while remaining innocent and sincere.\n“Cautious as serpents and yet innocent as doves.”\nMatthew 10:16",
+                  "Keep sowing patiently even when results are slow.\n“Sow your seed in the morning.”\nEcclesiastes 11:6",
+                  "Use accurate knowledge rather than guessing.\n“The tongue of the wise makes good use of knowledge.”\nProverbs 15:2",
+                  "Refuse to turn the conversation into a fight.\n“A slave of the Lord does not need to fight.”\n2 Timothy 2:24",
+                  "Teach patiently instead of rushing the person.\n“With all patience and art of teaching.”\n2 Timothy 4:2",
+                  "Reason from the Scriptures rather than from opinion.\n“He reasoned with them from the Scriptures.”\nActs 17:2"
             ]
       },
       {
@@ -2904,18 +2904,18 @@
                   "You are blamed for a problem because you are the newest person in the group."
             ],
             "deckSolutions": [
-                  "Work with your whole heart.\n“Work at it whole-souled as for Jehovah.” — Colossians 3:23",
-                  "Be trustworthy in small responsibilities.\n“Faithful in what is least.” — Luke 16:10",
-                  "Let good conduct speak for you.\n“Maintain your conduct fine.” — 1 Peter 2:12",
-                  "Allow your example to shine.\n“Let your light shine before men.” — Matthew 5:16",
-                  "Choose companions who improve your judgment.\n“The one walking with the wise will become wise.” — Proverbs 13:20",
-                  "Do not let harmful pressure reshape your habits.\n“Bad associations spoil useful habits.” — 1 Corinthians 15:33",
-                  "Refuse to follow the crowd into wrongdoing.\n“You must not follow after the crowd to do evil.” — Exodus 23:2",
-                  "Choose honesty even when it costs you.\n“Conduct ourselves honestly in all things.” — Hebrews 13:18",
-                  "Choose steady effort instead of shortcuts.\n“The hand of the diligent makes one rich.” — Proverbs 10:4",
-                  "Develop skill and do quality work.\n“A man skillful at his work.” — Proverbs 22:29",
-                  "Reject dishonesty even when others accept it.\n“Lying lips are detestable to Jehovah.” — Proverbs 12:22",
-                  "Do honest work that benefits others.\n“Doing good work with his hands.” — Ephesians 4:28"
+                  "Work with your whole heart.\n“Work at it whole-souled as for Jehovah.”\nColossians 3:23",
+                  "Be trustworthy in small responsibilities.\n“Faithful in what is least.”\nLuke 16:10",
+                  "Let good conduct speak for you.\n“Maintain your conduct fine.”\n1 Peter 2:12",
+                  "Allow your example to shine.\n“Let your light shine before men.”\nMatthew 5:16",
+                  "Choose companions who improve your judgment.\n“The one walking with the wise will become wise.”\nProverbs 13:20",
+                  "Do not let harmful pressure reshape your habits.\n“Bad associations spoil useful habits.”\n1 Corinthians 15:33",
+                  "Refuse to follow the crowd into wrongdoing.\n“You must not follow after the crowd to do evil.”\nExodus 23:2",
+                  "Choose honesty even when it costs you.\n“Conduct ourselves honestly in all things.”\nHebrews 13:18",
+                  "Choose steady effort instead of shortcuts.\n“The hand of the diligent makes one rich.”\nProverbs 10:4",
+                  "Develop skill and do quality work.\n“A man skillful at his work.”\nProverbs 22:29",
+                  "Reject dishonesty even when others accept it.\n“Lying lips are detestable to Jehovah.”\nProverbs 12:22",
+                  "Do honest work that benefits others.\n“Doing good work with his hands.”\nEphesians 4:28"
             ]
       },
       {
@@ -2945,18 +2945,18 @@
                   "You have a strong personal preference, but another choice may benefit more people."
             ],
             "deckSolutions": [
-                  "Guard what influences your heart.\n“Safeguard your heart.” — Proverbs 4:23",
-                  "Refuse to be controlled by a habit or desire.\n“I will not let myself be controlled by anything.” — 1 Corinthians 6:12",
-                  "Turn away from entertainment that has become worthless.\n“Turn my eyes away from looking at what is worthless.” — Psalm 119:37",
-                  "Think about what the choice will produce later.\n“Whatever a person is sowing, this he will also reap.” — Galatians 6:7",
-                  "Choose the option that honors God.\n“Do all things for God’s glory.” — 1 Corinthians 10:31",
-                  "Practice contentment instead of always wanting more.\n“Godly devotion along with contentment.” — 1 Timothy 6:6",
-                  "Keep money in its proper place.\n“Let your way of life be free of the love of money.” — Hebrews 13:5",
-                  "Pray instead of allowing anxiety to make the decision.\n“Do not be anxious over anything.” — Philippians 4:6",
-                  "Use God’s Word to guide the next step.\n“Your word is a lamp to my foot.” — Psalm 119:105",
-                  "Test the choice against God’s will.\n“Prove to yourselves the good and acceptable... will of God.” — Romans 12:2",
-                  "Hand the anxiety to Jehovah.\n“Throw all your anxiety on him.” — 1 Peter 5:7",
-                  "Act courageously rather than letting fear decide.\n“Be courageous and strong.” — Joshua 1:9"
+                  "Guard what influences your heart.\n“Safeguard your heart.”\nProverbs 4:23",
+                  "Refuse to be controlled by a habit or desire.\n“I will not let myself be controlled by anything.”\n1 Corinthians 6:12",
+                  "Turn away from entertainment that has become worthless.\n“Turn my eyes away from looking at what is worthless.”\nPsalm 119:37",
+                  "Think about what the choice will produce later.\n“Whatever a person is sowing, this he will also reap.”\nGalatians 6:7",
+                  "Choose the option that honors God.\n“Do all things for God’s glory.”\n1 Corinthians 10:31",
+                  "Practice contentment instead of always wanting more.\n“Godly devotion along with contentment.”\n1 Timothy 6:6",
+                  "Keep money in its proper place.\n“Let your way of life be free of the love of money.”\nHebrews 13:5",
+                  "Pray instead of allowing anxiety to make the decision.\n“Do not be anxious over anything.”\nPhilippians 4:6",
+                  "Use God’s Word to guide the next step.\n“Your word is a lamp to my foot.”\nPsalm 119:105",
+                  "Test the choice against God’s will.\n“Prove to yourselves the good and acceptable... will of God.”\nRomans 12:2",
+                  "Hand the anxiety to Jehovah.\n“Throw all your anxiety on him.”\n1 Peter 5:7",
+                  "Act courageously rather than letting fear decide.\n“Be courageous and strong.”\nJoshua 1:9"
             ]
       },
       {
@@ -2986,18 +2986,18 @@
                   "One mate apologizes quickly, but the same hurtful pattern keeps returning."
             ],
             "deckSolutions": [
-                  "Treat the two of you as one team.\n“They will become one flesh.” — Genesis 2:24",
-                  "Show both love and deep respect.\n“Love his wife as he does himself... deep respect.” — Ephesians 5:33",
-                  "Learn your mate’s needs rather than making assumptions.\n“Dwelling with them according to knowledge.” — 1 Peter 3:7",
-                  "Refuse to hold on to bitter anger.\n“Do not be bitterly angry with them.” — Colossians 3:19",
-                  "Resolve anger before it hardens.\n“Do not let the sun set while you are still angry.” — Ephesians 4:26",
-                  "Give your mate due affection and consideration.\n“Let the husband give to his wife her due.” — 1 Corinthians 7:3",
-                  "Make kindness the rule of your speech.\n“The law of kindness is on her tongue.” — Proverbs 31:26",
-                  "Protect the marriage bond from outside pressure.\n“What God has yoked together, let no man put apart.” — Matthew 19:6",
-                  "Work side by side toward a shared result.\n“Two are better than one.” — Ecclesiastes 4:9",
-                  "Consult each other before finalizing plans.\n“Plans fail when there is no consultation.” — Proverbs 15:22",
-                  "Make intimate decisions by mutual agreement.\n“By mutual consent for an appointed time.” — 1 Corinthians 7:5",
-                  "Protect and nourish enduring love.\n“Floodwaters cannot extinguish love.” — Song of Solomon 8:7"
+                  "Treat the two of you as one team.\n“They will become one flesh.”\nGenesis 2:24",
+                  "Show both love and deep respect.\n“Love his wife as he does himself... deep respect.”\nEphesians 5:33",
+                  "Learn your mate’s needs rather than making assumptions.\n“Dwelling with them according to knowledge.”\n1 Peter 3:7",
+                  "Refuse to hold on to bitter anger.\n“Do not be bitterly angry with them.”\nColossians 3:19",
+                  "Resolve anger before it hardens.\n“Do not let the sun set while you are still angry.”\nEphesians 4:26",
+                  "Give your mate due affection and consideration.\n“Let the husband give to his wife her due.”\n1 Corinthians 7:3",
+                  "Make kindness the rule of your speech.\n“The law of kindness is on her tongue.”\nProverbs 31:26",
+                  "Protect the marriage bond from outside pressure.\n“What God has yoked together, let no man put apart.”\nMatthew 19:6",
+                  "Work side by side toward a shared result.\n“Two are better than one.”\nEcclesiastes 4:9",
+                  "Consult each other before finalizing plans.\n“Plans fail when there is no consultation.”\nProverbs 15:22",
+                  "Make intimate decisions by mutual agreement.\n“By mutual consent for an appointed time.”\n1 Corinthians 7:5",
+                  "Protect and nourish enduring love.\n“Floodwaters cannot extinguish love.”\nSong of Solomon 8:7"
             ]
       }
 ];
@@ -3035,13 +3035,13 @@
     // Keep the browser tab, address-bar suggestion, and shared-page branding aligned
     // with the mode the person is actually opening.
     if (inviteMode === 'coop') {
-      document.title = 'Principles in Practice — Join Game';
+      document.title = 'Principles in Practice | Join Game';
       document.querySelector('meta[name="description"]')?.setAttribute('content', 'Join a Principles in Practice cooperative card game.');
-      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Principles in Practice — Join Game');
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Principles in Practice | Join Game');
     } else if (inviteMode === 'pvp') {
-      document.title = 'Problem? Solved! — Join Game';
+      document.title = 'Problem? Solved! | Join Game';
       document.querySelector('meta[name="description"]')?.setAttribute('content', 'Join a Problem? Solved! competitive card game.');
-      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Problem? Solved! — Join Game');
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Problem? Solved! | Join Game');
     }
 
     function uid(prefix = 'id') {
@@ -3055,8 +3055,9 @@
     }
 
     function cleanCode(value) { return String(value || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6); }
-    function clampText(value, max = 220) { return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max); }
-    function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+    function withoutEmDash(value) { return String(value ?? '').split(String.fromCodePoint(8212)).join(' • '); }
+    function clampText(value, max = 220) { return withoutEmDash(value).trim().replace(/\s+/g, ' ').slice(0, max); }
+    function escapeHtml(value) { return withoutEmDash(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
     function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
 
     function serverSubmittedIds(game = state?.game) {
@@ -3139,6 +3140,13 @@
     function connectedPlayerIds() { return connectedPlayers().map(player => player.id); }
     function pickerIdFor(sourceState) { return sourceState?.game?.turnOrder?.[sourceState.game.pickerPosition] || null; }
     function currentPickerId() { return pickerIdFor(state); }
+    function problemIsRevealed(sourceState = state) {
+      const game = sourceState?.game;
+      if (!game?.problemId) return false;
+      if (typeof game.problemRevealed === 'boolean') return game.problemRevealed;
+      // Backward compatibility for rooms created before the reveal flag existed.
+      return game.playMode === 'coop' && ['submit', 'coopVote', 'roundResult', 'draw', 'end'].includes(game.phase);
+    }
     function activeGamePlayerIds() {
       const order = state?.game?.turnOrder || [];
       return order.filter(id => Boolean(playerById(id)));
@@ -3151,7 +3159,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 13,
+        version: 14,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -3202,7 +3210,9 @@
 
       if (sourceState.game.playMode === 'coop') {
         game.judgeCards = [];
-        if (viewerId !== pickerIdFor(sourceState)) game.problemId = null;
+        // The drawer sees the new Problem privately. Once it has been read aloud,
+        // every player receives it and keeps it until the next Problem is drawn.
+        if (!problemIsRevealed(sourceState) && viewerId !== pickerIdFor(sourceState)) game.problemId = null;
         if (!['coopVote', 'roundResult', 'end'].includes(game.phase)) game.submissions = {};
         if (!['roundResult', 'end'].includes(game.phase)) game.votes = {};
       } else {
@@ -4240,6 +4250,7 @@
         pickerPosition: 0,
         problemPile: shuffle(state.activeDeck.problems.map(card => card.id)),
         problemId: null,
+        problemRevealed: false,
         solutionPile: [],
         hands: {},
         submissions: {},
@@ -4270,6 +4281,7 @@
       if (state.phase !== 'play' || state.game.phase !== 'draw') return;
       if (actorId !== currentPickerId()) return rejectAction(actorId, 'It is not your turn to draw the Problem Card.');
       state.game.problemId = drawProblemCardId();
+      state.game.problemRevealed = false;
       state.game.submissions = {};
       state.game.submittedPlayerIds = [];
       state.game.votes = {};
@@ -4286,6 +4298,7 @@
     function hostReadProblemDone(actorId) {
       if (!isCoopMode() || state.phase !== 'play' || state.game.phase !== 'readProblem') return;
       if (actorId !== currentPickerId()) return rejectAction(actorId, 'Only the person who drew the Problem Card can continue.');
+      state.game.problemRevealed = true;
       state.game.phase = 'submit';
       broadcastState();
     }
@@ -4508,7 +4521,12 @@
       if (actorId !== currentPickerId() && actorId !== state.hostId) return rejectAction(actorId, 'The current Problem drawer starts the next round.');
       state.game.round += 1;
       rotatePicker();
-      state.game.problemId = null;
+      // In Principles in Practice, leave the completed Problem visible while the
+      // next player prepares to draw. Drawing replaces it with the new private card.
+      if (!isCoopMode()) {
+        state.game.problemId = null;
+        state.game.problemRevealed = false;
+      }
       state.game.submissions = {};
       state.game.submittedPlayerIds = [];
       state.game.votes = {};
@@ -4736,26 +4754,31 @@
     function renderProblemCard() {
       const game = state.game;
       const coop = isCoopMode();
+      const revealedToGroup = coop && problemIsRevealed();
       const maySeePrivateProblem = !coop || isMyTurnAsPicker();
-      const showProblem = Boolean(game.problemId && maySeePrivateProblem);
+      const showProblem = Boolean(game.problemId && (revealedToGroup || maySeePrivateProblem));
 
-      // In Principles in Practice, the Problem Card is private to the player who drew it.
-      // The host also uses the full private room state, so this viewer-side check
-      // is required to prevent the host from seeing another player's card.
+      // A newly drawn Problem is private to its drawer. After the drawer confirms
+      // that it was read aloud, the card is shown to everyone and stays visible
+      // until the next player actually draws a replacement Problem.
       document.body.classList.toggle('coop-problem-private', coop && !showProblem);
       ui.problemZone.classList.toggle('problem-empty', coop && !showProblem);
 
       if (!showProblem) {
-        // Do not show a decorative deck-back placeholder. The action panel already
-        // explains whether the player should draw or listen to the problem aloud.
         ui.problemZone.replaceChildren();
         return;
       }
 
+      const footer = coop && game.phase === 'readProblem' && isMyTurnAsPicker()
+        ? 'Read this card aloud'
+        : revealedToGroup
+          ? 'Current Problem'
+          : 'Problem Card';
+
       ui.problemZone.innerHTML = `<article class="play-card problem">
         <div class="card-type"><span class="card-icon">?</span> Problem</div>
         <div class="card-text">${escapeHtml(getProblemText(game.problemId))}</div>
-        <div class="card-number">Read this card aloud</div>
+        <div class="card-number">${footer}</div>
       </article>`;
     }
 
@@ -4808,7 +4831,7 @@
     function renderPlayedCardViewer() {
       if (!playedViewerCards.length) return;
       playedViewerIndex = Math.max(0, Math.min(playedViewerCards.length - 1, playedViewerIndex));
-      ui.playedViewerCard.textContent = playedViewerCards[playedViewerIndex].text;
+      ui.playedViewerCard.textContent = withoutEmDash(playedViewerCards[playedViewerIndex].text);
       ui.playedViewerCounter.textContent = `Card ${playedViewerIndex + 1} of ${playedViewerCards.length}`;
       ui.previousPlayedCardBtn.disabled = playedViewerIndex === 0;
       ui.nextPlayedCardBtn.disabled = playedViewerIndex === playedViewerCards.length - 1;
@@ -4901,7 +4924,7 @@
             : `<div><h3>Waiting for ${escapeHtml(drawer)}</h3><p>They are picking up the next Problem Card.</p></div>`;
         } else if (game.phase === 'readProblem') {
           html = isMyTurnAsPicker()
-            ? `<div><h3>Read this problem to the group</h3><p>When everyone has heard it, continue to the card hand.</p></div><button id="readProblemBtn" class="btn coop-primary" type="button">I've Read It</button>`
+            ? `<div><h3>Read this problem to the group</h3><p>When everyone has heard it, reveal the card and continue to the card hand.</p></div><button id="readProblemBtn" class="btn coop-primary" type="button">I've Read It. Reveal Card</button>`
             : `<div><h3>Listen to the Problem</h3><p>${escapeHtml(drawer)} is reading it aloud.</p></div>`;
         } else if (game.phase === 'submit') {
           if (submitted.includes(myPlayerId)) {
@@ -4939,7 +4962,7 @@
           }
         } else if (game.phase === 'judge') {
           html = isMyTurnAsPicker()
-            ? `<h3>Choose the best solution</h3><p>Tap the anonymous card that works best—or choose none.</p><button id="noneWorkedBtn" class="btn danger wide" type="button">None of These Worked</button>`
+            ? `<h3>Choose the best solution</h3><p>Tap the anonymous card that works best, or choose none.</p><button id="noneWorkedBtn" class="btn danger wide" type="button">None of These Worked</button>`
             : `<h3>The Picker is deciding</h3><p>${escapeHtml(drawer)} is judging the answers.</p>`;
         } else if (game.phase === 'roundResult') {
           const solved = game.result?.outcome === 'solved';
@@ -5245,7 +5268,7 @@
       if (!card) return;
       pendingConfirmInstanceId = instanceId;
       selectedSolutionInstanceId = instanceId;
-      ui.confirmPlayCardText.textContent = card.text;
+      ui.confirmPlayCardText.textContent = withoutEmDash(card.text);
       ui.confirmPlayCardBtn.disabled = false;
       if (!ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.showModal();
     }
@@ -5342,16 +5365,16 @@
             ? (isMyTurnAsPicker() ? `${outcomeText} Your turn to draw the next Problem Card` : `${outcomeText} ${drawer} draws the next Problem Card`)
             : (isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`);
         }
-        if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem to the group' : `Listen while ${drawer} reads the Problem`;
+        if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem aloud, then reveal it' : `Listen while ${drawer} reads the Problem`;
         if (game.phase === 'submit') text = submitted.includes(myPlayerId)
-          ? `Card placed — ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
+          ? `Card placed: ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
           : pendingMyCard
-            ? `Card sent — ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
+            ? `Card sent: ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
             : 'Choose a Solution Card from your hand';
         if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
-          ? `Vote placed — ${voted.length} of ${activeGamePlayerIds().length} ready`
+          ? `Vote placed: ${voted.length} of ${activeGamePlayerIds().length} ready`
           : game.lastVoteSummary
-            ? 'Needs More Discussion — talk it through and vote again'
+            ? 'Needs More Discussion. Talk it through and vote again'
             : 'Discuss the played cards, then vote';
         if (game.phase === 'roundResult') text = game.result?.outcome === 'agreed'
           ? 'Point Earned! Great discussion!'
