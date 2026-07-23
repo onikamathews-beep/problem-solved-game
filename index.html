@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=19">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=19">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=19">
+  <link rel="manifest" href="./manifest.json?v=20">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=20">
   <title>Principles in Practice & Problem? Solved! — Multiplayer Card Game</title>
   <style>
     :root {
@@ -564,6 +564,45 @@
 
     /* Principles in Practice cooperative identity */
     .setup-help { margin: 6px 0 2px; line-height: 1.35; }
+
+    .solution-sources {
+      margin-top: 14px;
+      padding: 14px;
+      border: 2px solid #c8bea5;
+      border-radius: 15px;
+      background: #fffdf5;
+    }
+    .solution-sources h3 { margin: 0 0 5px; font-family: Georgia, "Times New Roman", serif; color: #4c493d; }
+    .solution-sources > p { margin: 0 0 10px; }
+    .solution-toggle-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid #ddd3bd;
+    }
+    .solution-toggle-row:first-of-type { border-top: 0; }
+    .solution-toggle-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: #275748; flex: 0 0 auto; }
+    .solution-toggle-row strong { display: block; }
+    .solution-toggle-row span { display: block; margin-top: 2px; color: #6a634f; font-size: .78rem; line-height: 1.35; }
+    .solution-destination { margin-top: 10px; }
+    .scope-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 7px;
+      padding: 2px 7px;
+      border: 1px solid #b9aa87;
+      border-radius: 999px;
+      background: #f5efdf;
+      color: #5d503f;
+      font-size: .66rem;
+      font-weight: 900;
+      letter-spacing: .03em;
+      vertical-align: middle;
+    }
+    .scope-badge.shared { background: #e1eee7; border-color: #8eae9d; color: #214f40; }
+    .card-text, .played-card-text, .hand-card > span:last-child, .judge-card, .confirm-card-preview strong { white-space: pre-line; }
+
     .selected-deck-ready {
       margin-top: 14px;
       padding: 14px 16px;
@@ -2219,6 +2258,18 @@
           <strong id="selectedDeckReadyTitle">Deck ready</strong>
           <span id="selectedDeckReadyText">This deck will start immediately. There is no card-building timer.</span>
         </div>
+        <div id="solutionSourcesWrap" class="solution-sources hidden">
+          <h3>Solution Card Sources</h3>
+          <p class="muted small-text">Choose which Bible-based solutions may be dealt during this game. At least one source must stay on.</p>
+          <label class="solution-toggle-row" for="includeSharedSolutionsToggle">
+            <input id="includeSharedSolutionsToggle" type="checkbox" checked>
+            <span><strong>Shared Bible Solution Deck</strong><span>General Bible principles that can work with every situation deck, including shared cards your group creates.</span></span>
+          </label>
+          <label class="solution-toggle-row" for="includeDeckSolutionsToggle">
+            <input id="includeDeckSolutionsToggle" type="checkbox" checked>
+            <span><strong id="deckSolutionsToggleLabel">Deck-Specific Solutions</strong><span id="deckSolutionsToggleHelp">Solutions written especially for the selected situation deck.</span></span>
+          </label>
+        </div>
         <button id="startRoomBtn" class="btn primary wide" type="button">Start 2-Minute Build</button>
       </div>
 
@@ -2277,8 +2328,17 @@
         </div>
         <div class="build-form solution-form">
           <h2>Add a Solution</h2>
-          <p class="muted small-text">Write a funny, clever, practical, or unexpected solution.</p>
-          <textarea id="solutionInput" maxlength="220" placeholder="Turn it into a motivational speech."></textarea>
+          <p class="muted small-text">Write a practical action and a short applicable scripture excerpt from jw.org.</p>
+          <textarea id="solutionInput" maxlength="220" placeholder="Listen fully before answering.
+“Be quick to listen, slow to speak.” — James 1:19"></textarea>
+          <div class="solution-destination">
+            <label for="solutionDestinationSelect">Save this Solution Card to</label>
+            <select id="solutionDestinationSelect">
+              <option value="deck" selected>This Deck Only</option>
+              <option value="shared">Shared Solution Deck</option>
+            </select>
+            <p class="muted small-text">Shared solutions become available to every compatible deck saved in this browser. Deck-only solutions stay with this game.</p>
+          </div>
           <button id="addSolutionBtn" class="btn teal wide" type="button">Add Solution Card</button>
         </div>
       </div>
@@ -2414,7 +2474,7 @@
       <li>Played cards are discarded after an Agree or Disagree result, and every player draws back up to the host-selected hand size. The team wins when it reaches <strong>12 points</strong>.</li>
       <li><strong>Problem? Solved!:</strong> One Problem Picker draws. Everyone else secretly plays one Solution Card. The Picker chooses the best anonymous card; that player earns one point. First to five points wins.</li>
     </ol>
-    <p class="muted">Saved games store the custom card deck. The host can use the same deck for Principles in Practice or Problem? Solved! each time.</p>
+    <p class="muted">Saved games can contain deck-specific solutions and contributions to the Shared Bible Solution Deck. The host chooses which sources to include before each Principles in Practice game.</p>
     <button id="closeRulesBtn" class="btn primary wide" type="button">Got It</button>
   </dialog>
 
@@ -2478,7 +2538,9 @@
     const PVP_GOAL = 5;
     const MIN_PROBLEMS = 5;
     const MIN_SOLUTIONS = 10;
-    const STORAGE_KEY = 'problemSolved.savedGames.v2';
+    const STORAGE_KEY = 'problemSolved.savedGames.v3';
+    const LEGACY_STORAGE_KEY = 'problemSolved.savedGames.v2';
+    const SHARED_SOLUTION_STORAGE_KEY = 'principlesInPractice.sharedSolutions.v1';
 
     const STARTER_PROBLEMS = [
       "You accidentally replied “Love you” to your boss. What do you do?",
@@ -2576,6 +2638,307 @@
       "Offer two choices, both of which involve dessert.",
       "Say, “Great question,” while thinking of an answer."
     ];
+
+
+    const SHARED_BIBLE_SOLUTIONS = [
+      "Listen completely before answering.\n“Be quick to listen, slow to speak.” — James 1:19",
+      "Lower your tone and answer gently.\n“A mild answer turns away rage.” — Proverbs 15:1",
+      "Pause and think before you respond.\n“Meditates before answering.” — Proverbs 15:28",
+      "Hear the facts before forming a conclusion.\n“Before he hears the facts.” — Proverbs 18:13",
+      "Speak truthfully and directly.\n“Speak truth each one of you.” — Ephesians 4:25",
+      "Use words that build up.\n“What is good for building up.” — Ephesians 4:29",
+      "Show kindness even while correcting.\n“Become kind to one another.” — Ephesians 4:32",
+      "Forgive instead of keeping score.\n“Freely forgiving one another.” — Colossians 3:13",
+      "Overlook a minor offense.\n“To overlook an offense.” — Proverbs 19:11",
+      "Protect love by not repeating the matter.\n“Whoever forgives a transgression seeks love.” — Proverbs 17:9",
+      "Consider the other person’s interests.\n“The interests of others.” — Philippians 2:4",
+      "Put the other person’s advantage first.\n“Not his own advantage.” — 1 Corinthians 10:24",
+      "Show honor first.\n“In showing honor to one another, take the lead.” — Romans 12:10",
+      "Work toward peace as far as you can.\n“Be peaceable with all men.” — Romans 12:18",
+      "Carry some of the other person’s burden.\n“Go on carrying the burdens of one another.” — Galatians 6:2",
+      "Encourage rather than criticize.\n“Keep encouraging one another.” — 1 Thessalonians 5:11",
+      "Look for a way to motivate good.\n“Incite to love and fine works.” — Hebrews 10:24",
+      "Be patient and kind.\n“Love is patient and kind.” — 1 Corinthians 13:4",
+      "Refuse to keep a record of hurt.\n“Does not keep account of the injury.” — 1 Corinthians 13:5",
+      "Use healing words.\n“The tongue of the wise is a healing.” — Proverbs 12:18",
+      "Slow down your anger.\n“The one slow to anger.” — Proverbs 16:32",
+      "Do not take offense too quickly.\n“Do not be quick to take offense.” — Ecclesiastes 7:9",
+      "Ask for advice before acting.\n“There is accomplishment through many advisers.” — Proverbs 15:22",
+      "Think through the next step.\n“The shrewd one ponders each step.” — Proverbs 14:15",
+      "Notice the danger early and step back.\n“The shrewd one sees the danger.” — Proverbs 22:3",
+      "Focus your mind on what is true and worthwhile.\n“Whatever things are true... continue considering these things.” — Philippians 4:8",
+      "Make the best use of your time.\n“Making the best use of your time.” — Ephesians 5:16",
+      "Put spiritual priorities first.\n“Keep on, then, seeking first the Kingdom.” — Matthew 6:33",
+      "Ask Jehovah for wisdom.\n“Let him keep asking God.” — James 1:5",
+      "Trust Jehovah instead of relying only on yourself.\n“Trust in Jehovah with all your heart.” — Proverbs 3:5",
+      "Commit the matter to Jehovah in prayer.\n“Commit your way to Jehovah.” — Psalm 37:5",
+      "Make a careful plan and follow through.\n“The plans of the diligent surely lead to success.” — Proverbs 21:5",
+      "Count the cost before deciding.\n“First sit down and calculate the expense.” — Luke 14:28",
+      "Let a trusted friend sharpen your thinking.\n“One man sharpens his friend.” — Proverbs 27:17",
+      "Accept faithful correction.\n“The wounds inflicted by a friend are faithful.” — Proverbs 27:6",
+      "Give sincere counsel with warmth.\n“Sweet friendship springs from sincere counsel.” — Proverbs 27:9",
+      "Choose the right time to speak.\n“A word spoken at the right time.” — Proverbs 25:11",
+      "Say less rather than too much.\n“When words are many, transgression cannot be avoided.” — Proverbs 10:19",
+      "Recognize when silence is wiser.\n“A time to be silent and a time to speak.” — Ecclesiastes 3:7",
+      "Let love cover small imperfections.\n“Love covers a multitude of sins.” — 1 Peter 4:8",
+      "Show mildness and self-control.\n“Mildness, self-control.” — Galatians 5:23",
+      "Choose justice, loyalty, and modesty.\n“Exercise justice... cherish loyalty... walk in modesty.” — Micah 6:8",
+      "Make your mind over before deciding.\n“Be transformed by making your mind over.” — Romans 12:2",
+      "Be gentle instead of argumentative.\n“Does not need to fight... gentle toward all.” — 2 Timothy 2:24",
+      "Admit the mistake and change course.\n“Whoever confesses and abandons them will be shown mercy.” — Proverbs 28:13",
+      "Take the first step toward peace.\n“First make your peace with your brother.” — Matthew 5:24",
+      "Address the matter privately.\n“Between you and him alone.” — Matthew 18:15",
+      "Treat the other person as you want to be treated.\n“Do the same way to them.” — Luke 6:31"
+];
+
+    const DEFAULT_COOP_DECKS = [
+      {
+            "id": "relationships",
+            "name": "Relationships in Practice",
+            "description": "Family, friends, relatives, neighbors, and everyday relationship challenges.",
+            "problems": [
+                  "Your sibling keeps borrowing your belongings without asking.",
+                  "A family member shares something private about you with other relatives.",
+                  "Your friend repeatedly cancels plans at the last minute but expects you to be available whenever they call.",
+                  "Two relatives are upset with each other and both want you to take their side.",
+                  "A friend makes a joke about you in front of others, and it hurts more than they realize.",
+                  "One person in the family feels that they are always doing more chores than everyone else.",
+                  "A younger family member breaks something valuable and tries to hide it.",
+                  "Your friend has started spending time with people who encourage unwise choices.",
+                  "A relative gives you advice you did not ask for and becomes offended when you do not follow it.",
+                  "A family gathering becomes tense because everyone wants the day planned differently.",
+                  "A close friend learns important news about your life from someone else and feels left out.",
+                  "Your neighbor regularly parks in a way that blocks part of your driveway.",
+                  "A family group chat turns into an argument after someone misunderstands a short message.",
+                  "A friend is going through a difficult time but keeps insisting that everything is fine.",
+                  "Two siblings receive very different amounts of help from their parents, and resentment begins to grow.",
+                  "A relative keeps bringing up an embarrassing mistake from years ago.",
+                  "Your friend gives honest correction, but the timing and tone make it difficult to accept.",
+                  "A family member promises to help with an important task and forgets again.",
+                  "A longtime friendship feels one-sided because only one person initiates contact.",
+                  "Someone you care about makes a choice you strongly disagree with and does not want advice."
+            ],
+            "deckSolutions": [
+                  "Make time to be a loyal friend.\n“A true friend shows love at all times.” — Proverbs 17:17",
+                  "Stay close when support is needed.\n“A friend who sticks closer than a brother.” — Proverbs 18:24",
+                  "Speak openly instead of letting resentment grow.\n“Open reproof is better than concealed love.” — Proverbs 27:5",
+                  "Be generous without expecting repayment.\n“There is more happiness in giving than there is in receiving.” — Acts 20:35",
+                  "Show warm affection through your actions.\n“Have tender affection for one another.” — Romans 12:10",
+                  "Respect the other person’s needs and boundaries.\n“Does not look for its own interests.” — 1 Corinthians 13:5",
+                  "Help someone recover without humiliating them.\n“Try to readjust such a man in a spirit of mildness.” — Galatians 6:1",
+                  "Keep private matters confidential.\n“The trustworthy person keeps a confidence.” — Proverbs 11:13",
+                  "Share both joy and pain with the person.\n“Rejoice with those who rejoice; weep with those who weep.” — Romans 12:15",
+                  "Open your home or time to strengthen the relationship.\n“Follow the course of hospitality.” — Romans 12:13",
+                  "Do not repay hurt with another hurt.\n“See that no one repays injury for injury.” — 1 Thessalonians 5:15",
+                  "Reach out instead of withdrawing into resentment.\n“Whoever isolates himself pursues his own selfish desires.” — Proverbs 18:1"
+            ]
+      },
+      {
+            "id": "peace",
+            "name": "Peace Among Us",
+            "description": "Congregation situations involving cooperation, hospitality, forgiveness, and different personalities.",
+            "problems": [
+                  "Someone consistently leaves immediately after the meeting, and others begin assuming that the person is unfriendly.",
+                  "Two people receive the same assignment but have very different ideas about how it should be handled.",
+                  "A brother or sister makes a comment that sounds critical of the way you handled a privilege.",
+                  "A newer person feels overlooked because established groups usually sit and socialize together.",
+                  "Someone agrees to help with an arrangement but repeatedly arrives late.",
+                  "A personal disagreement begins affecting how two people treat each other at congregation activities.",
+                  "A well-meaning person gives advice in a way that feels embarrassing.",
+                  "A family with young children feels judged because the children sometimes become restless during the meeting.",
+                  "Someone is deeply hurt after not being included in a social gathering.",
+                  "A rumor begins spreading about why a person has missed several meetings.",
+                  "Two volunteers both assume the other person is responsible for an important task.",
+                  "A quiet publisher is rarely invited to participate in informal group activities.",
+                  "Someone keeps correcting minor details during group conversations and others are becoming frustrated.",
+                  "A brother or sister feels that their abilities are being overlooked when assignments are made.",
+                  "A person gives repeated suggestions to the elders and feels ignored when the arrangement does not change.",
+                  "Different cultural expectations cause two families to misunderstand each other’s hospitality.",
+                  "A congregation member posts a vague complaint online, and several people assume it is about them.",
+                  "A capable volunteer takes over tasks instead of allowing less-experienced people to learn.",
+                  "Someone is struggling emotionally but fears that asking for help will make others view them differently.",
+                  "A past disagreement resurfaces when two people are asked to work together again."
+            ],
+            "deckSolutions": [
+                  "Welcome someone who may feel left out.\n“Welcome one another.” — Romans 15:7",
+                  "Refuse to show favoritism.\n“Showing favoritism.” — James 2:1",
+                  "Cooperate with the congregation’s arrangements.\n“Let all things take place decently and by arrangement.” — 1 Corinthians 14:40",
+                  "Show genuine concern for every member.\n“Have mutual concern for one another.” — 1 Corinthians 12:25",
+                  "Support those who are struggling and remain patient.\n“Support the weak, be patient toward all.” — 1 Thessalonians 5:14",
+                  "Appeal respectfully rather than speaking harshly.\n“Appeal to him as a father.” — 1 Timothy 5:1",
+                  "Choose humility when opinions differ.\n“Clothe yourselves with humility.” — 1 Peter 5:5",
+                  "Let love guide the way the task is handled.\n“Let everything you do be done with love.” — 1 Corinthians 16:14",
+                  "Avoid complaining and arguing about the arrangement.\n“Keep doing all things free from murmuring and arguments.” — Philippians 2:14",
+                  "Cooperate with those taking the lead.\n“Be obedient to those who are taking the lead among you.” — Hebrews 13:17",
+                  "Speak consolingly to someone who is discouraged.\n“Speak consolingly to those who are depressed.” — 1 Thessalonians 5:14",
+                  "Help the group cooperate instead of competing.\n“Harmoniously joined together and made to cooperate.” — Ephesians 4:16"
+            ]
+      },
+      {
+            "id": "share",
+            "name": "Ready to Share",
+            "description": "Ministry and Bible-study situations involving conversations, return visits, courage, and teaching.",
+            "problems": [
+                  "A householder becomes irritated before you have finished your introduction.",
+                  "Your Bible student enjoys studying but rarely prepares or follows through on suggestions.",
+                  "Someone asks a Bible question that you do not know how to answer.",
+                  "Your partner speaks for most of the conversation and gives you little opportunity to participate.",
+                  "A return visit repeatedly changes the subject whenever the Bible is mentioned.",
+                  "You meet someone who has had a very negative experience with religion.",
+                  "A person wants to debate rather than have a calm conversation.",
+                  "A Bible student’s family begins pressuring the student to stop studying.",
+                  "You feel nervous about working with someone who is much more experienced than you.",
+                  "An interested person is only available at a time that is inconvenient for you.",
+                  "A child answers the door and wants to discuss a serious subject while no adult is nearby.",
+                  "A person asks whether Jehovah’s Witnesses believe something that you have never researched.",
+                  "Your return visit seems interested during each conversation but repeatedly avoids setting a definite time to continue.",
+                  "A Bible student wants to move quickly but is skipping important foundational points.",
+                  "Someone agrees with nearly everything but is afraid of how friends will react.",
+                  "A householder begins sharing a painful personal experience that is not directly related to your presentation.",
+                  "Your partner corrects a detail you said while the householder is listening.",
+                  "A person speaks a language you know only a little and seems interested in learning more.",
+                  "A student gives an answer that sounds memorized but does not seem to understand the principle.",
+                  "Repeated disappointments in the ministry have made you less eager to start conversations."
+            ],
+            "deckSolutions": [
+                  "Answer with mildness and respect.\n“With a mild temper and deep respect.” — 1 Peter 3:15",
+                  "Make your words gracious and appealing.\n“Let your words always be gracious.” — Colossians 4:6",
+                  "Adapt your approach to the person.\n“I have become all things to people of all sorts.” — 1 Corinthians 9:22",
+                  "Research the answer carefully.\n“Carefully examining the Scriptures daily.” — Acts 17:11",
+                  "Remember that Jehovah produces spiritual growth.\n“God kept making it grow.” — 1 Corinthians 3:6",
+                  "Show personal interest, not just a presentation.\n“Not only the good news... but also our own selves.” — 1 Thessalonians 2:8",
+                  "Be cautious while remaining innocent and sincere.\n“Cautious as serpents and yet innocent as doves.” — Matthew 10:16",
+                  "Keep sowing patiently even when results are slow.\n“Sow your seed in the morning.” — Ecclesiastes 11:6",
+                  "Use accurate knowledge rather than guessing.\n“The tongue of the wise makes good use of knowledge.” — Proverbs 15:2",
+                  "Refuse to turn the conversation into a fight.\n“A slave of the Lord does not need to fight.” — 2 Timothy 2:24",
+                  "Teach patiently instead of rushing the person.\n“With all patience and art of teaching.” — 2 Timothy 4:2",
+                  "Reason from the Scriptures rather than from opinion.\n“He reasoned with them from the Scriptures.” — Acts 17:2"
+            ]
+      },
+      {
+            "id": "shine",
+            "name": "Shine Where You Are",
+            "description": "Work and school situations involving honesty, pressure, teamwork, and good conduct.",
+            "problems": [
+                  "A coworker asks you to cover for a mistake they made.",
+                  "Several classmates begin excluding someone whom they consider strange.",
+                  "Your supervisor praises another person for work you completed.",
+                  "A school assignment includes material that troubles your conscience.",
+                  "Coworkers regularly use crude language around you even though they know it makes you uncomfortable.",
+                  "A classmate asks to copy your answers because they did not prepare.",
+                  "Your work schedule begins interfering with meetings and spiritual activities.",
+                  "A coworker frequently interrupts you and later presents your ideas as their own.",
+                  "Friends at school pressure you to join an activity that could lead to questionable situations.",
+                  "A popular employee has been treating a quieter coworker unfairly.",
+                  "Your manager asks the team to report numbers in a way that makes performance look better than it is.",
+                  "A teacher repeatedly mispronounces your name after being corrected several times.",
+                  "You are assigned to a group whose members expect you to complete most of the work.",
+                  "A coworker makes jokes about your beliefs in front of other people.",
+                  "A classmate shares a private message from you with the whole class.",
+                  "You discover that a friend at work or school has been taking supplies that do not belong to them.",
+                  "An important deadline is approaching, but you realize that your work contains a serious mistake.",
+                  "You receive an opportunity for advancement that would require regular participation in activities that trouble your conscience.",
+                  "A teammate is struggling to learn a task and the group is becoming impatient.",
+                  "You are blamed for a problem because you are the newest person in the group."
+            ],
+            "deckSolutions": [
+                  "Work with your whole heart.\n“Work at it whole-souled as for Jehovah.” — Colossians 3:23",
+                  "Be trustworthy in small responsibilities.\n“Faithful in what is least.” — Luke 16:10",
+                  "Let good conduct speak for you.\n“Maintain your conduct fine.” — 1 Peter 2:12",
+                  "Allow your example to shine.\n“Let your light shine before men.” — Matthew 5:16",
+                  "Choose companions who improve your judgment.\n“The one walking with the wise will become wise.” — Proverbs 13:20",
+                  "Do not let harmful pressure reshape your habits.\n“Bad associations spoil useful habits.” — 1 Corinthians 15:33",
+                  "Refuse to follow the crowd into wrongdoing.\n“You must not follow after the crowd to do evil.” — Exodus 23:2",
+                  "Choose honesty even when it costs you.\n“Conduct ourselves honestly in all things.” — Hebrews 13:18",
+                  "Choose steady effort instead of shortcuts.\n“The hand of the diligent makes one rich.” — Proverbs 10:4",
+                  "Develop skill and do quality work.\n“A man skillful at his work.” — Proverbs 22:29",
+                  "Reject dishonesty even when others accept it.\n“Lying lips are detestable to Jehovah.” — Proverbs 12:22",
+                  "Do honest work that benefits others.\n“Doing good work with his hands.” — Ephesians 4:28"
+            ]
+      },
+      {
+            "id": "choices",
+            "name": "Choices That Matter",
+            "description": "Personal decisions involving conscience, entertainment, time, money, emotions, and goals.",
+            "problems": [
+                  "You have limited free time and several good activities competing for your attention.",
+                  "A form of entertainment you enjoy increasingly includes material that bothers your conscience.",
+                  "You are tempted to make an expensive purchase even though you are trying to save.",
+                  "You feel angry and want to send a message immediately while your emotions are still strong.",
+                  "An opportunity looks exciting, but accepting it would greatly reduce your time for spiritual activities.",
+                  "You learn something embarrassing about another person and feel tempted to share it.",
+                  "You have been avoiding an important responsibility because it feels overwhelming.",
+                  "You realize that you have been comparing your appearance, possessions, or abilities with other people.",
+                  "You made a decision that did not work out and are struggling to admit it.",
+                  "You want to set a spiritual goal, but you are afraid you will not follow through.",
+                  "A habit that once seemed harmless is beginning to control more of your time and attention.",
+                  "You are exhausted but keep agreeing to additional responsibilities because you do not want to disappoint anyone.",
+                  "You receive conflicting advice from several people you respect.",
+                  "A social-media trend looks fun, but participating could damage someone else’s dignity.",
+                  "You are offered quick money for something that seems legal but does not feel honest.",
+                  "You keep replaying a past mistake and feel unworthy of moving forward.",
+                  "You want to correct someone publicly because their statement is inaccurate.",
+                  "A major decision must be made soon, and fear is making every option seem wrong.",
+                  "You notice that your prayers and personal study have become rushed and irregular.",
+                  "You have a strong personal preference, but another choice may benefit more people."
+            ],
+            "deckSolutions": [
+                  "Guard what influences your heart.\n“Safeguard your heart.” — Proverbs 4:23",
+                  "Refuse to be controlled by a habit or desire.\n“I will not let myself be controlled by anything.” — 1 Corinthians 6:12",
+                  "Turn away from entertainment that has become worthless.\n“Turn my eyes away from looking at what is worthless.” — Psalm 119:37",
+                  "Think about what the choice will produce later.\n“Whatever a person is sowing, this he will also reap.” — Galatians 6:7",
+                  "Choose the option that honors God.\n“Do all things for God’s glory.” — 1 Corinthians 10:31",
+                  "Practice contentment instead of always wanting more.\n“Godly devotion along with contentment.” — 1 Timothy 6:6",
+                  "Keep money in its proper place.\n“Let your way of life be free of the love of money.” — Hebrews 13:5",
+                  "Pray instead of allowing anxiety to make the decision.\n“Do not be anxious over anything.” — Philippians 4:6",
+                  "Use God’s Word to guide the next step.\n“Your word is a lamp to my foot.” — Psalm 119:105",
+                  "Test the choice against God’s will.\n“Prove to yourselves the good and acceptable... will of God.” — Romans 12:2",
+                  "Hand the anxiety to Jehovah.\n“Throw all your anxiety on him.” — 1 Peter 5:7",
+                  "Act courageously rather than letting fear decide.\n“Be courageous and strong.” — Joshua 1:9"
+            ]
+      },
+      {
+            "id": "two",
+            "name": "Two Are Better",
+            "description": "Marriage situations involving communication, expectations, finances, affection, and spiritual routines.",
+            "problems": [
+                  "One mate prefers to talk through a disagreement immediately, while the other needs time to calm down first.",
+                  "A purchase is made without discussing it, even though the couple had agreed to consult each other.",
+                  "One mate feels that household responsibilities are not being divided fairly.",
+                  "Extended family members frequently offer opinions about private marital decisions.",
+                  "The couple has become so busy that most conversations are about schedules and responsibilities.",
+                  "One mate feels corrected or criticized in front of other people.",
+                  "The couple has very different ideas about how leisure time should be spent.",
+                  "One mate is more consistent with family worship and spiritual routines than the other.",
+                  "A past mistake is repeatedly brought up during new disagreements.",
+                  "One mate feels that their efforts are rarely noticed or appreciated.",
+                  "One mate has been hiding small purchases because discussions about money often become tense.",
+                  "A disagreement about disciplining the children keeps resurfacing.",
+                  "One mate shares private marital frustrations with friends before speaking to their spouse.",
+                  "Work and congregation responsibilities leave one mate feeling emotionally neglected.",
+                  "One mate expects the other to know what is wrong without explaining it.",
+                  "Different sleep schedules and routines are reducing the couple’s time together.",
+                  "One mate makes a major family commitment before consulting the other.",
+                  "A relative repeatedly speaks disrespectfully about one mate, and the other stays silent.",
+                  "The couple agrees on the goal but argues about every step needed to reach it.",
+                  "One mate apologizes quickly, but the same hurtful pattern keeps returning."
+            ],
+            "deckSolutions": [
+                  "Treat the two of you as one team.\n“They will become one flesh.” — Genesis 2:24",
+                  "Show both love and deep respect.\n“Love his wife as he does himself... deep respect.” — Ephesians 5:33",
+                  "Learn your mate’s needs rather than making assumptions.\n“Dwelling with them according to knowledge.” — 1 Peter 3:7",
+                  "Refuse to hold on to bitter anger.\n“Do not be bitterly angry with them.” — Colossians 3:19",
+                  "Resolve anger before it hardens.\n“Do not let the sun set while you are still angry.” — Ephesians 4:26",
+                  "Give your mate due affection and consideration.\n“Let the husband give to his wife her due.” — 1 Corinthians 7:3",
+                  "Make kindness the rule of your speech.\n“The law of kindness is on her tongue.” — Proverbs 31:26",
+                  "Protect the marriage bond from outside pressure.\n“What God has yoked together, let no man put apart.” — Matthew 19:6",
+                  "Work side by side toward a shared result.\n“Two are better than one.” — Ecclesiastes 4:9",
+                  "Consult each other before finalizing plans.\n“Plans fail when there is no consultation.” — Proverbs 15:22",
+                  "Make intimate decisions by mutual agreement.\n“By mutual consent for an appointed time.” — 1 Corinthians 7:5",
+                  "Protect and nourish enduring love.\n“Floodwaters cannot extinguish love.” — Song of Solomon 8:7"
+            ]
+      }
+];
 
     const ui = {};
     document.querySelectorAll('[id]').forEach(element => { ui[element.id] = element; });
@@ -2726,7 +3089,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 12,
+        version: 13,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -2745,6 +3108,9 @@
           mode: 'build',
           modeLabel: 'Build Together',
           savedDeckId: '',
+          defaultDeckId: 'relationships',
+          includeSharedSolutions: true,
+          includeDeckSolutions: true,
           deckName: `${hostName}'s Game`,
           buildSeconds: 120,
           handSize: DEFAULT_HAND_SIZE
@@ -3284,7 +3650,7 @@
         set(ref(database, roomRefPath(`players/${actorId}/connected`)), true).catch(() => {});
       }
 
-      if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text);
+      if (action === 'addBuildCard') return hostAddBuildCard(actorId, payload.kind, payload.text, payload.scope);
       if (action === 'removeBuildCard') return hostRemoveBuildCard(actorId, payload.kind, payload.cardId);
       if (action === 'editBuildCard') return hostEditBuildCard(actorId, payload.kind, payload.cardId, payload.text);
       if (action === 'drawProblem') return hostDrawProblem(actorId);
@@ -3342,30 +3708,67 @@
     }
 
 
+    function selectedSetupDeck() {
+      const value = ui.roomModeSelect?.value || state?.settings?.mode || 'build';
+      if (value.startsWith('default:')) return getDefaultDeck(value.slice(8));
+      if (value.startsWith('saved:')) return getSavedGames().find(deck => deck.id === value.slice(6)) || null;
+      return null;
+    }
+
+    function enforceSolutionSourceSelection(changed = '') {
+      if (!ui.includeSharedSolutionsToggle || !ui.includeDeckSolutionsToggle) return;
+      if (!ui.includeSharedSolutionsToggle.checked && !ui.includeDeckSolutionsToggle.checked) {
+        if (changed === 'shared') ui.includeDeckSolutionsToggle.checked = true;
+        else ui.includeSharedSolutionsToggle.checked = true;
+        toast('At least one Solution Card source must stay on.');
+      }
+    }
+
     function syncHostSetupControls() {
       if (!ui.roomModeSelect || !ui.startRoomBtn) return;
       const value = ui.roomModeSelect.value || 'build';
       const building = value === 'build';
+      const coop = (ui.playStyleSelect.value || state?.settings?.playMode || 'coop') !== 'pvp';
+      const setupDeck = selectedSetupDeck();
       ui.buildSettingsWrap.classList.toggle('hidden', !building);
       ui.selectedDeckReadyWrap.classList.toggle('hidden', building);
+      ui.solutionSourcesWrap.classList.toggle('hidden', building || !coop || !setupDeck);
 
       const seconds = Number(ui.buildTimeSelect.value) || 120;
       if (building) {
         ui.startRoomBtn.textContent = `Start ${seconds / 60}-Minute Build`;
       } else {
-        const gameName = state?.settings?.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
+        const gameName = coop ? 'Principles in Practice' : 'Problem? Solved!';
         ui.startRoomBtn.textContent = `Start ${gameName}`;
         const selectedLabel = (ui.roomModeSelect.selectedOptions?.[0]?.textContent || 'Selected deck').replace(/^Saved:\s*/i, '');
         ui.selectedDeckReadyTitle.textContent = `${selectedLabel} ready`;
-        ui.selectedDeckReadyText.textContent = 'The game will begin with this deck immediately. The card-building timer will not run.';
+        ui.selectedDeckReadyText.textContent = setupDeck?.description || 'The game will begin with this deck immediately. The card-building timer will not run.';
       }
+
+      if (setupDeck) {
+        const hasDeckSolutions = setupDeck.deckSolutions.length > 0;
+        ui.deckSolutionsToggleLabel.textContent = `${setupDeck.name} Solutions`;
+        ui.deckSolutionsToggleHelp.textContent = hasDeckSolutions ? `${setupDeck.deckSolutions.length} solutions written especially for this deck.` : 'No deck-specific solutions have been saved yet.';
+        ui.includeDeckSolutionsToggle.disabled = !hasDeckSolutions;
+        if (!hasDeckSolutions) state.settings.includeDeckSolutions = false;
+      } else {
+        ui.includeDeckSolutionsToggle.disabled = false;
+      }
+      ui.includeSharedSolutionsToggle.checked = state?.settings?.includeSharedSolutions !== false;
+      ui.includeDeckSolutionsToggle.checked = state?.settings?.includeDeckSolutions !== false && !ui.includeDeckSolutionsToggle.disabled;
     }
 
     function hostSetRoomSettings() {
       if (!isHost || state?.phase !== 'room') return;
       const playMode = ui.playStyleSelect.value === 'pvp' ? 'pvp' : 'coop';
+      const playModeChanged = state.settings.playMode !== playMode;
       state.settings.playMode = playMode;
       state.settings.playModeLabel = playMode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
+
+      if (playModeChanged) {
+        pendingHostDeckSelection = playMode === 'coop' ? 'default:relationships' : 'starter';
+        renderRoom();
+      }
 
       const value = ui.roomModeSelect.value;
       pendingHostDeckSelection = value;
@@ -3377,6 +3780,13 @@
         state.settings.mode = 'starter';
         state.settings.modeLabel = 'Starter Deck';
         state.settings.savedDeckId = '';
+      } else if (value.startsWith('default:')) {
+        const id = value.slice(8);
+        const deck = getDefaultDeck(id);
+        state.settings.mode = 'default';
+        state.settings.defaultDeckId = id;
+        state.settings.modeLabel = deck.name;
+        state.settings.savedDeckId = '';
       } else if (value.startsWith('saved:')) {
         const id = value.slice(6);
         const saved = getSavedGames().find(deck => deck.id === id);
@@ -3385,13 +3795,15 @@
         state.settings.modeLabel = saved.name;
         state.settings.savedDeckId = id;
       }
+      enforceSolutionSourceSelection();
+      state.settings.includeSharedSolutions = ui.includeSharedSolutionsToggle.checked;
+      state.settings.includeDeckSolutions = ui.includeDeckSolutionsToggle.checked;
       state.settings.deckName = clampText(ui.deckNameInput.value, 50) || state.settings.deckName;
       state.settings.buildSeconds = Number(ui.buildTimeSelect.value) || 120;
       state.settings.handSize = Math.max(1, Math.min(20, Number.parseInt(ui.handSizeInput.value, 10) || DEFAULT_HAND_SIZE));
       syncHostSetupControls();
       broadcastState();
     }
-
 
     function hostStartSelectedMode() {
       if (!isHost || state?.phase !== 'room') return;
@@ -3411,14 +3823,28 @@
         return;
       }
 
+      const includeShared = state.settings.includeSharedSolutions !== false;
+      const includeDeck = state.settings.includeDeckSolutions !== false;
+      if (!includeShared && !includeDeck) return toast('Turn on at least one Solution Card source.');
+
+      if (state.settings.mode === 'default') {
+        const deck = getDefaultDeck(state.settings.defaultDeckId || 'relationships');
+        startGameWithDeck(prepareDeckForPlay(deck, includeShared, includeDeck));
+        return;
+      }
+
       if (state.settings.mode === 'saved') {
         const saved = getSavedGames().find(deck => deck.id === state.settings.savedDeckId);
         if (!saved) return toast('That saved game could not be found on this device.');
-        startGameWithDeck(saved);
+        if (state.settings.playMode === 'pvp') {
+          startGameWithDeck({ ...saved, solutions: uniqueTexts([...saved.deckSolutions, ...saved.sharedSolutions]) });
+        } else {
+          startGameWithDeck(prepareDeckForPlay(saved, includeShared, includeDeck));
+        }
       }
     }
 
-    function hostAddBuildCard(actorId, kind, text) {
+    function hostAddBuildCard(actorId, kind, text, scope = 'deck') {
       if (state.phase !== 'build') return rejectAction(actorId, 'Card building has ended.');
       if (Date.now() >= state.builder.endsAt) {
         finishBuild();
@@ -3428,7 +3854,7 @@
       const cleaned = clampText(text, 220);
       if (cleaned.length < 4) return rejectAction(actorId, 'Write a little more before adding the card.');
       const list = kind === 'problem' ? state.builder.problems : state.builder.solutions;
-      list.push({ id: uid(kind), text: cleaned, authorId: actorId, createdAt: Date.now() });
+      list.push({ id: uid(kind), text: cleaned, scope: kind === 'solution' && scope === 'shared' ? 'shared' : 'deck', authorId: actorId, createdAt: Date.now() });
       const actor = playerById(actorId);
       if (kind === 'problem') actor.problemsAdded += 1;
       else actor.solutionsAdded += 1;
@@ -3477,47 +3903,127 @@
       broadcastState();
     }
 
+    function normalizeSolutionText(item) {
+      return clampText(typeof item === 'string' ? item : item?.text, 500);
+    }
+
+    function uniqueTexts(items) {
+      const seen = new Set();
+      return items.filter(text => {
+        const key = text.trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function getUserSharedSolutions() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SHARED_SOLUTION_STORAGE_KEY) || '[]');
+        return Array.isArray(parsed) ? uniqueTexts(parsed.map(normalizeSolutionText).filter(text => text.length >= 4)) : [];
+      } catch { return []; }
+    }
+
+    function putUserSharedSolutions(solutions) {
+      localStorage.setItem(SHARED_SOLUTION_STORAGE_KEY, JSON.stringify(uniqueTexts(solutions).slice(0, 400)));
+    }
+
+    function mergeUserSharedSolutions(solutions) {
+      const cleaned = (solutions || []).map(normalizeSolutionText).filter(text => text.length >= 4);
+      if (!cleaned.length) return;
+      putUserSharedSolutions([...getUserSharedSolutions(), ...cleaned]);
+    }
+
+    function allSharedSolutions(extra = []) {
+      return uniqueTexts([
+        ...SHARED_BIBLE_SOLUTIONS,
+        ...getUserSharedSolutions(),
+        ...(extra || []).map(normalizeSolutionText).filter(text => text.length >= 4)
+      ]);
+    }
+
     function customDeckFromBuilder() {
-      return {
+      const sharedSolutions = state.builder.solutions.filter(card => card.scope === 'shared').map(card => card.text);
+      const deckSolutions = state.builder.solutions.filter(card => card.scope !== 'shared').map(card => card.text);
+      return normalizeDeck({
         id: uid('deck'),
-        name: clampText(state.settings.deckName, 50) || 'Custom Problem? Solved! Game',
+        name: clampText(state.settings.deckName, 50) || 'Custom Principles in Practice Game',
         createdAt: Date.now(),
         updatedAt: Date.now(),
         problems: state.builder.problems.map(card => card.text),
-        solutions: state.builder.solutions.map(card => card.text)
+        deckSolutions,
+        sharedSolutions
+      });
+    }
+
+    function deckAvailableSolutionCount(deck) {
+      return uniqueTexts([...(deck.deckSolutions || []), ...(deck.sharedSolutions || [])]).length;
+    }
+
+    function deckIsReady(deck, includeGlobalShared = true) {
+      const availableSolutions = includeGlobalShared
+        ? uniqueTexts([...(deck.deckSolutions || []), ...allSharedSolutions(deck.sharedSolutions || [])]).length
+        : deckAvailableSolutionCount(deck);
+      return deck.problems.length >= MIN_PROBLEMS && availableSolutions >= MIN_SOLUTIONS;
+    }
+
+    function normalizeDeck(raw) {
+      const problems = (raw?.problems || []).map(item => clampText(typeof item === 'string' ? item : item?.text, 220)).filter(text => text.length >= 4);
+      const legacySolutions = (raw?.solutions || []).map(normalizeSolutionText).filter(text => text.length >= 4);
+      const deckSolutions = (raw?.deckSolutions || legacySolutions).map(normalizeSolutionText).filter(text => text.length >= 4);
+      const sharedSolutions = (raw?.sharedSolutions || []).map(normalizeSolutionText).filter(text => text.length >= 4);
+      return {
+        id: raw?.id || uid('deck'),
+        name: clampText(raw?.name, 50) || 'Saved Principles in Practice Game',
+        description: clampText(raw?.description, 180),
+        defaultDeck: Boolean(raw?.defaultDeck),
+        createdAt: Number(raw?.createdAt) || Date.now(),
+        updatedAt: Number(raw?.updatedAt) || Date.now(),
+        problems: uniqueTexts(problems),
+        deckSolutions: uniqueTexts(deckSolutions),
+        sharedSolutions: uniqueTexts(sharedSolutions),
+        solutions: uniqueTexts([...deckSolutions, ...sharedSolutions])
       };
     }
 
-    function deckIsReady(deck) { return deck.problems.length >= MIN_PROBLEMS && deck.solutions.length >= MIN_SOLUTIONS; }
-
-    function normalizeDeck(raw) {
-      const problems = (raw.problems || []).map(item => clampText(typeof item === 'string' ? item : item.text, 220)).filter(text => text.length >= 4);
-      const solutions = (raw.solutions || []).map(item => clampText(typeof item === 'string' ? item : item.text, 220)).filter(text => text.length >= 4);
-      return {
-        id: raw.id || uid('deck'),
-        name: clampText(raw.name, 50) || 'Saved Problem? Solved! Game',
-        createdAt: Number(raw.createdAt) || Date.now(),
-        updatedAt: Number(raw.updatedAt) || Date.now(),
-        problems,
-        solutions
-      };
+    function getDefaultDeck(id) {
+      const raw = DEFAULT_COOP_DECKS.find(deck => deck.id === id) || DEFAULT_COOP_DECKS[0];
+      return normalizeDeck({ ...raw, id: `default-${raw.id}`, defaultDeck: true });
     }
 
     function getSavedGames() {
       try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        return Array.isArray(parsed) ? parsed.map(normalizeDeck).filter(deckIsReady) : [];
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY) || '[]';
+        const parsed = JSON.parse(raw);
+        const games = Array.isArray(parsed) ? parsed.map(normalizeDeck).filter(deck => deck.problems.length >= MIN_PROBLEMS) : [];
+        if (!localStorage.getItem(STORAGE_KEY) && games.length) putSavedGames(games);
+        return games;
       } catch { return []; }
     }
 
     function putSavedGames(games) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(games.slice(0, 40)));
+      const compact = games.slice(0, 40).map(deck => {
+        const normalized = normalizeDeck(deck);
+        return {
+          id: normalized.id,
+          name: normalized.name,
+          description: normalized.description,
+          createdAt: normalized.createdAt,
+          updatedAt: normalized.updatedAt,
+          problems: normalized.problems,
+          deckSolutions: normalized.deckSolutions,
+          sharedSolutions: normalized.sharedSolutions
+        };
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(compact));
     }
 
     function saveCurrentDeck() {
       if (!isHost || state?.phase !== 'review') return;
       const deck = customDeckFromBuilder();
-      if (!deckIsReady(deck)) return toast(`Add at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions before saving.`);
+      const includeGlobalShared = state.settings.playMode !== 'pvp';
+      if (!deckIsReady(deck, includeGlobalShared)) return toast(includeGlobalShared ? `Add at least ${MIN_PROBLEMS} Problems. The Shared Bible Solution Deck can supply the solutions.` : `Add at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} custom Solutions before saving for Problem? Solved!.`);
+      mergeUserSharedSolutions(deck.sharedSolutions);
       const games = getSavedGames();
       const sameNameIndex = games.findIndex(item => item.name.toLowerCase() === deck.name.toLowerCase());
       if (sameNameIndex >= 0) {
@@ -3531,16 +4037,28 @@
       state.builder.savedAt = Date.now();
       broadcastState();
       renderSavedGames();
-      toast(`Saved “${deck.name}” on this device.`);
+      toast(`Saved “${deck.name}” and updated the Shared Solution Deck.`);
     }
 
     function exportDeck(deck) {
       const normalized = normalizeDeck(deck);
-      const blob = new Blob([JSON.stringify({ format: 'problem-solved-deck', version: 2, ...normalized }, null, 2)], { type: 'application/json' });
+      const payload = {
+        format: 'principles-in-practice-deck',
+        version: 3,
+        id: normalized.id,
+        name: normalized.name,
+        description: normalized.description,
+        createdAt: normalized.createdAt,
+        updatedAt: normalized.updatedAt,
+        problems: normalized.problems,
+        deckSolutions: normalized.deckSolutions,
+        sharedSolutions: normalized.sharedSolutions
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${normalized.name.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'problem_solved_game'}.json`;
+      link.download = `${normalized.name.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'principles_in_practice_game'}.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -3550,7 +4068,7 @@
     function exportCurrentDeck() {
       if (!isHost || !['review', 'play', 'end'].includes(state?.phase)) return;
       const deck = state.phase === 'review' ? customDeckFromBuilder() : state.activeDeck;
-      if (!deckIsReady(deck)) return toast('The deck needs more cards before it can be exported.');
+      if (!deck || deck.problems.length < MIN_PROBLEMS) return toast('The deck needs more Problem Cards before it can be exported.');
       exportDeck(deck);
     }
 
@@ -3559,7 +4077,8 @@
       try {
         const raw = JSON.parse(await file.text());
         const deck = normalizeDeck(raw);
-        if (!deckIsReady(deck)) throw new Error('Deck is too small');
+        if (deck.problems.length < MIN_PROBLEMS) throw new Error('Deck is too small');
+        mergeUserSharedSolutions(deck.sharedSolutions);
         const games = getSavedGames();
         deck.id = uid('deck');
         deck.name = games.some(item => item.name === deck.name) ? `${deck.name} (Imported)` : deck.name;
@@ -3567,9 +4086,9 @@
         putSavedGames(games);
         renderSavedGames();
         if (state?.phase === 'room' && isHost) renderRoom();
-        toast(`Imported “${deck.name}”.`);
+        toast(`Imported “${deck.name}” and added its shared cards to your Shared Solution Deck.`);
       } catch {
-        toast(`That file is not a valid saved game. It needs at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions.`);
+        toast(`That file is not a valid saved game. It needs at least ${MIN_PROBLEMS} Problem Cards.`);
       } finally {
         ui.importDeckInput.value = '';
       }
@@ -3578,19 +4097,36 @@
     function deleteSavedDeck(id) {
       const deck = getSavedGames().find(item => item.id === id);
       if (!deck) return;
-      if (!confirm(`Delete “${deck.name}” from this browser?`)) return;
+      if (!confirm(`Delete “${deck.name}” from this browser? Shared Solution Cards already added to your library will remain available.`)) return;
       putSavedGames(getSavedGames().filter(item => item.id !== id));
       renderSavedGames();
       toast('Saved game deleted.');
     }
 
+    function prepareDeckForPlay(deck, includeShared = true, includeDeck = true) {
+      const normalized = normalizeDeck(deck);
+      const sharedPool = includeShared ? allSharedSolutions(normalized.sharedSolutions) : [];
+      const deckPool = includeDeck ? normalized.deckSolutions : [];
+      const solutions = uniqueTexts([...sharedPool, ...deckPool]);
+      return {
+        ...normalized,
+        solutions,
+        selectedSources: { shared: includeShared, deck: includeDeck }
+      };
+    }
+
     function buildActiveDeck(deck) {
       const normalized = normalizeDeck(deck);
+      const selectedSolutions = (deck.solutions || normalized.solutions).map(normalizeSolutionText).filter(text => text.length >= 4);
       return {
         id: normalized.id,
         name: normalized.name,
+        description: normalized.description,
         problems: normalized.problems.map((text, index) => ({ id: `problem-${index}-${uid('c')}`, text })),
-        solutions: normalized.solutions.map((text, index) => ({ id: `solution-${index}-${uid('c')}`, text }))
+        solutions: uniqueTexts(selectedSolutions).map((text, index) => ({ id: `solution-${index}-${uid('c')}`, text })),
+        deckSolutions: normalized.deckSolutions,
+        sharedSolutions: normalized.sharedSolutions,
+        selectedSources: deck.selectedSources || null
       };
     }
 
@@ -3616,11 +4152,12 @@
 
     function startGameWithDeck(deck) {
       const normalized = normalizeDeck(deck);
-      if (!deckIsReady(normalized)) return toast(`This deck needs at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} Solutions.`);
+      const playableSolutions = (deck.solutions || normalized.solutions).map(normalizeSolutionText).filter(text => text.length >= 4);
+      if (normalized.problems.length < MIN_PROBLEMS || playableSolutions.length < MIN_SOLUTIONS) return toast(`This game needs at least ${MIN_PROBLEMS} Problems and ${MIN_SOLUTIONS} enabled Solutions.`);
       const players = connectedPlayers();
       if (players.length < 2) return toast('At least two connected players are needed.');
 
-      state.activeDeck = buildActiveDeck(normalized);
+      state.activeDeck = buildActiveDeck({ ...normalized, solutions: playableSolutions, selectedSources: deck.selectedSources || null });
       const turnOrder = players.map(player => player.id);
       const playMode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
       state.game = {
@@ -3926,7 +4463,9 @@
         id: state.activeDeck.id,
         name: state.activeDeck.name,
         problems: state.activeDeck.problems.map(card => card.text),
-        solutions: state.activeDeck.solutions.map(card => card.text)
+        solutions: state.activeDeck.solutions.map(card => card.text),
+        deckSolutions: state.activeDeck.deckSolutions || state.activeDeck.solutions.map(card => card.text),
+        sharedSolutions: state.activeDeck.sharedSolutions || []
       };
       startGameWithDeck(deck);
     }
@@ -3983,16 +4522,19 @@
 
       if (isHost) {
         const saved = getSavedGames();
-        const currentValue = state.settings.mode === 'saved' ? `saved:${state.settings.savedDeckId}` : state.settings.mode;
+        const coop = state.settings.playMode !== 'pvp';
+        const currentValue = state.settings.mode === 'saved' ? `saved:${state.settings.savedDeckId}` : state.settings.mode === 'default' ? `default:${state.settings.defaultDeckId || 'relationships'}` : state.settings.mode;
         const desiredValue = pendingHostDeckSelection || currentValue;
         ui.playStyleSelect.value = state.settings.playMode || 'coop';
         ui.handSizeInput.value = String(state.settings.handSize || DEFAULT_HAND_SIZE);
+        const defaultOptions = coop ? DEFAULT_COOP_DECKS.map(deck => `<option value="default:${escapeHtml(deck.id)}">${escapeHtml(deck.name)}</option>`) : ['<option value="starter">Play Starter Deck</option>'];
         ui.roomModeSelect.innerHTML = [
           '<option value="build">Build Together</option>',
-          '<option value="starter">Play Starter Deck</option>',
+          ...defaultOptions,
           ...saved.map(deck => `<option value="saved:${escapeHtml(deck.id)}">Saved: ${escapeHtml(deck.name)}</option>`)
         ].join('');
-        ui.roomModeSelect.value = [...ui.roomModeSelect.options].some(option => option.value === desiredValue) ? desiredValue : ([...ui.roomModeSelect.options].some(option => option.value === currentValue) ? currentValue : 'build');
+        const fallback = coop ? 'default:relationships' : 'starter';
+        ui.roomModeSelect.value = [...ui.roomModeSelect.options].some(option => option.value === desiredValue) ? desiredValue : ([...ui.roomModeSelect.options].some(option => option.value === currentValue) ? currentValue : fallback);
         ui.deckNameInput.value = state.settings.deckName;
         ui.buildTimeSelect.value = String(state.settings.buildSeconds);
         syncHostSetupControls();
@@ -4030,7 +4572,7 @@
       const recent = [...myProblems.map(card => ({ ...card, kind: 'problem' })), ...mySolutions.map(card => ({ ...card, kind: 'solution' }))]
         .sort((a,b) => b.createdAt - a.createdAt).slice(0, 8);
       ui.myBuildCards.innerHTML = recent.length ? recent.map(card => `<div class="quick-item">
-        <span><strong>${card.kind === 'problem' ? 'Problem:' : 'Solution:'}</strong> ${escapeHtml(card.text)}</span>
+        <span><strong>${card.kind === 'problem' ? 'Problem:' : 'Solution:'}</strong>${card.kind === 'solution' ? `<span class="scope-badge ${card.scope === 'shared' ? 'shared' : ''}">${card.scope === 'shared' ? 'Shared' : 'This Deck'}</span>` : ''} ${escapeHtml(card.text)}</span>
         <button type="button" class="btn cream small" data-edit-kind="${card.kind}" data-edit-id="${card.id}">Edit</button>
         <button type="button" class="btn danger small" data-remove-kind="${card.kind}" data-remove-id="${card.id}">×</button>
       </div>`).join('') : '<p class="muted">Your cards will appear here as you add them.</p>';
@@ -4058,14 +4600,21 @@
       showScreen('reviewScreen');
       setConnection('Deck review', 'online');
       const deck = customDeckFromBuilder();
+      const coop = state.settings.playMode !== 'pvp';
+      const customSolutionCount = deckAvailableSolutionCount(deck);
+      const availableSolutionCount = coop ? uniqueTexts([...deck.deckSolutions, ...allSharedSolutions(deck.sharedSolutions)]).length : customSolutionCount;
       ui.reviewTitle.textContent = `${deck.name} is built!`;
       ui.reviewProblemCount.textContent = deck.problems.length;
-      ui.reviewSolutionCount.textContent = deck.solutions.length;
+      ui.reviewSolutionCount.textContent = customSolutionCount;
       ui.reviewContributorCount.textContent = state.players.filter(player => (player.problemsAdded + player.solutionsAdded) > 0).length;
-      const ready = deckIsReady(deck);
+      const ready = deckIsReady(deck, coop);
       const needProblems = Math.max(0, MIN_PROBLEMS - deck.problems.length);
-      const needSolutions = Math.max(0, MIN_SOLUTIONS - deck.solutions.length);
-      ui.deckReadiness.textContent = ready ? 'Ready to play! The deck will automatically reshuffle when needed.' : `Add ${needProblems} more Problem${needProblems === 1 ? '' : 's'} and ${needSolutions} more Solution${needSolutions === 1 ? '' : 's'} to play.`;
+      const needSolutions = Math.max(0, MIN_SOLUTIONS - availableSolutionCount);
+      if (ready && coop && customSolutionCount < MIN_SOLUTIONS) {
+        ui.deckReadiness.textContent = `Ready to play! Your ${customSolutionCount} custom Solution${customSolutionCount === 1 ? '' : 's'} will mix with the Shared Bible Solution Deck.`;
+      } else {
+        ui.deckReadiness.textContent = ready ? 'Ready to play! The deck will automatically reshuffle when needed.' : `Add ${needProblems} more Problem${needProblems === 1 ? '' : 's'} and ${needSolutions} more Solution${needSolutions === 1 ? '' : 's'} to play.`;
+      }
       ui.deckReadiness.style.background = ready ? 'var(--yellow)' : '#f3b5ae';
       ui.reviewProblems.innerHTML = renderDeckRows(state.builder.problems, 'problem');
       ui.reviewSolutions.innerHTML = renderDeckRows(state.builder.solutions, 'solution');
@@ -4085,7 +4634,7 @@
       return cards.map((card, index) => {
         const canEdit = isHost || card.authorId === myPlayerId;
         return `<div class="deck-row ${kind}-row">
-          <div><div class="deck-text"><strong>${index + 1}.</strong> ${escapeHtml(card.text)}</div><div class="deck-author">Added by ${escapeHtml(playerName(card.authorId))}</div></div>
+          <div><div class="deck-text"><strong>${index + 1}.</strong>${kind === 'solution' ? `<span class="scope-badge ${card.scope === 'shared' ? 'shared' : ''}">${card.scope === 'shared' ? 'Shared' : 'This Deck'}</span>` : ''} ${escapeHtml(card.text)}</div><div class="deck-author">Added by ${escapeHtml(playerName(card.authorId))}</div></div>
           ${canEdit ? `<div class="deck-actions"><button type="button" class="btn cream small" data-edit-kind="${kind}" data-edit-id="${card.id}">Edit</button><button type="button" class="btn danger small" data-remove-kind="${kind}" data-remove-id="${card.id}">Delete</button></div>` : ''}
         </div>`;
       }).join('');
@@ -4739,7 +5288,7 @@
     function renderSavedGames() {
       const games = getSavedGames();
       ui.savedLobbyList.innerHTML = games.length ? games.map(deck => `<div class="saved-item">
-        <div><div class="saved-title">${escapeHtml(deck.name)}</div><div class="saved-meta">${deck.problems.length} Problems • ${deck.solutions.length} Solutions • Updated ${new Date(deck.updatedAt).toLocaleDateString()}</div></div>
+        <div><div class="saved-title">${escapeHtml(deck.name)}</div><div class="saved-meta">${deck.problems.length} Problems • ${deck.deckSolutions.length} Deck Solutions • ${deck.sharedSolutions.length} Shared Contributions • Updated ${new Date(deck.updatedAt).toLocaleDateString()}</div></div>
         <div class="deck-actions"><button type="button" class="btn cream small" data-export-saved="${deck.id}">Export</button><button type="button" class="btn danger small" data-delete-saved="${deck.id}">Delete</button></div>
       </div>`).join('') : '<p class="muted">No saved games yet. Build one with your group, then save it after the timer.</p>';
       ui.savedLobbyList.querySelectorAll('[data-export-saved]').forEach(button => button.addEventListener('click', () => {
@@ -4789,7 +5338,8 @@
       const input = kind === 'problem' ? ui.problemInput : ui.solutionInput;
       const text = clampText(input.value, 220);
       if (text.length < 4) return toast('Write a little more before adding the card.');
-      sendAction('addBuildCard', { kind, text });
+      const scope = kind === 'solution' ? ui.solutionDestinationSelect.value : 'deck';
+      sendAction('addBuildCard', { kind, text, scope });
       input.value = '';
       input.focus();
     }
@@ -4862,6 +5412,8 @@
     ui.handSizeInput.addEventListener('change', hostSetRoomSettings);
     ui.roomModeSelect.addEventListener('input', hostSetRoomSettings);
     ui.roomModeSelect.addEventListener('change', hostSetRoomSettings);
+    ui.includeSharedSolutionsToggle.addEventListener('change', () => { enforceSolutionSourceSelection('shared'); hostSetRoomSettings(); });
+    ui.includeDeckSolutionsToggle.addEventListener('change', () => { enforceSolutionSourceSelection('deck'); hostSetRoomSettings(); });
     ui.buildTimeSelect.addEventListener('change', hostSetRoomSettings);
     ui.deckNameInput.addEventListener('change', hostSetRoomSettings);
     ui.startRoomBtn.addEventListener('click', hostStartSelectedMode);
@@ -4875,7 +5427,7 @@
     ui.saveDeckBtn.addEventListener('click', saveCurrentDeck);
     ui.exportDeckBtn.addEventListener('click', exportCurrentDeck);
     ui.addMoreTimeBtn.addEventListener('click', () => resumeBuild(60));
-    ui.startCustomGameBtn.addEventListener('click', () => startGameWithDeck(customDeckFromBuilder()));
+    ui.startCustomGameBtn.addEventListener('click', () => { const deck = customDeckFromBuilder(); mergeUserSharedSolutions(deck.sharedSolutions); if (state.settings.playMode === 'pvp') startGameWithDeck({ ...deck, solutions: uniqueTexts([...deck.deckSolutions, ...deck.sharedSolutions]) }); else startGameWithDeck(prepareDeckForPlay(deck, true, true)); });
     ui.playAgainBtn.addEventListener('click', () => sendAction('playAgain'));
 
     ui.rulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());

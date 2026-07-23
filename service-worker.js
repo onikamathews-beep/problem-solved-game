@@ -1,11 +1,11 @@
-const CACHE_NAME = 'problem-solved-v19-20260723';
+const CACHE_NAME = 'problem-solved-v20';
 const CORE_ASSETS = [
   './',
   './index.html',
   './principles-in-practice-logo.png',
-  './manifest.json?v=19',
-  './icon-192.png?v=19',
-  './icon-512.png?v=19'
+  './manifest.json?v=20',
+  './icon-192.png?v=20',
+  './icon-512.png?v=20'
 ];
 
 self.addEventListener('install', event => {
