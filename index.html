@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=20">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=20">
+  <link rel="manifest" href="./manifest.json?v=21">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=21">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=21">
   <title>Principles in Practice & Problem? Solved! — Multiplayer Card Game</title>
   <style>
     :root {
@@ -2115,6 +2115,65 @@
     }
     .confirm-primary:disabled { opacity: .5; }
 
+  
+
+    /* v21: Guest deck preview, upright played cards, and continuous hand carousel. */
+    .guest-deck-ready {
+      margin: 0 0 16px;
+      text-align: left;
+    }
+
+    .played-solutions {
+      position: relative !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: clamp(190px, 31vh, 270px);
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px 16px;
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .played-solutions::-webkit-scrollbar { display: none; }
+    .played-solutions:has(.played-solution-card:nth-child(4)) { justify-content: flex-start; }
+    .played-solution-card {
+      position: relative !important;
+      left: auto !important;
+      bottom: auto !important;
+      flex: 0 0 clamp(112px, 31vw, 154px);
+      width: clamp(112px, 31vw, 154px) !important;
+      min-height: clamp(170px, 36vw, 216px);
+      transform: none !important;
+      transform-origin: center !important;
+      scroll-snap-align: center;
+      animation: revealPlayedCardUpright .34s cubic-bezier(.18,.82,.22,1) both !important;
+    }
+    @keyframes revealPlayedCardUpright {
+      from { opacity: 0; transform: translateY(24px) scale(.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .played-card-text {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      align-self: stretch;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 0 !important;
+      text-align: center;
+      transform: none !important;
+    }
+
+    body.coop-game .hand-card {
+      transition: transform .26s cubic-bezier(.2,.8,.2,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease;
+    }
+
   </style>
 </head>
 <body>
@@ -2179,9 +2238,8 @@
       <div class="invite-shell">
         <div id="inviteCoopHero" class="mode-invite-hero coop">
           <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
-          <span class="invite-mode-chip">Cooperative game</span>
           <h1>Join Principles in Practice</h1>
-          <p>Enter the room code your host shared. You will go directly into the Principles in Practice waiting room.</p>
+          <p>Add your name to join the group. Once you enter the room, allow a moment for the host to finish setting things up and start the game.</p>
         </div>
         <div id="invitePvpHero" class="mode-invite-hero pvp hidden">
           <div class="invite-pvp-logo" aria-label="Problem Solved">
@@ -2300,9 +2358,13 @@
             <div class="muted small-text">ROOM CODE</div>
             <div id="guestWaitingRoomCode" class="waiting-room-code">------</div>
           </div>
+          <div id="guestDeckReadyWrap" class="selected-deck-ready guest-deck-ready" aria-live="polite">
+            <strong id="guestDeckReadyTitle">The host is choosing a deck</strong>
+            <span id="guestDeckReadyText">The deck description will appear here before the game begins.</span>
+          </div>
           <h2>Players who have joined</h2>
           <div id="guestWaitingPlayers" class="player-grid"></div>
-          <p id="guestWaitingText" class="waiting-message">The host is preparing the game.</p>
+          <p id="guestWaitingText" class="waiting-message">You’re all set. Allow a moment for the host to start the game.</p>
         </div>
         <button id="guestLeaveRoomBtn" class="btn danger wide" type="button">Leave Waiting Room</button>
       </div>
@@ -3055,7 +3117,7 @@
       document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
       ui.inviteCoopHero.classList.toggle('hidden', inviteMode !== 'coop');
       ui.invitePvpHero.classList.toggle('hidden', inviteMode !== 'pvp');
-      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Enter the Principles in Practice game' : 'Enter the Problem? Solved! game';
+      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Add your name and join the group' : 'Enter the Problem? Solved! game';
       ui.inviteJoinRoomBtn.className = `btn ${inviteMode === 'coop' ? 'teal' : 'primary'} wide`;
       const suppliedCode = cleanCode(entryParams.get('code') || '');
       if (suppliedCode && !ui.inviteJoinCode.value) ui.inviteJoinCode.value = suppliedCode;
@@ -3107,6 +3169,7 @@
           playModeLabel: 'Principles in Practice',
           mode: 'build',
           modeLabel: 'Build Together',
+          deckDescription: 'Everyone will create situation and Bible-based Solution Cards together before the game begins.',
           savedDeckId: '',
           defaultDeckId: 'relationships',
           includeSharedSolutions: true,
@@ -3775,10 +3838,12 @@
       if (value === 'build') {
         state.settings.mode = 'build';
         state.settings.modeLabel = 'Build Together';
+        state.settings.deckDescription = 'Everyone will create situation and Bible-based Solution Cards together before the game begins.';
         state.settings.savedDeckId = '';
       } else if (value === 'starter') {
         state.settings.mode = 'starter';
         state.settings.modeLabel = 'Starter Deck';
+        state.settings.deckDescription = 'A light collection of unexpected situations and playful solutions.';
         state.settings.savedDeckId = '';
       } else if (value.startsWith('default:')) {
         const id = value.slice(8);
@@ -3786,6 +3851,7 @@
         state.settings.mode = 'default';
         state.settings.defaultDeckId = id;
         state.settings.modeLabel = deck.name;
+        state.settings.deckDescription = deck.description || 'A themed set of situations and Bible-based solutions.';
         state.settings.savedDeckId = '';
       } else if (value.startsWith('saved:')) {
         const id = value.slice(6);
@@ -3793,6 +3859,7 @@
         if (!saved) return;
         state.settings.mode = 'saved';
         state.settings.modeLabel = saved.name;
+        state.settings.deckDescription = saved.description || 'A custom situation deck prepared by the host.';
         state.settings.savedDeckId = id;
       }
       enforceSolutionSourceSelection();
@@ -4552,9 +4619,16 @@
       ui.guestWaitingCoopBrand.classList.toggle('hidden', !coop);
       ui.guestWaitingPvpBrand.classList.toggle('hidden', coop);
       ui.guestWaitingRoomCode.textContent = state.roomCode;
+      const deckName = state.settings.modeLabel || 'Deck being selected';
+      const deckDescription = state.settings.deckDescription || 'The host is choosing the deck and will start the game shortly.';
+      ui.guestDeckReadyTitle.textContent = state.settings.mode === 'build' ? deckName : `${deckName} ready`;
+      ui.guestDeckReadyText.textContent = deckDescription;
       renderPlayerTiles(ui.guestWaitingPlayers);
       const playerCount = connectedPlayers().length;
-      ui.guestWaitingText.textContent = `${state.settings.modeLabel} • ${state.settings.handSize || DEFAULT_HAND_SIZE} cards per player. ${playerCount < 2 ? 'Waiting for another player to join.' : 'You are in the waiting room. The host is finishing the private setup and will start the game when ready.'}`;
+      const openingCards = state.settings.handSize || DEFAULT_HAND_SIZE;
+      ui.guestWaitingText.textContent = playerCount < 2
+        ? `You’re all set. Allow a moment for another player to join and for the host to start the game. You’ll begin with ${openingCards} Solution Cards.`
+        : `You’re all set. Allow a moment for the host to finish setting up and start the game. You’ll begin with ${openingCards} Solution Cards.`;
     }
 
 
@@ -4721,15 +4795,8 @@
     }
 
     function renderPlayedCoopCards(entries) {
-      const count = entries.length;
-      const center = (count - 1) / 2;
-      const spacing = count <= 1 ? 0 : Math.min(72, 270 / Math.max(1, count - 1));
       return `<div class="played-solutions-shell"><button type="button" class="played-card-pull" data-open-played-index="0">⌃ Expand played cards</button><div class="played-solutions">${entries.map((item, index) => {
-        const relative = index - center;
-        const tilt = relative * 4;
-        const spread = relative * spacing;
-        const z = 50 - Math.abs(relative);
-        return `<button type="button" class="played-solution-card" data-open-played-index="${index}" style="--card-tilt:${tilt}deg;--card-spread:${spread}px;--card-z:${z}" aria-label="Open played Solution Card ${index + 1}"><span class="played-card-text">${escapeHtml(item.text)}</span></button>`;
+        return `<button type="button" class="played-solution-card" data-open-played-index="${index}" aria-label="Open played Solution Card ${index + 1}"><span class="played-card-text">${escapeHtml(item.text)}</span></button>`;
       }).join('')}</div></div>`;
     }
 
@@ -5046,6 +5113,28 @@
       installHandGestures();
     }
 
+    function previewHandCarousel(virtualIndex, spacing) {
+      const cards = [...ui.hand.querySelectorAll('[data-hand-index]')];
+      const nearestIndex = Math.round(virtualIndex);
+      cards.forEach(card => {
+        const index = Number(card.dataset.handIndex);
+        const offset = index - virtualIndex;
+        const abs = Math.abs(offset);
+        const x = offset * spacing;
+        const tilt = Math.max(-14, Math.min(14, offset * 4));
+        const opacity = Math.max(.55, 1 - abs * .08);
+        const scale = Math.max(.88, 1 - abs * .12);
+        const z = 100 - Math.round(abs * 10);
+        card.style.setProperty('--fan-x', `${x}px`);
+        card.style.setProperty('--fan-rot', `${tilt}deg`);
+        card.style.setProperty('--fan-opacity', opacity.toFixed(3));
+        card.style.setProperty('--fan-scale', scale.toFixed(3));
+        card.style.setProperty('--fan-z', String(z));
+        card.style.setProperty('--drag-x', '0px');
+        card.classList.toggle('focused', index === nearestIndex);
+      });
+    }
+
     function installHandGestures() {
       if (ui.hand.dataset.gesturesBound === 'true') return;
       ui.hand.dataset.gesturesBound = 'true';
@@ -5056,15 +5145,23 @@
       let velocityX = 0;
       let pointerId = null;
       let axis = null;
+      let dragStartIndex = 0;
+      let dragVirtualIndex = 0;
+      let dragSpacing = 66;
 
       ui.hand.addEventListener('pointerdown', event => {
         if (ui.hand.classList.contains('is-settling')) return;
+        const hand = state.game?.hands?.[myPlayerId] || [];
+        if (!hand.length) return;
         pointerId = event.pointerId;
         startX = lastX = event.clientX;
         startY = event.clientY;
         lastTime = performance.now();
         velocityX = 0;
         axis = null;
+        dragStartIndex = handFocusIndex;
+        dragVirtualIndex = handFocusIndex;
+        dragSpacing = hand.length <= 5 ? 66 : Math.max(18, 270 / Math.max(1, hand.length - 1));
         ui.hand.dataset.dragging = 'false';
         ui.hand.classList.add('is-dragging');
         ui.hand.setPointerCapture?.(pointerId);
@@ -5076,11 +5173,12 @@
         const dy = event.clientY - startY;
         const now = performance.now();
         const elapsed = Math.max(1, now - lastTime);
-        velocityX = (event.clientX - lastX) / elapsed;
+        const instantVelocity = (event.clientX - lastX) / elapsed;
+        velocityX = velocityX * .62 + instantVelocity * .38;
         lastX = event.clientX;
         lastTime = now;
 
-        if (!axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        if (!axis && (Math.abs(dx) > 7 || Math.abs(dy) > 7)) {
           axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
           ui.hand.dataset.dragging = 'true';
         }
@@ -5088,46 +5186,54 @@
 
         event.preventDefault();
         const hand = state.game?.hands?.[myPlayerId] || [];
-        const atFirst = handFocusIndex === 0 && dx > 0;
-        const atLast = handFocusIndex === hand.length - 1 && dx < 0;
-        const resistance = atFirst || atLast ? 0.22 : 0.72;
-        const dragX = dx * resistance;
-        ui.hand.querySelectorAll('.hand-card').forEach(card => {
-          card.style.setProperty('--drag-x', `${dragX}px`);
-        });
+        const lastIndex = Math.max(0, hand.length - 1);
+        const rawIndex = dragStartIndex - dx / dragSpacing;
+        if (rawIndex < 0) dragVirtualIndex = rawIndex * .18;
+        else if (rawIndex > lastIndex) dragVirtualIndex = lastIndex + (rawIndex - lastIndex) * .18;
+        else dragVirtualIndex = rawIndex;
+        previewHandCarousel(dragVirtualIndex, dragSpacing);
       }, { passive: false });
 
       ui.hand.addEventListener('pointerup', event => {
         if (event.pointerId !== pointerId) return;
-        const dx = event.clientX - startX;
         const dy = event.clientY - startY;
-        const horizontalFlick = axis === 'x' && (Math.abs(dx) > 34 || Math.abs(velocityX) > 0.42);
+        const wasDragging = ui.hand.dataset.dragging === 'true';
+        const releasedAxis = axis;
         pointerId = null;
+        axis = null;
 
-        if (axis === 'y' && Math.abs(dy) > 45) {
+        if (releasedAxis === 'y' && Math.abs(dy) > 45) {
           ui.hand.classList.remove('is-dragging');
           clearHandDragOffset(true);
           handCollapsed = dy > 0;
           ui.handWrap.classList.toggle('collapsed', handCollapsed);
-              window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 330);
+          window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 220);
           return;
         }
 
-        if (horizontalFlick) {
-          const direction = dx < 0 || (Math.abs(dx) <= 34 && velocityX < 0) ? 1 : -1;
-          moveHandFocus(handFocusIndex + direction);
-        } else {
+        if (releasedAxis === 'x' && wasDragging) {
+          const hand = state.game?.hands?.[myPlayerId] || [];
+          const lastIndex = Math.max(0, hand.length - 1);
+          const projectedIndex = dragVirtualIndex - (velocityX * 150 / dragSpacing);
+          const targetIndex = Math.max(0, Math.min(lastIndex, Math.round(projectedIndex)));
+          const previousRects = captureHandCardRects();
+          handFocusIndex = targetIndex;
           ui.hand.classList.remove('is-dragging');
-          clearHandDragOffset(true);
+          renderHand({ animateFromRects: previousRects });
+          window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 220);
+          return;
         }
-        window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 430);
+
+        ui.hand.classList.remove('is-dragging');
+        clearHandDragOffset(true);
+        ui.hand.dataset.dragging = 'false';
       });
 
       ui.hand.addEventListener('pointercancel', () => {
         pointerId = null;
         axis = null;
         ui.hand.classList.remove('is-dragging');
-        clearHandDragOffset(true);
+        renderHand();
         ui.hand.dataset.dragging = 'false';
       });
     }
