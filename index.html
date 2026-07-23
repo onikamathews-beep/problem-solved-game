@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=22">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=22">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=22">
+  <link rel="manifest" href="./manifest.json?v=25">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=25">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=25">
   <title>Principles in Practice & Problem? Solved! | Multiplayer Card Game</title>
   <style>
     :root {
@@ -2175,6 +2175,223 @@
     }
 
 
+
+    /* v25: Deck color themes, live previews, and theme-aware cooperative play. */
+    .game-theme-setup {
+      margin-top: 14px;
+      padding: 14px;
+      border: 2px solid #c8bea5;
+      border-radius: 16px;
+      background: #fffdf5;
+    }
+    .game-theme-setup h3 { margin: 0 0 5px; font-family: Georgia, "Times New Roman", serif; color: #4c493d; }
+    .game-theme-setup > p { margin: 0 0 10px; }
+    .theme-preview {
+      --theme-primary: #173d27;
+      --theme-primary-dark: #0d2a1a;
+      --theme-primary-deep: #071a10;
+      --theme-primary-ink: #fff8e4;
+      --theme-accent: #d9b65b;
+      --theme-accent-dark: #9b7635;
+      --theme-accent-light: #efda9f;
+      --theme-accent-ink: #24311f;
+      --theme-canvas: #f4e7c9;
+      --theme-canvas-deep: #dec89a;
+      --theme-problem: #f1d795;
+      --theme-problem-ink: #20351f;
+      --theme-solution: #f8e9c8;
+      --theme-solution-ink: #20351f;
+      margin-top: 11px;
+      overflow: hidden;
+      border: 1px solid var(--theme-accent-dark);
+      border-radius: 17px;
+      background: var(--theme-canvas);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.42);
+    }
+    .theme-preview-header {
+      min-height: 58px;
+      display: grid;
+      grid-template-columns: 48px minmax(0,1fr);
+      align-items: center;
+      gap: 10px;
+      padding: 8px 11px;
+      color: var(--theme-primary-ink);
+      background: linear-gradient(145deg, var(--theme-primary), var(--theme-primary-dark));
+      border-bottom: 1px solid var(--theme-accent-dark);
+    }
+    .theme-preview-emblem {
+      width: 42px;
+      height: 42px;
+      padding: 2px;
+      border: 2px solid var(--theme-accent);
+      border-radius: 50%;
+      background: var(--theme-accent-light);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 76%, white 24%);
+    }
+    .theme-preview-emblem img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .theme-preview-header strong { color: var(--theme-accent-light); font-family: Georgia, "Times New Roman", serif; font-weight: 600; }
+    .theme-preview-header span { display: block; margin-top: 3px; color: color-mix(in srgb, var(--theme-primary-ink) 72%, transparent); font-size: .7rem; }
+    .theme-preview-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 11px; }
+    .theme-preview-card {
+      min-height: 82px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      border: 1px solid var(--theme-accent-dark);
+      border-radius: 11px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: .78rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .theme-preview-card.problem { color: var(--theme-problem-ink); background: var(--theme-problem); }
+    .theme-preview-card.solution { color: var(--theme-solution-ink); background: var(--theme-solution); }
+    .theme-setup-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+    .manager-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .manager-appearance-panel { display: grid; gap: 14px; }
+    .manager-theme-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px 12px;
+      padding: 14px;
+      border: 2px solid #bca66f;
+      border-radius: 17px;
+      background: #fffaf0;
+    }
+    .manager-theme-controls label { margin: 0; }
+    .manager-theme-controls label.full { grid-column: 1 / -1; }
+    .manager-theme-controls input[type="color"] {
+      min-height: 48px;
+      padding: 4px;
+      cursor: pointer;
+    }
+    .manager-theme-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .manager-theme-actions .btn { flex: 1 1 180px; }
+
+    body.coop-game {
+      --theme-primary: #173d27;
+      --theme-primary-light: #45654e;
+      --theme-primary-dark: #0d2a1a;
+      --theme-primary-deep: #071a10;
+      --theme-primary-ink: #fff8e4;
+      --theme-accent: #d9b65b;
+      --theme-accent-light: #efda9f;
+      --theme-accent-dark: #9b7635;
+      --theme-accent-ink: #24311f;
+      --theme-canvas: #f4e7c9;
+      --theme-canvas-deep: #dec89a;
+      --theme-problem: #f1d795;
+      --theme-problem-ink: #20351f;
+      --theme-solution: #f8e9c8;
+      --theme-solution-ink: #20351f;
+      --theme-muted: #806b4c;
+      --theme-page-top: #143623;
+      --theme-page-bottom: #0a2115;
+      --theme-success: #5f8058;
+      --theme-discuss: #5d7f8a;
+      --theme-danger: #8b514b;
+      background:
+        radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--theme-accent) 20%, transparent), transparent 30%),
+        radial-gradient(circle at 85% 78%, rgba(255,255,255,.04), transparent 34%),
+        repeating-linear-gradient(145deg, rgba(255,255,255,.018) 0 2px, transparent 2px 8px),
+        linear-gradient(145deg, var(--theme-page-top), var(--theme-primary) 50%, var(--theme-page-bottom));
+    }
+    body.coop-game #gameScreen.active {
+      border-color: color-mix(in srgb, var(--theme-accent) 72%, transparent);
+      background: linear-gradient(90deg, rgba(255,255,255,.025), transparent 35%, rgba(255,255,255,.018)), var(--theme-primary-dark);
+      box-shadow: inset 0 0 0 2px var(--theme-primary-deep), inset 0 0 0 4px color-mix(in srgb, var(--theme-accent) 28%, transparent);
+    }
+    body.coop-game .coop-vintage-header {
+      color: var(--theme-accent-light);
+      border-bottom-color: color-mix(in srgb, var(--theme-accent) 42%, transparent);
+      background: radial-gradient(circle at 78% 12%, rgba(255,255,255,.045), transparent 26%), linear-gradient(180deg, var(--theme-primary-light), var(--theme-primary-dark));
+    }
+    body.coop-game .coop-menu-button,
+    body.coop-game .played-viewer-close,
+    body.coop-game .played-viewer-nav {
+      color: var(--theme-accent-light);
+      border-color: var(--theme-accent-dark);
+      background: linear-gradient(145deg, var(--theme-primary), var(--theme-primary-dark));
+      box-shadow: 0 3px 0 var(--theme-primary-deep), inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    body.coop-game .coop-bookmark-logo {
+      padding: 2px;
+      border: 2px solid var(--theme-accent);
+      background: var(--theme-accent-light);
+      box-shadow: 0 0 0 3px var(--theme-primary-light), 0 3px 4px rgba(0,0,0,.4);
+    }
+    body.coop-game .coop-vintage-title strong { color: var(--theme-accent-light); text-shadow: 0 2px 0 var(--theme-accent-dark); }
+    body.coop-game .coop-vintage-title span { color: color-mix(in srgb, var(--theme-primary-ink) 70%, transparent); }
+    body.coop-game .coop-points-box {
+      border-color: var(--theme-accent-dark);
+      background: linear-gradient(160deg, var(--theme-primary-light), var(--theme-primary-dark));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-accent) 14%, transparent), 0 3px 0 var(--theme-primary-deep);
+    }
+    body.coop-game .coop-points-box span { color: var(--theme-accent-light); }
+    body.coop-game .coop-points-box strong { color: var(--theme-primary-ink); }
+    body.coop-game .status-banner {
+      color: var(--theme-primary-ink);
+      border-color: color-mix(in srgb, var(--theme-accent) 58%, var(--theme-primary));
+      background: linear-gradient(90deg, rgba(255,255,255,.04), transparent 20%, transparent 80%, rgba(255,255,255,.04)), linear-gradient(180deg, var(--theme-primary-light), var(--theme-primary));
+      box-shadow: 0 4px 0 var(--theme-primary-deep), inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+    body.coop-game .status-banner::before { border-color: var(--theme-accent-light); color: var(--theme-primary-dark); background: var(--theme-accent-light); }
+    body.coop-game .table-area {
+      border-color: color-mix(in srgb, var(--theme-accent) 62%, var(--theme-canvas));
+      background: radial-gradient(circle at 18% 4%, rgba(255,255,255,.72), transparent 22%), repeating-linear-gradient(12deg, rgba(99,73,37,.025) 0 1px, transparent 1px 6px), linear-gradient(145deg, var(--theme-canvas), var(--theme-canvas-deep));
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.4), 0 5px 0 var(--theme-primary-deep);
+    }
+    body.coop-game .action-panel { color: var(--theme-solution-ink); background: color-mix(in srgb, var(--theme-solution) 70%, transparent); }
+    body.coop-game .play-card,
+    body.coop-game .played-solution-card,
+    body.coop-game .hand-card,
+    body.coop-game .played-cards-dialog {
+      border-color: var(--theme-accent-dark);
+    }
+    body.coop-game .play-card { color: var(--theme-solution-ink); background-color: var(--theme-solution); box-shadow: 0 8px 0 var(--theme-accent-dark), 0 12px 22px rgba(68,44,18,.26); }
+    body.coop-game .play-card.problem { color: var(--theme-problem-ink); background-color: var(--theme-problem); }
+    body.coop-game .card-type { color: color-mix(in srgb, var(--theme-problem-ink) 84%, var(--theme-primary)); }
+    body.coop-game .card-icon { border-color: var(--theme-accent-dark); color: var(--theme-primary-ink); background: var(--theme-primary); }
+    body.coop-game .card-text { color: inherit; }
+    body.coop-game .play-card::after,
+    body.coop-game .hand-card::after { color: var(--theme-accent-dark); }
+    body.coop-game .coop-card-back {
+      color: var(--theme-accent-light) !important;
+      background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--theme-accent) 15%, transparent), transparent 42%), repeating-linear-gradient(45deg, rgba(255,255,255,.015) 0 2px, transparent 2px 8px), var(--theme-primary-dark) !important;
+      border-color: var(--theme-accent) !important;
+      box-shadow: 0 7px 0 var(--theme-primary-deep), 0 12px 20px rgba(0,0,0,.28) !important;
+    }
+    body.coop-game .coop-back-mark small { color: var(--theme-accent-light); }
+    body.coop-game .shared-stage { border-color: color-mix(in srgb, var(--theme-accent-dark) 42%, transparent); background: color-mix(in srgb, var(--theme-canvas-deep) 76%, transparent); }
+    body.coop-game .shared-stage::before { color: var(--theme-accent-dark); background: var(--theme-canvas-deep); }
+    body.coop-game .shared-mini-back { border-color: var(--theme-accent); background: url("./principles-in-practice-logo.png") center / 44px auto no-repeat, radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--theme-accent) 14%, transparent), transparent 35%), var(--theme-primary-dark); box-shadow: 0 3px 0 var(--theme-primary-deep), 0 5px 8px rgba(0,0,0,.22); }
+    body.coop-game .played-solution-card,
+    body.coop-game .hand-card { color: var(--theme-solution-ink); background-color: var(--theme-solution); box-shadow: 0 5px 0 var(--theme-accent-dark), 0 10px 18px rgba(0,0,0,.22); }
+    body.coop-game .hand-card.selected { background-color: var(--theme-solution); }
+    body.coop-game .hand-card.focused { box-shadow: 0 5px 0 var(--theme-accent-dark), 0 0 0 2px var(--theme-accent), 0 10px 22px rgba(0,0,0,.28); }
+    body.coop-game .hand-card-kicker { color: var(--theme-accent-dark); }
+    body.coop-game .hand-wrap { background: radial-gradient(ellipse at center 110%, color-mix(in srgb, var(--theme-accent) 15%, transparent), transparent 58%), linear-gradient(180deg, var(--theme-primary-dark), var(--theme-primary-deep)); }
+    body.coop-game .hand-head,
+    body.coop-game .hand-head .muted,
+    body.coop-game .hand-gesture-hint { color: var(--theme-accent-light); }
+    body.coop-game .dock-button { border-color: var(--theme-accent-dark); color: var(--theme-accent-light); background: linear-gradient(160deg, var(--theme-primary), var(--theme-primary-dark)); box-shadow: 0 4px 0 var(--theme-primary-deep); }
+    body.coop-game .dock-button.play { color: var(--theme-accent-ink); background: linear-gradient(160deg, var(--theme-accent-light), var(--theme-accent)); border-color: var(--theme-accent); box-shadow: 0 4px 0 var(--theme-accent-dark), inset 0 0 0 1px rgba(255,255,255,.18); }
+    body.coop-game .played-card-pull { border-color: var(--theme-accent-dark); color: var(--theme-accent-dark); background: color-mix(in srgb, var(--theme-solution) 92%, white); }
+    body.coop-game .played-cards-dialog { color: var(--theme-solution-ink); background-color: var(--theme-solution); }
+    body.coop-game .played-viewer-header { color: var(--theme-accent-light); background: linear-gradient(180deg, var(--theme-primary-light), var(--theme-primary-dark)); border-bottom-color: var(--theme-accent-dark); }
+    body.coop-game .guest-waiting-shell { border-color: var(--theme-accent-dark); background: linear-gradient(145deg, var(--theme-canvas), var(--theme-canvas-deep)); }
+    body.coop-game .guest-waiting-brand.coop img { padding: 4px; border: 3px solid var(--theme-accent); background: var(--theme-accent-light); box-shadow: 0 0 0 5px var(--theme-primary-light), 0 8px 16px rgba(0,0,0,.18); }
+    body.coop-game .guest-waiting-brand.coop h1 { color: var(--theme-primary); }
+    body.coop-game .guest-deck-ready { border-color: var(--theme-accent-dark); background: color-mix(in srgb, var(--theme-solution) 88%, white); }
+    body.coop-game .guest-deck-ready strong { color: var(--theme-primary); }
+
+    @media (max-width: 520px) {
+      .manager-tabs { grid-template-columns: 1fr 1fr; }
+      .manager-theme-controls { grid-template-columns: 1fr; }
+      .manager-theme-controls label.full { grid-column: auto; }
+    }
+
     /* v24: Full deck manager for default decks, saved decks, and shared solutions. */
     .deck-manager-panel { overflow: hidden; }
     .deck-manager-topline {
@@ -2322,7 +2539,7 @@
       margin-bottom: 12px;
     }
     @media (max-width: 520px) {
-      .manager-tabs { grid-template-columns: 1fr; }
+      .manager-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .manager-search-row { grid-template-columns: 1fr; }
       .manager-add-button { width: 100%; }
       .manager-card-actions .btn { flex-basis: 42%; }
@@ -2484,6 +2701,25 @@
             <span><strong id="deckSolutionsToggleLabel">Deck-Specific Solutions</strong><span id="deckSolutionsToggleHelp">Solutions written especially for the selected situation deck.</span></span>
           </label>
         </div>
+        <div id="gameThemeSetupWrap" class="game-theme-setup hidden">
+          <h3>Game Theme</h3>
+          <p class="muted small-text">Use the deck's saved look or choose a different color scheme for this game. Everyone in the room will see the same theme.</p>
+          <label for="gameThemeSelect">Theme for this game</label>
+          <select id="gameThemeSelect"></select>
+          <div id="gameThemePreview" class="theme-preview" aria-live="polite">
+            <div class="theme-preview-header">
+              <div class="theme-preview-emblem"><img src="./principles-in-practice-logo.png" alt=""></div>
+              <div><strong id="gameThemePreviewTitle">Principles in Practice</strong><span id="gameThemePreviewName">Classic Forest</span></div>
+            </div>
+            <div class="theme-preview-cards">
+              <div class="theme-preview-card problem">Problem Card</div>
+              <div class="theme-preview-card solution">Solution Card</div>
+            </div>
+          </div>
+          <div class="theme-setup-actions">
+            <button id="editDeckThemeBtn" class="btn cream small" type="button">Customize Selected Deck</button>
+          </div>
+        </div>
         <button id="startRoomBtn" class="btn primary wide" type="button">Start 2-Minute Build</button>
       </div>
 
@@ -2522,16 +2758,17 @@
           <button id="managerProblemsTab" class="manager-tab active" type="button" data-manager-tab="problems" role="tab">Problem Cards</button>
           <button id="managerDeckSolutionsTab" class="manager-tab" type="button" data-manager-tab="deckSolutions" role="tab">Deck Solutions</button>
           <button id="managerSharedSolutionsTab" class="manager-tab" type="button" data-manager-tab="sharedSolutions" role="tab">Shared Solutions</button>
+          <button id="managerAppearanceTab" class="manager-tab" type="button" data-manager-tab="appearance" role="tab">Appearance</button>
         </div>
 
-        <div class="manager-search-row">
+        <div id="managerSearchRow" class="manager-search-row">
           <label for="managerSearchInput">Search cards
             <input id="managerSearchInput" type="search" placeholder="Search wording or a scripture">
           </label>
           <button id="managerAddCardBtn" class="btn primary manager-add-button" type="button">Add Problem</button>
         </div>
 
-        <div class="manager-secondary-actions">
+        <div id="managerSecondaryActions" class="manager-secondary-actions">
           <button id="restoreManagedDeckBtn" class="btn cream small" type="button">Restore Original Deck</button>
           <button id="restoreSharedLibraryBtn" class="btn cream small hidden" type="button">Restore Shared Defaults</button>
           <button id="deleteManagedDeckBtn" class="btn danger small hidden" type="button">Delete Saved Deck</button>
@@ -2539,6 +2776,48 @@
         </div>
 
         <div id="managerCardList" class="manager-card-list"></div>
+
+        <div id="managerAppearancePanel" class="manager-appearance-panel hidden">
+          <div class="manager-theme-controls">
+            <label class="full" for="managerThemePreset">Starting palette
+              <select id="managerThemePreset"></select>
+            </label>
+            <label class="full" for="managerThemeName">Theme name
+              <input id="managerThemeName" maxlength="40" placeholder="Custom Theme">
+            </label>
+            <label for="managerThemePrimary">Header and table color
+              <input id="managerThemePrimary" type="color">
+            </label>
+            <label for="managerThemeAccent">Accent and border color
+              <input id="managerThemeAccent" type="color">
+            </label>
+            <label for="managerThemeCanvas">Playing field color
+              <input id="managerThemeCanvas" type="color">
+            </label>
+            <label for="managerThemeProblem">Problem Card color
+              <input id="managerThemeProblem" type="color">
+            </label>
+            <label for="managerThemeSolution">Solution Card color
+              <input id="managerThemeSolution" type="color">
+            </label>
+          </div>
+
+          <div id="managerThemePreview" class="theme-preview">
+            <div class="theme-preview-header">
+              <div class="theme-preview-emblem"><img src="./principles-in-practice-logo.png" alt=""></div>
+              <div><strong id="managerThemePreviewTitle">Principles in Practice</strong><span id="managerThemePreviewName">Deck Theme</span></div>
+            </div>
+            <div class="theme-preview-cards">
+              <div class="theme-preview-card problem">A situation appears here.</div>
+              <div class="theme-preview-card solution">A Bible-based action appears here.</div>
+            </div>
+          </div>
+
+          <div class="manager-theme-actions">
+            <button id="saveManagerThemeBtn" class="btn primary" type="button">Save Theme to Deck</button>
+            <button id="restoreSuggestedThemeBtn" class="btn cream" type="button">Restore Suggested Theme</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -2980,6 +3259,26 @@
       "Treat the other person as you want to be treated.\n“Do the same way to them.”\nLuke 6:31"
 ];
 
+
+    const THEME_PRESETS = {
+      classic: { id: 'classic', name: 'Classic Forest', primary: '#173d27', accent: '#d9b65b', canvas: '#f4e7c9', problem: '#f1d795', solution: '#f8e9c8' },
+      relationships: { id: 'relationships', name: 'Rose and Sage', primary: '#66765f', accent: '#bd8589', canvas: '#f2e5dc', problem: '#d6a3a7', solution: '#f8ece3' },
+      peace: { id: 'peace', name: 'Soft Blue and Gold', primary: '#56778f', accent: '#c2a25b', canvas: '#f2eee4', problem: '#bdd2e0', solution: '#fffaf0' },
+      ready: { id: 'ready', name: 'Teal and Parchment', primary: '#286b68', accent: '#9a704a', canvas: '#eadfc9', problem: '#8fc0b9', solution: '#f5e6c9' },
+      shine: { id: 'shine', name: 'Navy and Golden Yellow', primary: '#213a5c', accent: '#d7a92f', canvas: '#f3ead6', problem: '#edc65b', solution: '#fff7e5' },
+      choices: { id: 'choices', name: 'Plum and Lavender', primary: '#5f3d6d', accent: '#9e83ad', canvas: '#f0e7f1', problem: '#c7add2', solution: '#fbf6f3' },
+      two: { id: 'two', name: 'Burgundy and Blush', primary: '#6c2e40', accent: '#b08b57', canvas: '#f2dfe3', problem: '#d59aa7', solution: '#fae8e8' }
+    };
+
+    const DEFAULT_DECK_THEME_IDS = {
+      relationships: 'relationships',
+      peace: 'peace',
+      share: 'ready',
+      shine: 'shine',
+      choices: 'choices',
+      two: 'two'
+    };
+
     const DEFAULT_COOP_DECKS = [
       {
             "id": "relationships",
@@ -3264,6 +3563,7 @@
     let deckManagerTab = 'problems';
     let deckManagerEditorContext = null;
     let lastManagerRemoval = null;
+    let managerThemeDraft = null;
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
 
@@ -3303,6 +3603,115 @@
     }
     function escapeHtml(value) { return withoutEmDash(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
     function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
+
+
+    function cleanHex(value, fallback = '#173d27') {
+      const match = String(value || '').trim().match(/^#([0-9a-f]{6})$/i);
+      return match ? `#${match[1].toLowerCase()}` : fallback;
+    }
+
+    function hexRgb(hex) {
+      const value = cleanHex(hex).slice(1);
+      return { r: parseInt(value.slice(0,2), 16), g: parseInt(value.slice(2,4), 16), b: parseInt(value.slice(4,6), 16) };
+    }
+
+    function rgbHex({ r, g, b }) {
+      const part = value => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0');
+      return `#${part(r)}${part(g)}${part(b)}`;
+    }
+
+    function mixHex(first, second, amount = .5) {
+      const a = hexRgb(first);
+      const b = hexRgb(second);
+      const weight = Math.max(0, Math.min(1, Number(amount) || 0));
+      return rgbHex({ r: a.r + (b.r - a.r) * weight, g: a.g + (b.g - a.g) * weight, b: a.b + (b.b - a.b) * weight });
+    }
+
+    function contrastText(hex) {
+      const { r, g, b } = hexRgb(hex);
+      const luminance = [r, g, b].map(value => {
+        const channel = value / 255;
+        return channel <= .03928 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4);
+      });
+      const score = .2126 * luminance[0] + .7152 * luminance[1] + .0722 * luminance[2];
+      return score > .46 ? '#203020' : '#fff8e8';
+    }
+
+    function normalizeTheme(raw, fallbackId = 'classic') {
+      const fallback = THEME_PRESETS[fallbackId] || THEME_PRESETS.classic;
+      const source = raw && typeof raw === 'object' ? raw : fallback;
+      const primary = cleanHex(source.primary, fallback.primary);
+      const accent = cleanHex(source.accent, fallback.accent);
+      const canvas = cleanHex(source.canvas, fallback.canvas);
+      const problem = cleanHex(source.problem, fallback.problem);
+      const solution = cleanHex(source.solution, fallback.solution);
+      const id = clampText(source.id || fallback.id, 40).toLowerCase().replace(/[^a-z0-9-]+/g, '-') || 'custom';
+      const name = clampText(source.name || fallback.name || 'Custom Theme', 40) || 'Custom Theme';
+      return { id, name, primary, accent, canvas, problem, solution };
+    }
+
+    function suggestedThemeForDeckId(id) {
+      const rawId = String(id || '').replace(/^default-/, '');
+      return normalizeTheme(THEME_PRESETS[DEFAULT_DECK_THEME_IDS[rawId] || 'classic']);
+    }
+
+    function themePresetOptions(includeDeck = false, deck = null, includeCustom = true) {
+      const deckOption = includeDeck ? `<option value="deck">Use ${escapeHtml(deck?.name || 'deck')} saved theme</option>` : '';
+      const customOption = includeCustom ? '<option value="custom">Custom Colors</option>' : '';
+      return `${deckOption}${Object.values(THEME_PRESETS).map(theme => `<option value="${escapeHtml(theme.id)}">${escapeHtml(theme.name)}</option>`).join('')}${customOption}`;
+    }
+
+    function themeVariables(theme) {
+      const clean = normalizeTheme(theme);
+      return {
+        '--theme-primary': clean.primary,
+        '--theme-primary-light': mixHex(clean.primary, '#ffffff', .18),
+        '--theme-primary-dark': mixHex(clean.primary, '#000000', .30),
+        '--theme-primary-deep': mixHex(clean.primary, '#000000', .52),
+        '--theme-primary-ink': contrastText(clean.primary),
+        '--theme-accent': clean.accent,
+        '--theme-accent-light': mixHex(clean.accent, '#ffffff', .30),
+        '--theme-accent-dark': mixHex(clean.accent, '#000000', .30),
+        '--theme-accent-ink': contrastText(clean.accent),
+        '--theme-canvas': clean.canvas,
+        '--theme-canvas-deep': mixHex(clean.canvas, clean.primary, .14),
+        '--theme-problem': clean.problem,
+        '--theme-problem-ink': contrastText(clean.problem),
+        '--theme-solution': clean.solution,
+        '--theme-solution-ink': contrastText(clean.solution),
+        '--theme-muted': mixHex(clean.primary, clean.canvas, .58),
+        '--theme-page-top': mixHex(clean.primary, '#000000', .12),
+        '--theme-page-bottom': mixHex(clean.primary, '#000000', .50),
+        '--theme-success': mixHex(clean.primary, '#6d9b65', .52),
+        '--theme-discuss': mixHex(clean.primary, '#7ca7b5', .56),
+        '--theme-danger': mixHex(clean.primary, '#a85a50', .62)
+      };
+    }
+
+    function applyThemeVariables(target, theme) {
+      if (!target) return;
+      for (const [name, value] of Object.entries(themeVariables(theme))) target.style.setProperty(name, value);
+    }
+
+    function currentRoomTheme() {
+      if (state?.activeDeck?.theme) return normalizeTheme(state.activeDeck.theme);
+      if (state?.settings?.gameTheme) return normalizeTheme(state.settings.gameTheme);
+      if (state?.settings?.mode === 'default') return suggestedThemeForDeckId(state.settings.defaultDeckId || 'relationships');
+      return normalizeTheme(THEME_PRESETS.classic);
+    }
+
+    function applyCurrentTheme() {
+      const theme = currentRoomTheme();
+      applyThemeVariables(document.body, theme);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.primary);
+    }
+
+    function previewTheme(target, theme, titleElement = null, nameElement = null, title = 'Principles in Practice') {
+      const clean = normalizeTheme(theme);
+      applyThemeVariables(target, clean);
+      if (titleElement) titleElement.textContent = title;
+      if (nameElement) nameElement.textContent = clean.name;
+    }
 
     function serverSubmittedIds(game = state?.game) {
       return Array.isArray(game?.submittedPlayerIds) ? game.submittedPlayerIds : Object.keys(game?.submissions || {});
@@ -3428,7 +3837,9 @@
           includeDeckSolutions: true,
           deckName: `${hostName}'s Game`,
           buildSeconds: 120,
-          handSize: DEFAULT_HAND_SIZE
+          handSize: DEFAULT_HAND_SIZE,
+          themeMode: 'deck',
+          gameTheme: suggestedThemeForDeckId('relationships')
         },
         builder: {
           startedAt: null,
@@ -4051,6 +4462,17 @@
       ui.selectedDeckReadyWrap.classList.toggle('hidden', building);
       ui.solutionSourcesWrap.classList.toggle('hidden', building || !coop || !setupDeck);
       ui.manageSelectedDeckBtn.classList.toggle('hidden', building || !coop || !setupDeck);
+      ui.gameThemeSetupWrap.classList.toggle('hidden', !coop);
+      ui.editDeckThemeBtn.classList.toggle('hidden', !setupDeck);
+
+      if (coop) {
+        const options = themePresetOptions(Boolean(setupDeck), setupDeck, false);
+        if (ui.gameThemeSelect.innerHTML !== options) ui.gameThemeSelect.innerHTML = options;
+        const desiredThemeMode = state?.settings?.themeMode || (setupDeck ? 'deck' : 'classic');
+        ui.gameThemeSelect.value = [...ui.gameThemeSelect.options].some(option => option.value === desiredThemeMode) ? desiredThemeMode : (setupDeck ? 'deck' : 'classic');
+        const preview = normalizeTheme(state?.settings?.gameTheme || setupDeck?.theme || THEME_PRESETS.classic);
+        previewTheme(ui.gameThemePreview, preview, ui.gameThemePreviewTitle, ui.gameThemePreviewName);
+      }
 
       const seconds = Number(ui.buildTimeSelect.value) || 120;
       if (building) {
@@ -4117,6 +4539,17 @@
         state.settings.deckDescription = saved.description || 'A custom situation deck prepared by the host.';
         state.settings.savedDeckId = id;
       }
+
+      const selectedThemeMode = ui.gameThemeSelect?.value || state.settings.themeMode || (selectedSetupDeck() ? 'deck' : 'classic');
+      const selectedThemeDeck = selectedSetupDeck();
+      let chosenTheme;
+      if (selectedThemeMode === 'deck') chosenTheme = selectedThemeDeck?.theme || THEME_PRESETS.classic;
+      else if (THEME_PRESETS[selectedThemeMode]) chosenTheme = THEME_PRESETS[selectedThemeMode];
+      else chosenTheme = state.settings.gameTheme || selectedThemeDeck?.theme || THEME_PRESETS.classic;
+      state.settings.themeMode = selectedThemeMode;
+      state.settings.gameTheme = normalizeTheme(chosenTheme);
+      applyCurrentTheme();
+
       enforceSolutionSourceSelection();
       state.settings.includeSharedSolutions = ui.includeSharedSolutionsToggle.checked;
       state.settings.includeDeckSolutions = ui.includeDeckSolutionsToggle.checked;
@@ -4297,6 +4730,7 @@
         description: normalized.description,
         problems: normalized.problems,
         deckSolutions: normalized.deckSolutions,
+        theme: normalized.theme,
         updatedAt: Date.now()
       };
       putDefaultDeckOverrides(overrides);
@@ -4317,6 +4751,7 @@
         createdAt: Date.now(),
         updatedAt: Date.now(),
         problems: state.builder.problems.map(card => card.text),
+        theme: normalizeTheme(state.settings.gameTheme || THEME_PRESETS.classic),
         deckSolutions,
         sharedSolutions
       });
@@ -4342,6 +4777,7 @@
         id: raw?.id || uid('deck'),
         name: clampText(raw?.name, 50) || 'Saved Principles in Practice Game',
         description: clampText(raw?.description, 180),
+        theme: normalizeTheme(raw?.theme || THEME_PRESETS.classic),
         defaultDeck: Boolean(raw?.defaultDeck),
         createdAt: Number(raw?.createdAt) || Date.now(),
         updatedAt: Number(raw?.updatedAt) || Date.now(),
@@ -4356,7 +4792,8 @@
       const base = DEFAULT_COOP_DECKS.find(deck => deck.id === id) || DEFAULT_COOP_DECKS[0];
       const override = getDefaultDeckOverrides()[base.id];
       const raw = override ? { ...base, ...override, id: base.id } : base;
-      return normalizeDeck({ ...raw, id: `default-${base.id}`, defaultDeck: true });
+      const theme = raw.theme || suggestedThemeForDeckId(base.id);
+      return normalizeDeck({ ...raw, theme, id: `default-${base.id}`, defaultDeck: true });
     }
 
     function getSavedGames() {
@@ -4376,6 +4813,7 @@
           id: normalized.id,
           name: normalized.name,
           description: normalized.description,
+          theme: normalized.theme,
           createdAt: normalized.createdAt,
           updatedAt: normalized.updatedAt,
           problems: normalized.problems,
@@ -4412,10 +4850,11 @@
       const normalized = normalizeDeck(deck);
       const payload = {
         format: 'principles-in-practice-deck',
-        version: 3,
+        version: 4,
         id: normalized.id,
         name: normalized.name,
         description: normalized.description,
+        theme: normalized.theme,
         createdAt: normalized.createdAt,
         updatedAt: normalized.updatedAt,
         problems: normalized.problems,
@@ -4478,6 +4917,7 @@
       const solutions = uniqueTexts([...sharedPool, ...deckPool]);
       return {
         ...normalized,
+        theme: normalizeTheme(deck.theme || normalized.theme),
         solutions,
         selectedSources: { shared: includeShared, deck: includeDeck }
       };
@@ -4490,6 +4930,7 @@
         id: normalized.id,
         name: normalized.name,
         description: normalized.description,
+        theme: normalizeTheme(deck.theme || normalized.theme),
         problems: normalized.problems.map((text, index) => ({ id: `problem-${index}-${uid('c')}`, text })),
         solutions: uniqueTexts(selectedSolutions).map((text, index) => ({ id: `solution-${index}-${uid('c')}`, text })),
         deckSolutions: normalized.deckSolutions,
@@ -4525,7 +4966,9 @@
       const players = connectedPlayers();
       if (players.length < 2) return toast('At least two connected players are needed.');
 
-      state.activeDeck = buildActiveDeck({ ...normalized, solutions: playableSolutions, selectedSources: deck.selectedSources || null });
+      const selectedTheme = normalizeTheme(state.settings.gameTheme || deck.theme || normalized.theme);
+      state.settings.gameTheme = selectedTheme;
+      state.activeDeck = buildActiveDeck({ ...normalized, theme: selectedTheme, solutions: playableSolutions, selectedSources: deck.selectedSources || null });
       const turnOrder = players.map(player => player.id);
       const playMode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
       state.game = {
@@ -4841,7 +5284,8 @@
         problems: state.activeDeck.problems.map(card => card.text),
         solutions: state.activeDeck.solutions.map(card => card.text),
         deckSolutions: state.activeDeck.deckSolutions || state.activeDeck.solutions.map(card => card.text),
-        sharedSolutions: state.activeDeck.sharedSolutions || []
+        sharedSolutions: state.activeDeck.sharedSolutions || [],
+        theme: state.activeDeck.theme || state.settings.gameTheme
       };
       startGameWithDeck(deck);
     }
@@ -4855,6 +5299,7 @@
       }
       if (!['play', 'end'].includes(state.phase)) document.body.classList.remove('coop-game', 'pvp-game');
       roomCode = state.roomCode;
+      applyCurrentTheme();
       ui.roomCodeDisplay.textContent = roomCode;
       if (deckManagerOpen && state.phase === 'room' && isHost) { renderDeckManager(); return; }
       if (state.phase === 'room') renderRoom();
@@ -5739,12 +6184,14 @@
           const changed = getDefaultDeck(selection.id);
           state.settings.modeLabel = changed.name;
           state.settings.deckDescription = changed.description;
+          if (state.settings.themeMode === 'deck') state.settings.gameTheme = normalizeTheme(changed.theme);
         }
         if (selection.kind === 'saved' && state.settings.savedDeckId === selection.id) {
           const changed = getSavedGames().find(item => item.id === selection.id);
           if (changed) {
             state.settings.modeLabel = changed.name;
             state.settings.deckDescription = changed.description;
+            if (state.settings.themeMode === 'deck') state.settings.gameTheme = normalizeTheme(changed.theme);
           }
         }
         broadcastState();
@@ -5796,13 +6243,96 @@
     function managerItemsForTab(deck, tab = deckManagerTab) {
       if (tab === 'problems') return deck?.problems || [];
       if (tab === 'deckSolutions') return deck?.deckSolutions || [];
+      if (tab === 'appearance') return [];
       return getManagedSharedSolutions();
     }
 
     function managerTabLabel(tab = deckManagerTab) {
       if (tab === 'problems') return 'Problem';
       if (tab === 'deckSolutions') return 'Deck Solution';
+      if (tab === 'appearance') return 'Appearance';
       return 'Shared Solution';
+    }
+
+
+    function themePresetIdForTheme(theme) {
+      const clean = normalizeTheme(theme);
+      const match = Object.values(THEME_PRESETS).find(preset => ['primary','accent','canvas','problem','solution'].every(key => preset[key].toLowerCase() === clean[key].toLowerCase()));
+      return match?.id || 'custom';
+    }
+
+    function managerThemeFromFields() {
+      return normalizeTheme({
+        id: ui.managerThemePreset.value === 'custom' ? 'custom' : ui.managerThemePreset.value,
+        name: clampText(ui.managerThemeName.value, 40) || 'Custom Theme',
+        primary: ui.managerThemePrimary.value,
+        accent: ui.managerThemeAccent.value,
+        canvas: ui.managerThemeCanvas.value,
+        problem: ui.managerThemeProblem.value,
+        solution: ui.managerThemeSolution.value
+      });
+    }
+
+    function fillManagerThemeFields(theme) {
+      const clean = normalizeTheme(theme);
+      managerThemeDraft = clean;
+      ui.managerThemePreset.innerHTML = themePresetOptions(false, null, true);
+      ui.managerThemePreset.value = themePresetIdForTheme(clean);
+      ui.managerThemeName.value = clean.name;
+      ui.managerThemePrimary.value = clean.primary;
+      ui.managerThemeAccent.value = clean.accent;
+      ui.managerThemeCanvas.value = clean.canvas;
+      ui.managerThemeProblem.value = clean.problem;
+      ui.managerThemeSolution.value = clean.solution;
+      previewTheme(ui.managerThemePreview, clean, ui.managerThemePreviewTitle, ui.managerThemePreviewName);
+    }
+
+    function renderManagerAppearance(deck) {
+      ui.managerSearchRow.classList.add('hidden');
+      ui.managerSecondaryActions.classList.add('hidden');
+      ui.managerCardList.classList.add('hidden');
+      ui.managerAppearancePanel.classList.remove('hidden');
+      const current = normalizeTheme(deck.theme || suggestedThemeForDeckId(managerSelectionParts().id));
+      fillManagerThemeFields(current);
+    }
+
+    function previewManagerThemeFromFields() {
+      const theme = managerThemeFromFields();
+      managerThemeDraft = theme;
+      previewTheme(ui.managerThemePreview, theme, ui.managerThemePreviewTitle, ui.managerThemePreviewName);
+    }
+
+    function chooseManagerThemePreset() {
+      const value = ui.managerThemePreset.value;
+      if (THEME_PRESETS[value]) {
+        fillManagerThemeFields(THEME_PRESETS[value]);
+        return;
+      }
+      ui.managerThemeName.value = ui.managerThemeName.value || 'Custom Theme';
+      previewManagerThemeFromFields();
+    }
+
+    function markManagerThemeCustom() {
+      ui.managerThemePreset.value = 'custom';
+      if (!ui.managerThemeName.value.trim() || Object.values(THEME_PRESETS).some(theme => theme.name === ui.managerThemeName.value.trim())) ui.managerThemeName.value = 'Custom Theme';
+      previewManagerThemeFromFields();
+    }
+
+    function saveManagerTheme() {
+      const deck = getManagerDeck();
+      if (!deck) return;
+      deck.theme = managerThemeFromFields();
+      if (!saveManagerDeck(deck)) return;
+      managerThemeDraft = deck.theme;
+      renderDeckManager();
+      toast(`Saved ${deck.theme.name} to ${deck.name}.`);
+    }
+
+    function restoreSuggestedManagerTheme() {
+      const { kind, id } = managerSelectionParts();
+      const suggested = kind === 'default' ? suggestedThemeForDeckId(id) : normalizeTheme(THEME_PRESETS.classic);
+      fillManagerThemeFields(suggested);
+      toast('Suggested colors restored in the preview. Save the theme to keep them.');
     }
 
     function renderDeckManager() {
@@ -5839,6 +6369,16 @@
       ui.deleteManagedDeckBtn.classList.toggle('hidden', kind !== 'saved');
       ui.restoreSharedLibraryBtn.classList.toggle('hidden', deckManagerTab !== 'sharedSolutions');
       ui.undoManagerChangeBtn.classList.toggle('hidden', !lastManagerRemoval);
+
+      const showingAppearance = deckManagerTab === 'appearance';
+      ui.managerSearchRow.classList.toggle('hidden', showingAppearance);
+      ui.managerSecondaryActions.classList.toggle('hidden', showingAppearance);
+      ui.managerCardList.classList.toggle('hidden', showingAppearance);
+      ui.managerAppearancePanel.classList.toggle('hidden', !showingAppearance);
+      if (showingAppearance) {
+        renderManagerAppearance(deck);
+        return;
+      }
 
       const search = ui.managerSearchInput.value.trim().toLowerCase();
       const items = managerItemsForTab(deck);
@@ -6062,6 +6602,7 @@
         const restored = getDefaultDeck(id);
         state.settings.modeLabel = restored.name;
         state.settings.deckDescription = restored.description;
+        if (state.settings.themeMode === 'deck') state.settings.gameTheme = normalizeTheme(restored.theme);
         broadcastState();
       }
       toast('Original deck restored.');
@@ -6224,10 +6765,21 @@
 
     ui.playStyleSelect.addEventListener('change', hostSetRoomSettings);
     ui.handSizeInput.addEventListener('change', hostSetRoomSettings);
-    ui.roomModeSelect.addEventListener('input', hostSetRoomSettings);
-    ui.roomModeSelect.addEventListener('change', hostSetRoomSettings);
+    function handleRoomDeckSelectionChange() {
+      const deck = selectedSetupDeck();
+      if (deck && (ui.playStyleSelect.value || state?.settings?.playMode || 'coop') !== 'pvp') {
+        state.settings.themeMode = 'deck';
+        ui.gameThemeSelect.innerHTML = themePresetOptions(true, deck, false);
+        ui.gameThemeSelect.value = 'deck';
+      }
+      hostSetRoomSettings();
+    }
+    ui.roomModeSelect.addEventListener('input', handleRoomDeckSelectionChange);
+    ui.roomModeSelect.addEventListener('change', handleRoomDeckSelectionChange);
     ui.includeSharedSolutionsToggle.addEventListener('change', () => { enforceSolutionSourceSelection('shared'); hostSetRoomSettings(); });
     ui.includeDeckSolutionsToggle.addEventListener('change', () => { enforceSolutionSourceSelection('deck'); hostSetRoomSettings(); });
+    ui.gameThemeSelect.addEventListener('change', hostSetRoomSettings);
+    ui.editDeckThemeBtn.addEventListener('click', () => openDeckManager(selectedRoomDeckForManager(), 'roomScreen'));
     ui.buildTimeSelect.addEventListener('change', hostSetRoomSettings);
     ui.deckNameInput.addEventListener('change', hostSetRoomSettings);
     ui.startRoomBtn.addEventListener('click', hostStartSelectedMode);
@@ -6266,6 +6818,11 @@
       renderDeckManager();
     }));
     ui.managerSearchInput.addEventListener('input', renderDeckManager);
+    ui.managerThemePreset.addEventListener('change', chooseManagerThemePreset);
+    [ui.managerThemePrimary, ui.managerThemeAccent, ui.managerThemeCanvas, ui.managerThemeProblem, ui.managerThemeSolution].forEach(input => input.addEventListener('input', markManagerThemeCustom));
+    ui.managerThemeName.addEventListener('input', previewManagerThemeFromFields);
+    ui.saveManagerThemeBtn.addEventListener('click', saveManagerTheme);
+    ui.restoreSuggestedThemeBtn.addEventListener('click', restoreSuggestedManagerTheme);
     ui.managerAddCardBtn.addEventListener('click', () => openManagerEditor('add'));
     ui.restoreManagedDeckBtn.addEventListener('click', restoreManagerDeck);
     ui.restoreSharedLibraryBtn.addEventListener('click', restoreSharedLibrary);
