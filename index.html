@@ -2174,6 +2174,160 @@
       transition: transform .26s cubic-bezier(.2,.8,.2,1), opacity .2s ease, filter .2s ease, box-shadow .2s ease;
     }
 
+
+    /* v24: Full deck manager for default decks, saved decks, and shared solutions. */
+    .deck-manager-panel { overflow: hidden; }
+    .deck-manager-topline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .deck-manager-topline h2 { margin: 0; flex: 1; }
+    .manager-back-button {
+      min-height: 44px;
+      padding: 9px 14px;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      background: var(--cream);
+      color: var(--ink);
+      font-weight: 900;
+      box-shadow: 0 3px 0 var(--ink);
+    }
+    .manager-deck-summary {
+      margin-top: 14px;
+      padding: 16px;
+      border: 2px solid #bca66f;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #fff9e8, #f2e4bd);
+    }
+    .manager-deck-summary strong {
+      display: block;
+      color: #294429;
+      font-size: 1.12rem;
+      margin-bottom: 5px;
+    }
+    .manager-deck-summary span { display: block; color: #665c49; line-height: 1.4; }
+    .manager-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 18px 0 12px;
+    }
+    .manager-tab {
+      min-height: 52px;
+      padding: 8px 7px;
+      border: 2px solid #8a8068;
+      border-radius: 14px;
+      background: #fffaf0;
+      color: #3f4438;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .manager-tab.active {
+      border-color: #0c827c;
+      background: #d9f0e9;
+      color: #12463f;
+      box-shadow: 0 3px 0 #0c827c;
+    }
+    .manager-search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+    .manager-search-row label { margin: 0; }
+    .manager-search-row input { margin-top: 6px; }
+    .manager-add-button { min-height: 50px; white-space: nowrap; }
+    .manager-secondary-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .manager-card-list { display: grid; gap: 12px; }
+    .manager-card-item {
+      border: 2px solid #a89770;
+      border-radius: 17px;
+      background: #fffaf0;
+      overflow: hidden;
+      box-shadow: 0 3px 0 rgba(92, 72, 38, .22);
+    }
+    .manager-card-number {
+      padding: 8px 12px;
+      background: #e9dec0;
+      color: #645333;
+      font-size: .78rem;
+      font-weight: 950;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .manager-card-copy {
+      min-height: 76px;
+      padding: 15px;
+      color: #2f382d;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.42;
+      white-space: pre-line;
+    }
+    .manager-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding: 10px;
+      border-top: 1px solid #d4c59f;
+      background: #f5ecd5;
+    }
+    .manager-card-actions .btn { flex: 1 1 88px; }
+    .manager-empty {
+      padding: 28px 18px;
+      border: 2px dashed #ad9c75;
+      border-radius: 16px;
+      text-align: center;
+      color: #716650;
+      background: #fffaf0;
+    }
+    .manager-card-dialog {
+      width: min(94vw, 620px);
+      max-height: 88vh;
+      border: 3px solid #283d2b;
+      border-radius: 22px;
+      background: #fff8e8;
+      color: #2f392d;
+      padding: 0;
+      overflow: auto;
+      box-shadow: 0 18px 50px rgba(0,0,0,.42);
+    }
+    .manager-card-dialog::backdrop { background: rgba(7, 14, 10, .72); }
+    .manager-editor-shell { padding: 20px; }
+    .manager-editor-shell h2 { margin-top: 0; }
+    .manager-editor-shell textarea { min-height: 108px; }
+    .manager-editor-shell input, .manager-editor-shell textarea { margin-bottom: 12px; }
+    .manager-editor-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .manager-source-note {
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: #eee4c9;
+      color: #615742;
+      font-size: .88rem;
+      line-height: 1.35;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 520px) {
+      .manager-tabs { grid-template-columns: 1fr; }
+      .manager-search-row { grid-template-columns: 1fr; }
+      .manager-add-button { width: 100%; }
+      .manager-card-actions .btn { flex-basis: 42%; }
+    }
+
   </style>
 </head>
 <body>
@@ -2221,6 +2375,7 @@
           </div>
         </div>
         <button id="rulesBtn" class="btn cream wide" type="button">How Multiplayer Works</button>
+        <button id="manageDecksLobbyBtn" class="btn teal wide" type="button">Manage Decks</button>
       </div>
 
       <div class="panel">
@@ -2301,6 +2456,7 @@
         <p class="muted small-text setup-help">The host chooses how many cards each player begins with. Every played card is replaced after the round.</p>
         <label for="roomModeSelect">Deck setup</label>
         <select id="roomModeSelect"></select>
+        <button id="manageSelectedDeckBtn" class="btn cream wide" type="button">Manage Selected Deck</button>
         <div id="buildSettingsWrap">
           <label for="deckNameInput">Game name</label>
           <input id="deckNameInput" maxlength="50" placeholder="Friday Night Game Deck">
@@ -2337,6 +2493,53 @@
       </div>
 
       <button id="leaveRoomBtn" class="btn danger wide" type="button">Leave Room</button>
+    </section>
+
+
+    <section id="deckManagerScreen" class="screen">
+      <div class="panel deck-manager-panel">
+        <div class="deck-manager-topline">
+          <button id="closeDeckManagerBtn" class="manager-back-button" type="button">← Back</button>
+          <h2>Deck Manager</h2>
+        </div>
+        <p class="muted">Review every card, make changes, remove cards, add new ones, or restore an included deck to its original version. Changes are saved on this browser and are used the next time you play.</p>
+
+        <label for="managerDeckSelect">Choose a deck</label>
+        <select id="managerDeckSelect"></select>
+
+        <div id="managerDeckSummary" class="manager-deck-summary" aria-live="polite">
+          <strong id="managerDeckTitle">Relationships in Practice</strong>
+          <span id="managerDeckDescription">Family, friends, relatives, neighbors, and everyday relationship challenges.</span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric"><strong id="managerProblemCount">0</strong><span>Problems</span></div>
+          <div class="metric"><strong id="managerDeckSolutionCount">0</strong><span>Deck Solutions</span></div>
+          <div class="metric"><strong id="managerSharedSolutionCount">0</strong><span>Shared Solutions</span></div>
+        </div>
+
+        <div class="manager-tabs" role="tablist" aria-label="Deck card sections">
+          <button id="managerProblemsTab" class="manager-tab active" type="button" data-manager-tab="problems" role="tab">Problem Cards</button>
+          <button id="managerDeckSolutionsTab" class="manager-tab" type="button" data-manager-tab="deckSolutions" role="tab">Deck Solutions</button>
+          <button id="managerSharedSolutionsTab" class="manager-tab" type="button" data-manager-tab="sharedSolutions" role="tab">Shared Solutions</button>
+        </div>
+
+        <div class="manager-search-row">
+          <label for="managerSearchInput">Search cards
+            <input id="managerSearchInput" type="search" placeholder="Search wording or a scripture">
+          </label>
+          <button id="managerAddCardBtn" class="btn primary manager-add-button" type="button">Add Problem</button>
+        </div>
+
+        <div class="manager-secondary-actions">
+          <button id="restoreManagedDeckBtn" class="btn cream small" type="button">Restore Original Deck</button>
+          <button id="restoreSharedLibraryBtn" class="btn cream small hidden" type="button">Restore Shared Defaults</button>
+          <button id="deleteManagedDeckBtn" class="btn danger small hidden" type="button">Delete Saved Deck</button>
+          <button id="undoManagerChangeBtn" class="btn teal small hidden" type="button">Undo Last Removal</button>
+        </div>
+
+        <div id="managerCardList" class="manager-card-list"></div>
+      </div>
     </section>
 
     <section id="guestWaitingScreen" class="screen">
@@ -2571,6 +2774,30 @@
       <div class="play-card-confirm-actions">
         <button id="cancelPlayCardBtn" class="confirm-secondary" type="button">Keep Browsing</button>
         <button id="confirmPlayCardBtn" class="confirm-primary" type="button">Play Card</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <dialog id="deckCardEditorDialog" class="manager-card-dialog" aria-label="Edit deck card">
+    <div class="manager-editor-shell">
+      <h2 id="managerEditorTitle">Add Problem Card</h2>
+      <div id="managerProblemEditorFields">
+        <label for="managerProblemText">Situation</label>
+        <textarea id="managerProblemText" maxlength="220" placeholder="Write the situation only."></textarea>
+      </div>
+      <div id="managerSolutionEditorFields" class="hidden">
+        <div id="managerSolutionSourceNote" class="manager-source-note"></div>
+        <label for="managerSolutionAction">Practical action</label>
+        <textarea id="managerSolutionAction" maxlength="300" placeholder="Listen fully before answering."></textarea>
+        <label for="managerSolutionScriptureText">Short scripture wording</label>
+        <textarea id="managerSolutionScriptureText" maxlength="220" placeholder="Be quick to listen, slow to speak."></textarea>
+        <label for="managerSolutionReference">Scripture reference</label>
+        <input id="managerSolutionReference" maxlength="80" placeholder="James 1:19">
+      </div>
+      <div class="manager-editor-actions">
+        <button id="cancelManagerEditorBtn" class="btn cream" type="button">Cancel</button>
+        <button id="saveManagerEditorBtn" class="btn primary" type="button">Save Card</button>
       </div>
     </div>
   </dialog>
@@ -3029,6 +3256,14 @@
     let playedViewerPointerStartX = null;
     let playedViewerPointerStartY = null;
     const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
+    const DEFAULT_DECK_OVERRIDES_KEY = 'principlesInPractice.defaultDeckOverrides.v1';
+    const SHARED_LIBRARY_STORAGE_KEY = 'principlesInPractice.sharedSolutionLibrary.v1';
+    let deckManagerOpen = false;
+    let deckManagerReturnScreen = 'lobbyScreen';
+    let deckManagerSelection = 'default:relationships';
+    let deckManagerTab = 'problems';
+    let deckManagerEditorContext = null;
+    let lastManagerRemoval = null;
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
 
@@ -3057,6 +3292,15 @@
     function cleanCode(value) { return String(value || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6); }
     function withoutEmDash(value) { return String(value ?? '').split(String.fromCodePoint(8212)).join(' • '); }
     function clampText(value, max = 220) { return withoutEmDash(value).trim().replace(/\s+/g, ' ').slice(0, max); }
+    function clampMultilineText(value, max = 500) {
+      return withoutEmDash(value)
+        .replace(/\r\n?/g, '\n')
+        .split('\n')
+        .map(line => line.trim().replace(/[ \t]+/g, ' '))
+        .filter(Boolean)
+        .join('\n')
+        .slice(0, max);
+    }
     function escapeHtml(value) { return withoutEmDash(value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
     function deepClone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
 
@@ -3806,6 +4050,7 @@
       ui.buildSettingsWrap.classList.toggle('hidden', !building);
       ui.selectedDeckReadyWrap.classList.toggle('hidden', building);
       ui.solutionSourcesWrap.classList.toggle('hidden', building || !coop || !setupDeck);
+      ui.manageSelectedDeckBtn.classList.toggle('hidden', building || !coop || !setupDeck);
 
       const seconds = Number(ui.buildTimeSelect.value) || 120;
       if (building) {
@@ -3928,7 +4173,7 @@
         return rejectAction(actorId, 'Time is up.');
       }
       if (!['problem', 'solution'].includes(kind)) return;
-      const cleaned = clampText(text, 220);
+      const cleaned = kind === 'solution' ? normalizeSolutionText(text) : clampText(text, 220);
       if (cleaned.length < 4) return rejectAction(actorId, 'Write a little more before adding the card.');
       const list = kind === 'problem' ? state.builder.problems : state.builder.solutions;
       list.push({ id: uid(kind), text: cleaned, scope: kind === 'solution' && scope === 'shared' ? 'shared' : 'deck', authorId: actorId, createdAt: Date.now() });
@@ -3960,7 +4205,7 @@
       const card = state.builder[key].find(item => item.id === cardId);
       if (!card) return;
       if (actorId !== state.hostId && actorId !== card.authorId) return rejectAction(actorId, 'Only the host or the card’s author can edit it.');
-      const cleaned = clampText(text, 220);
+      const cleaned = kind === 'solution' ? normalizeSolutionText(text) : clampText(text, 220);
       if (cleaned.length < 4) return rejectAction(actorId, 'The edited card is too short.');
       card.text = cleaned;
       broadcastState();
@@ -3981,7 +4226,7 @@
     }
 
     function normalizeSolutionText(item) {
-      return clampText(typeof item === 'string' ? item : item?.text, 500);
+      return clampMultilineText(typeof item === 'string' ? item : item?.text, 500);
     }
 
     function uniqueTexts(items) {
@@ -4005,18 +4250,62 @@
       localStorage.setItem(SHARED_SOLUTION_STORAGE_KEY, JSON.stringify(uniqueTexts(solutions).slice(0, 400)));
     }
 
+    function getManagedSharedSolutions() {
+      try {
+        const stored = localStorage.getItem(SHARED_LIBRARY_STORAGE_KEY);
+        if (stored !== null) {
+          const parsed = JSON.parse(stored);
+          return Array.isArray(parsed) ? uniqueTexts(parsed.map(normalizeSolutionText).filter(text => text.length >= 4)) : [];
+        }
+      } catch {}
+      return uniqueTexts([...SHARED_BIBLE_SOLUTIONS.map(normalizeSolutionText), ...getUserSharedSolutions()]);
+    }
+
+    function putManagedSharedSolutions(solutions) {
+      const cleaned = uniqueTexts((solutions || []).map(normalizeSolutionText).filter(text => text.length >= 4)).slice(0, 500);
+      localStorage.setItem(SHARED_LIBRARY_STORAGE_KEY, JSON.stringify(cleaned));
+      const originalKeys = new Set(SHARED_BIBLE_SOLUTIONS.map(item => normalizeSolutionText(item).toLowerCase()));
+      putUserSharedSolutions(cleaned.filter(item => !originalKeys.has(item.toLowerCase())));
+    }
+
     function mergeUserSharedSolutions(solutions) {
       const cleaned = (solutions || []).map(normalizeSolutionText).filter(text => text.length >= 4);
       if (!cleaned.length) return;
-      putUserSharedSolutions([...getUserSharedSolutions(), ...cleaned]);
+      putManagedSharedSolutions([...getManagedSharedSolutions(), ...cleaned]);
     }
 
-    function allSharedSolutions(extra = []) {
-      return uniqueTexts([
-        ...SHARED_BIBLE_SOLUTIONS,
-        ...getUserSharedSolutions(),
-        ...(extra || []).map(normalizeSolutionText).filter(text => text.length >= 4)
-      ]);
+    function allSharedSolutions() {
+      return getManagedSharedSolutions();
+    }
+
+    function getDefaultDeckOverrides() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(DEFAULT_DECK_OVERRIDES_KEY) || '{}');
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+      } catch { return {}; }
+    }
+
+    function putDefaultDeckOverrides(overrides) {
+      localStorage.setItem(DEFAULT_DECK_OVERRIDES_KEY, JSON.stringify(overrides || {}));
+    }
+
+    function putDefaultDeckOverride(id, deck) {
+      const overrides = getDefaultDeckOverrides();
+      const normalized = normalizeDeck(deck);
+      overrides[id] = {
+        name: normalized.name,
+        description: normalized.description,
+        problems: normalized.problems,
+        deckSolutions: normalized.deckSolutions,
+        updatedAt: Date.now()
+      };
+      putDefaultDeckOverrides(overrides);
+    }
+
+    function restoreDefaultDeck(id) {
+      const overrides = getDefaultDeckOverrides();
+      delete overrides[id];
+      putDefaultDeckOverrides(overrides);
     }
 
     function customDeckFromBuilder() {
@@ -4039,7 +4328,7 @@
 
     function deckIsReady(deck, includeGlobalShared = true) {
       const availableSolutions = includeGlobalShared
-        ? uniqueTexts([...(deck.deckSolutions || []), ...allSharedSolutions(deck.sharedSolutions || [])]).length
+        ? uniqueTexts([...(deck.deckSolutions || []), ...allSharedSolutions()]).length
         : deckAvailableSolutionCount(deck);
       return deck.problems.length >= MIN_PROBLEMS && availableSolutions >= MIN_SOLUTIONS;
     }
@@ -4064,8 +4353,10 @@
     }
 
     function getDefaultDeck(id) {
-      const raw = DEFAULT_COOP_DECKS.find(deck => deck.id === id) || DEFAULT_COOP_DECKS[0];
-      return normalizeDeck({ ...raw, id: `default-${raw.id}`, defaultDeck: true });
+      const base = DEFAULT_COOP_DECKS.find(deck => deck.id === id) || DEFAULT_COOP_DECKS[0];
+      const override = getDefaultDeckOverrides()[base.id];
+      const raw = override ? { ...base, ...override, id: base.id } : base;
+      return normalizeDeck({ ...raw, id: `default-${base.id}`, defaultDeck: true });
     }
 
     function getSavedGames() {
@@ -4182,7 +4473,7 @@
 
     function prepareDeckForPlay(deck, includeShared = true, includeDeck = true) {
       const normalized = normalizeDeck(deck);
-      const sharedPool = includeShared ? allSharedSolutions(normalized.sharedSolutions) : [];
+      const sharedPool = includeShared ? allSharedSolutions() : [];
       const deckPool = includeDeck ? normalized.deckSolutions : [];
       const solutions = uniqueTexts([...sharedPool, ...deckPool]);
       return {
@@ -4565,6 +4856,7 @@
       if (!['play', 'end'].includes(state.phase)) document.body.classList.remove('coop-game', 'pvp-game');
       roomCode = state.roomCode;
       ui.roomCodeDisplay.textContent = roomCode;
+      if (deckManagerOpen && state.phase === 'room' && isHost) { renderDeckManager(); return; }
       if (state.phase === 'room') renderRoom();
       else if (state.phase === 'build') renderBuild();
       else if (state.phase === 'review') renderReview();
@@ -4612,7 +4904,7 @@
         const desiredValue = pendingHostDeckSelection || currentValue;
         ui.playStyleSelect.value = state.settings.playMode || 'coop';
         ui.handSizeInput.value = String(state.settings.handSize || DEFAULT_HAND_SIZE);
-        const defaultOptions = coop ? DEFAULT_COOP_DECKS.map(deck => `<option value="default:${escapeHtml(deck.id)}">${escapeHtml(deck.name)}</option>`) : ['<option value="starter">Play Starter Deck</option>'];
+        const defaultOptions = coop ? DEFAULT_COOP_DECKS.map(deck => { const managed = getDefaultDeck(deck.id); return `<option value="default:${escapeHtml(deck.id)}">${escapeHtml(managed.name)}</option>`; }) : ['<option value="starter">Play Starter Deck</option>'];
         ui.roomModeSelect.innerHTML = [
           '<option value="build">Build Together</option>',
           ...defaultOptions,
@@ -4694,7 +4986,7 @@
       const deck = customDeckFromBuilder();
       const coop = state.settings.playMode !== 'pvp';
       const customSolutionCount = deckAvailableSolutionCount(deck);
-      const availableSolutionCount = coop ? uniqueTexts([...deck.deckSolutions, ...allSharedSolutions(deck.sharedSolutions)]).length : customSolutionCount;
+      const availableSolutionCount = coop ? uniqueTexts([...deck.deckSolutions, ...allSharedSolutions()]).length : customSolutionCount;
       ui.reviewTitle.textContent = `${deck.name} is built!`;
       ui.reviewProblemCount.textContent = deck.problems.length;
       ui.reviewSolutionCount.textContent = customSolutionCount;
@@ -5414,12 +5706,405 @@
     }
 
 
+
+    function managerSelectionParts(value = deckManagerSelection) {
+      const [kind, ...rest] = String(value || '').split(':');
+      return { kind: kind === 'saved' ? 'saved' : 'default', id: rest.join(':') || 'relationships' };
+    }
+
+    function getManagerDeck(value = deckManagerSelection) {
+      const { kind, id } = managerSelectionParts(value);
+      if (kind === 'saved') return getSavedGames().find(deck => deck.id === id) || null;
+      return getDefaultDeck(id);
+    }
+
+    function saveManagerDeck(deck) {
+      const { kind, id } = managerSelectionParts();
+      const normalized = normalizeDeck({ ...deck, updatedAt: Date.now() });
+      if (kind === 'default') {
+        putDefaultDeckOverride(id, normalized);
+      } else {
+        const games = getSavedGames();
+        const index = games.findIndex(item => item.id === id);
+        if (index < 0) return false;
+        normalized.id = games[index].id;
+        normalized.createdAt = games[index].createdAt;
+        games[index] = normalized;
+        putSavedGames(games);
+      }
+      renderSavedGames();
+      if (state?.phase === 'room' && isHost) {
+        const selection = managerSelectionParts();
+        if (selection.kind === 'default' && state.settings.defaultDeckId === selection.id) {
+          const changed = getDefaultDeck(selection.id);
+          state.settings.modeLabel = changed.name;
+          state.settings.deckDescription = changed.description;
+        }
+        if (selection.kind === 'saved' && state.settings.savedDeckId === selection.id) {
+          const changed = getSavedGames().find(item => item.id === selection.id);
+          if (changed) {
+            state.settings.modeLabel = changed.name;
+            state.settings.deckDescription = changed.description;
+          }
+        }
+        broadcastState();
+      }
+      return true;
+    }
+
+    function managerDeckOptions() {
+      const defaults = DEFAULT_COOP_DECKS.map(raw => {
+        const deck = getDefaultDeck(raw.id);
+        return `<option value="default:${escapeHtml(raw.id)}">Included: ${escapeHtml(deck.name)}</option>`;
+      });
+      const saved = getSavedGames().map(deck => `<option value="saved:${escapeHtml(deck.id)}">Saved: ${escapeHtml(deck.name)}</option>`);
+      return [...defaults, ...saved].join('');
+    }
+
+    function selectedRoomDeckForManager() {
+      const value = ui.roomModeSelect?.value || '';
+      if (value.startsWith('default:') || value.startsWith('saved:')) return value;
+      if (state?.settings?.mode === 'default') return `default:${state.settings.defaultDeckId || 'relationships'}`;
+      if (state?.settings?.mode === 'saved' && state.settings.savedDeckId) return `saved:${state.settings.savedDeckId}`;
+      return 'default:relationships';
+    }
+
+    function openDeckManager(selection = 'default:relationships', returnScreen = null) {
+      const available = managerDeckOptions();
+      deckManagerSelection = selection;
+      deckManagerReturnScreen = returnScreen || (state?.phase === 'room' && isHost ? 'roomScreen' : 'lobbyScreen');
+      deckManagerOpen = true;
+      deckManagerTab = 'problems';
+      lastManagerRemoval = null;
+      ui.managerSearchInput.value = '';
+      ui.managerDeckSelect.innerHTML = available;
+      if (![...ui.managerDeckSelect.options].some(option => option.value === deckManagerSelection)) {
+        deckManagerSelection = 'default:relationships';
+      }
+      ui.managerDeckSelect.value = deckManagerSelection;
+      renderDeckManager();
+    }
+
+    function closeDeckManager() {
+      deckManagerOpen = false;
+      deckManagerEditorContext = null;
+      if (ui.deckCardEditorDialog.open) ui.deckCardEditorDialog.close();
+      if (state) render();
+      else showEntryScreen();
+    }
+
+    function managerItemsForTab(deck, tab = deckManagerTab) {
+      if (tab === 'problems') return deck?.problems || [];
+      if (tab === 'deckSolutions') return deck?.deckSolutions || [];
+      return getManagedSharedSolutions();
+    }
+
+    function managerTabLabel(tab = deckManagerTab) {
+      if (tab === 'problems') return 'Problem';
+      if (tab === 'deckSolutions') return 'Deck Solution';
+      return 'Shared Solution';
+    }
+
+    function renderDeckManager() {
+      deckManagerOpen = true;
+      showScreen('deckManagerScreen');
+      setConnection(state ? 'Room open' : 'Decks saved locally', state ? 'waiting' : '');
+
+      const options = managerDeckOptions();
+      if (ui.managerDeckSelect.innerHTML !== options) ui.managerDeckSelect.innerHTML = options;
+      if (![...ui.managerDeckSelect.options].some(option => option.value === deckManagerSelection)) deckManagerSelection = 'default:relationships';
+      ui.managerDeckSelect.value = deckManagerSelection;
+
+      const deck = getManagerDeck();
+      if (!deck) {
+        deckManagerSelection = 'default:relationships';
+        return renderDeckManager();
+      }
+      const { kind } = managerSelectionParts();
+      const shared = getManagedSharedSolutions();
+      ui.managerDeckTitle.textContent = deck.name;
+      ui.managerDeckDescription.textContent = deck.description || 'A custom situation deck prepared on this browser.';
+      ui.managerProblemCount.textContent = String(deck.problems.length);
+      ui.managerDeckSolutionCount.textContent = String(deck.deckSolutions.length);
+      ui.managerSharedSolutionCount.textContent = String(shared.length);
+
+      document.querySelectorAll('[data-manager-tab]').forEach(button => {
+        const active = button.dataset.managerTab === deckManagerTab;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      ui.managerAddCardBtn.textContent = deckManagerTab === 'problems' ? 'Add Problem' : 'Add Solution';
+      ui.restoreManagedDeckBtn.classList.toggle('hidden', kind !== 'default' || deckManagerTab === 'sharedSolutions');
+      ui.deleteManagedDeckBtn.classList.toggle('hidden', kind !== 'saved');
+      ui.restoreSharedLibraryBtn.classList.toggle('hidden', deckManagerTab !== 'sharedSolutions');
+      ui.undoManagerChangeBtn.classList.toggle('hidden', !lastManagerRemoval);
+
+      const search = ui.managerSearchInput.value.trim().toLowerCase();
+      const items = managerItemsForTab(deck);
+      const visible = items.map((card, index) => ({ card, index })).filter(row => !search || row.card.toLowerCase().includes(search));
+      const label = managerTabLabel();
+      ui.managerCardList.innerHTML = visible.length ? visible.map(({ card, index }) => {
+        const moveButton = deckManagerTab === 'deckSolutions'
+          ? `<button class="btn teal small" type="button" data-manager-move-shared="${index}">Move to Shared</button>`
+          : deckManagerTab === 'sharedSolutions'
+            ? `<button class="btn teal small" type="button" data-manager-copy-deck="${index}">Copy to Deck</button>`
+            : '';
+        return `<article class="manager-card-item">
+          <div class="manager-card-number">${escapeHtml(label)} ${index + 1}</div>
+          <div class="manager-card-copy">${escapeHtml(card)}</div>
+          <div class="manager-card-actions">
+            <button class="btn cream small" type="button" data-manager-edit="${index}">Edit</button>
+            <button class="btn cream small" type="button" data-manager-duplicate="${index}">Duplicate</button>
+            <button class="btn cream small" type="button" data-manager-up="${index}" ${index === 0 ? 'disabled' : ''}>Move Up</button>
+            <button class="btn cream small" type="button" data-manager-down="${index}" ${index === items.length - 1 ? 'disabled' : ''}>Move Down</button>
+            ${moveButton}
+            <button class="btn danger small" type="button" data-manager-delete="${index}">Remove</button>
+          </div>
+        </article>`;
+      }).join('') : `<div class="manager-empty">${search ? 'No cards match this search.' : `No ${escapeHtml(label)} Cards are in this section yet.`}</div>`;
+      bindManagerCardButtons();
+    }
+
+    function bindManagerCardButtons() {
+      ui.managerCardList.querySelectorAll('[data-manager-edit]').forEach(button => button.addEventListener('click', () => openManagerEditor('edit', Number(button.dataset.managerEdit))));
+      ui.managerCardList.querySelectorAll('[data-manager-duplicate]').forEach(button => button.addEventListener('click', () => duplicateManagerCard(Number(button.dataset.managerDuplicate))));
+      ui.managerCardList.querySelectorAll('[data-manager-delete]').forEach(button => button.addEventListener('click', () => removeManagerCard(Number(button.dataset.managerDelete))));
+      ui.managerCardList.querySelectorAll('[data-manager-up]').forEach(button => button.addEventListener('click', () => moveManagerCard(Number(button.dataset.managerUp), -1)));
+      ui.managerCardList.querySelectorAll('[data-manager-down]').forEach(button => button.addEventListener('click', () => moveManagerCard(Number(button.dataset.managerDown), 1)));
+      ui.managerCardList.querySelectorAll('[data-manager-move-shared]').forEach(button => button.addEventListener('click', () => moveDeckSolutionToShared(Number(button.dataset.managerMoveShared))));
+      ui.managerCardList.querySelectorAll('[data-manager-copy-deck]').forEach(button => button.addEventListener('click', () => copySharedSolutionToDeck(Number(button.dataset.managerCopyDeck))));
+    }
+
+    function parseSolutionCardText(text) {
+      const normalized = clampMultilineText(text, 500);
+      const lines = normalized.split('\n').filter(Boolean);
+      if (lines.length >= 3) {
+        return { action: lines[0], scripture: lines.slice(1, -1).join(' ').replace(/^[“\"]|[”\"]$/g, ''), reference: lines.at(-1) };
+      }
+      const referenceMatch = normalized.match(/((?:[1-3]\s+)?[A-Za-z][A-Za-z ]+\s+\d+:\d+(?:-\d+)?)\s*$/);
+      const reference = referenceMatch?.[1]?.trim() || '';
+      let beforeReference = reference ? normalized.slice(0, referenceMatch.index).trim() : normalized;
+      const quoteMatch = beforeReference.match(/[“\"]([^”\"]+)[”\"]/);
+      const scripture = quoteMatch?.[1]?.trim() || '';
+      const action = quoteMatch ? beforeReference.slice(0, quoteMatch.index).trim() : beforeReference;
+      return { action, scripture, reference };
+    }
+
+    function composeSolutionCardText(action, scripture, reference) {
+      const cleanAction = clampMultilineText(action, 300);
+      const cleanScripture = clampMultilineText(scripture, 220).replace(/^[“\"]|[”\"]$/g, '');
+      const cleanReference = clampText(reference, 80);
+      return clampMultilineText([
+        cleanAction,
+        cleanScripture ? `“${cleanScripture}”` : '',
+        cleanReference
+      ].filter(Boolean).join('\n'), 500);
+    }
+
+    function openManagerEditor(mode = 'add', index = null) {
+      const deck = getManagerDeck();
+      const items = managerItemsForTab(deck);
+      const existing = index == null ? '' : items[index] || '';
+      const solution = deckManagerTab !== 'problems';
+      deckManagerEditorContext = { mode, index, tab: deckManagerTab };
+      ui.managerEditorTitle.textContent = `${mode === 'edit' ? 'Edit' : mode === 'duplicate' ? 'Duplicate' : 'Add'} ${managerTabLabel()} Card`;
+      ui.managerProblemEditorFields.classList.toggle('hidden', solution);
+      ui.managerSolutionEditorFields.classList.toggle('hidden', !solution);
+      ui.managerProblemText.value = solution ? '' : existing;
+      if (solution) {
+        const parts = parseSolutionCardText(existing);
+        ui.managerSolutionAction.value = parts.action;
+        ui.managerSolutionScriptureText.value = parts.scripture;
+        ui.managerSolutionReference.value = parts.reference;
+        ui.managerSolutionSourceNote.textContent = deckManagerTab === 'sharedSolutions'
+          ? 'This card will be available to every deck when the Shared Bible Solution Deck is turned on.'
+          : `This card will stay with ${deck.name} unless you later move it to the Shared Bible Solution Deck.`;
+      }
+      ui.saveManagerEditorBtn.textContent = mode === 'edit' ? 'Save Changes' : mode === 'duplicate' ? 'Add Copy' : 'Add Card';
+      ui.deckCardEditorDialog.showModal();
+      setTimeout(() => (solution ? ui.managerSolutionAction : ui.managerProblemText).focus(), 50);
+    }
+
+    function saveManagerEditor() {
+      if (!deckManagerEditorContext) return;
+      const { mode, index, tab } = deckManagerEditorContext;
+      const isProblem = tab === 'problems';
+      const textValue = isProblem
+        ? clampMultilineText(ui.managerProblemText.value, 220)
+        : composeSolutionCardText(ui.managerSolutionAction.value, ui.managerSolutionScriptureText.value, ui.managerSolutionReference.value);
+      if (textValue.length < 4) return toast('Add a little more wording before saving the card.');
+      if (!isProblem && (!ui.managerSolutionAction.value.trim() || !ui.managerSolutionScriptureText.value.trim() || !ui.managerSolutionReference.value.trim())) {
+        return toast('Add the action, short scripture wording, and scripture reference.');
+      }
+      if (mode !== 'edit') {
+        const existingItems = managerItemsForTab(getManagerDeck(), tab);
+        if (existingItems.some(item => item.trim().toLowerCase() === textValue.trim().toLowerCase())) {
+          return toast('Change at least one part so the new card is not an exact duplicate.');
+        }
+      }
+
+      if (tab === 'sharedSolutions') {
+        const shared = getManagedSharedSolutions();
+        if (mode === 'edit') shared[index] = textValue;
+        else shared.push(textValue);
+        putManagedSharedSolutions(uniqueTexts(shared));
+      } else {
+        const deck = getManagerDeck();
+        const key = tab === 'problems' ? 'problems' : 'deckSolutions';
+        if (mode === 'edit') deck[key][index] = textValue;
+        else deck[key].push(textValue);
+        deck[key] = uniqueTexts(deck[key]);
+        saveManagerDeck(deck);
+      }
+      deckManagerEditorContext = null;
+      ui.deckCardEditorDialog.close();
+      renderDeckManager();
+      toast(mode === 'edit' ? 'Card updated.' : mode === 'duplicate' ? 'Card copy added.' : 'Card added.');
+    }
+
+    function duplicateManagerCard(index) {
+      const deck = getManagerDeck();
+      const items = managerItemsForTab(deck);
+      if (!items[index]) return;
+      openManagerEditor('duplicate', index);
+    }
+
+    function removeManagerCard(index) {
+      const deck = getManagerDeck();
+      const items = managerItemsForTab(deck);
+      const card = items[index];
+      if (!card) return;
+      if (!confirm(`Remove this ${managerTabLabel().toLowerCase()} card?`)) return;
+      lastManagerRemoval = { selection: deckManagerSelection, tab: deckManagerTab, index, card };
+      if (deckManagerTab === 'sharedSolutions') {
+        const shared = getManagedSharedSolutions();
+        shared.splice(index, 1);
+        putManagedSharedSolutions(shared);
+      } else {
+        const key = deckManagerTab === 'problems' ? 'problems' : 'deckSolutions';
+        deck[key].splice(index, 1);
+        saveManagerDeck(deck);
+      }
+      renderDeckManager();
+      toast('Card removed. You can undo it.');
+    }
+
+    function undoManagerRemoval() {
+      const change = lastManagerRemoval;
+      if (!change) return;
+      deckManagerSelection = change.selection;
+      deckManagerTab = change.tab;
+      if (change.tab === 'sharedSolutions') {
+        const shared = getManagedSharedSolutions();
+        shared.splice(Math.min(change.index, shared.length), 0, change.card);
+        putManagedSharedSolutions(shared);
+      } else {
+        const deck = getManagerDeck(change.selection);
+        if (!deck) return;
+        const key = change.tab === 'problems' ? 'problems' : 'deckSolutions';
+        deck[key].splice(Math.min(change.index, deck[key].length), 0, change.card);
+        saveManagerDeck(deck);
+      }
+      lastManagerRemoval = null;
+      renderDeckManager();
+      toast('Card restored.');
+    }
+
+    function moveManagerCard(index, direction) {
+      const deck = getManagerDeck();
+      const items = managerItemsForTab(deck);
+      const target = index + direction;
+      if (index < 0 || target < 0 || index >= items.length || target >= items.length) return;
+      if (deckManagerTab === 'sharedSolutions') {
+        const shared = getManagedSharedSolutions();
+        [shared[index], shared[target]] = [shared[target], shared[index]];
+        putManagedSharedSolutions(shared);
+      } else {
+        const key = deckManagerTab === 'problems' ? 'problems' : 'deckSolutions';
+        [deck[key][index], deck[key][target]] = [deck[key][target], deck[key][index]];
+        saveManagerDeck(deck);
+      }
+      renderDeckManager();
+    }
+
+    function moveDeckSolutionToShared(index) {
+      const deck = getManagerDeck();
+      const card = deck?.deckSolutions?.[index];
+      if (!card) return;
+      deck.deckSolutions.splice(index, 1);
+      putManagedSharedSolutions([...getManagedSharedSolutions(), card]);
+      saveManagerDeck(deck);
+      renderDeckManager();
+      toast('Solution moved to the Shared Bible Solution Deck.');
+    }
+
+    function copySharedSolutionToDeck(index) {
+      const deck = getManagerDeck();
+      const card = getManagedSharedSolutions()[index];
+      if (!deck || !card) return;
+      deck.deckSolutions = uniqueTexts([...(deck.deckSolutions || []), card]);
+      saveManagerDeck(deck);
+      renderDeckManager();
+      toast(`Solution copied to ${deck.name}.`);
+    }
+
+    function restoreManagerDeck() {
+      const { kind, id } = managerSelectionParts();
+      if (kind !== 'default') return;
+      const original = DEFAULT_COOP_DECKS.find(deck => deck.id === id);
+      if (!original) return;
+      if (!confirm(`Restore ${original.name} to its original included cards? Your edits to this deck will be removed.`)) return;
+      restoreDefaultDeck(id);
+      lastManagerRemoval = null;
+      renderDeckManager();
+      if (state?.phase === 'room' && isHost && state.settings.defaultDeckId === id) {
+        const restored = getDefaultDeck(id);
+        state.settings.modeLabel = restored.name;
+        state.settings.deckDescription = restored.description;
+        broadcastState();
+      }
+      toast('Original deck restored.');
+    }
+
+    function restoreSharedLibrary() {
+      if (!confirm('Restore the original Shared Bible Solution Deck? Shared cards added or edited on this browser will be removed from the shared library.')) return;
+      putManagedSharedSolutions(SHARED_BIBLE_SOLUTIONS);
+      lastManagerRemoval = null;
+      renderDeckManager();
+      toast('Shared Bible Solution Deck restored.');
+    }
+
+    function deleteManagerSavedDeck() {
+      const { kind, id } = managerSelectionParts();
+      if (kind !== 'saved') return;
+      const deck = getSavedGames().find(item => item.id === id);
+      if (!deck || !confirm(`Delete ${deck.name} from this browser?`)) return;
+      putSavedGames(getSavedGames().filter(item => item.id !== id));
+      if (state?.phase === 'room' && isHost && state.settings.mode === 'saved' && state.settings.savedDeckId === id) {
+        const fallback = getDefaultDeck('relationships');
+        state.settings.mode = 'default';
+        state.settings.defaultDeckId = 'relationships';
+        state.settings.savedDeckId = '';
+        state.settings.modeLabel = fallback.name;
+        state.settings.deckDescription = fallback.description;
+        pendingHostDeckSelection = 'default:relationships';
+        broadcastState();
+      }
+      deckManagerSelection = 'default:relationships';
+      lastManagerRemoval = null;
+      renderSavedGames();
+      renderDeckManager();
+      toast('Saved deck deleted.');
+    }
+
     function renderSavedGames() {
       const games = getSavedGames();
       ui.savedLobbyList.innerHTML = games.length ? games.map(deck => `<div class="saved-item">
         <div><div class="saved-title">${escapeHtml(deck.name)}</div><div class="saved-meta">${deck.problems.length} Problems • ${deck.deckSolutions.length} Deck Solutions • ${deck.sharedSolutions.length} Shared Contributions • Updated ${new Date(deck.updatedAt).toLocaleDateString()}</div></div>
-        <div class="deck-actions"><button type="button" class="btn cream small" data-export-saved="${deck.id}">Export</button><button type="button" class="btn danger small" data-delete-saved="${deck.id}">Delete</button></div>
+        <div class="deck-actions"><button type="button" class="btn teal small" data-manage-saved="${deck.id}">Manage</button><button type="button" class="btn cream small" data-export-saved="${deck.id}">Export</button><button type="button" class="btn danger small" data-delete-saved="${deck.id}">Delete</button></div>
       </div>`).join('') : '<p class="muted">No saved games yet. Build one with your group, then save it after the timer.</p>';
+      ui.savedLobbyList.querySelectorAll('[data-manage-saved]').forEach(button => button.addEventListener('click', () => openDeckManager(`saved:${button.dataset.manageSaved}`, 'lobbyScreen')));
       ui.savedLobbyList.querySelectorAll('[data-export-saved]').forEach(button => button.addEventListener('click', () => {
         const deck = getSavedGames().find(item => item.id === button.dataset.exportSaved);
         if (deck) exportDeck(deck);
@@ -5465,7 +6150,7 @@
 
     function addCardFromInput(kind) {
       const input = kind === 'problem' ? ui.problemInput : ui.solutionInput;
-      const text = clampText(input.value, 220);
+      const text = kind === 'solution' ? normalizeSolutionText(input.value) : clampText(input.value, 220);
       if (text.length < 4) return toast('Write a little more before adding the card.');
       const scope = kind === 'solution' ? ui.solutionDestinationSelect.value : 'deck';
       sendAction('addBuildCard', { kind, text, scope });
@@ -5562,6 +6247,36 @@
     ui.rulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
     ui.closeRulesBtn.addEventListener('click', () => ui.rulesDialog.close());
     ui.importDeckInput.addEventListener('change', () => importDeckFile(ui.importDeckInput.files?.[0]));
+
+
+    ui.manageDecksLobbyBtn.addEventListener('click', () => openDeckManager('default:relationships', 'lobbyScreen'));
+    ui.manageSelectedDeckBtn.addEventListener('click', () => openDeckManager(selectedRoomDeckForManager(), 'roomScreen'));
+    ui.closeDeckManagerBtn.addEventListener('click', closeDeckManager);
+    ui.managerDeckSelect.addEventListener('change', () => {
+      deckManagerSelection = ui.managerDeckSelect.value;
+      deckManagerTab = 'problems';
+      lastManagerRemoval = null;
+      ui.managerSearchInput.value = '';
+      renderDeckManager();
+    });
+    document.querySelectorAll('[data-manager-tab]').forEach(button => button.addEventListener('click', () => {
+      deckManagerTab = button.dataset.managerTab;
+      lastManagerRemoval = null;
+      ui.managerSearchInput.value = '';
+      renderDeckManager();
+    }));
+    ui.managerSearchInput.addEventListener('input', renderDeckManager);
+    ui.managerAddCardBtn.addEventListener('click', () => openManagerEditor('add'));
+    ui.restoreManagedDeckBtn.addEventListener('click', restoreManagerDeck);
+    ui.restoreSharedLibraryBtn.addEventListener('click', restoreSharedLibrary);
+    ui.deleteManagedDeckBtn.addEventListener('click', deleteManagerSavedDeck);
+    ui.undoManagerChangeBtn.addEventListener('click', undoManagerRemoval);
+    ui.cancelManagerEditorBtn.addEventListener('click', () => ui.deckCardEditorDialog.close());
+    ui.saveManagerEditorBtn.addEventListener('click', saveManagerEditor);
+    ui.deckCardEditorDialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      ui.deckCardEditorDialog.close();
+    });
 
     setInterval(updateBuildTimer, 250);
     renderSavedGames();
