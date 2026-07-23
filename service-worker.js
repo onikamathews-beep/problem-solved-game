@@ -1,9 +1,8 @@
-const CACHE_NAME = 'problem-solved-v16-20260719';
+const CACHE_NAME = 'problem-solved-v17-20260723';
 const CORE_ASSETS = [
   './',
   './index.html',
-  './3-fold-cord-logo.png',
-  './three-fold-bookmark.png',
+  './principles-in-practice-logo.png',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'

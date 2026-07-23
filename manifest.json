@@ -1,7 +1,7 @@
 {
-  "name": "Problem? Solved! & 3 Fold Cord",
-  "short_name": "3 Fold Cord",
-  "description": "A multiplayer card game with 3 Fold Cord cooperative play and Problem? Solved! competitive play.",
+  "name": "Problem? Solved! & Principles in Practice",
+  "short_name": "Problem Solved",
+  "description": "A multiplayer card game with Principles in Practice cooperative play and Problem? Solved! competitive play.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

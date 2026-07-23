@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#b9a36a">
-  <meta name="description" content="A 2–6 player multiplayer card game with 3 Fold Cord co-op and Problem? Solved! player-vs-player modes.">
+  <meta name="description" content="A 2–6 player multiplayer card game with Principles in Practice co-op and Problem? Solved! player-vs-player modes.">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <title>Problem? Solved! & 3 Fold Cord — Multiplayer Card Game</title>
+  <title>Problem? Solved! & Principles in Practice — Multiplayer Card Game</title>
   <style>
     :root {
       --yellow: #f2c62c;
@@ -497,10 +497,11 @@
     }
     .coop-logo-home {
       display:block;
-      width:min(100%,290px);
-      max-height:280px;
+      width:min(100%,230px);
+      aspect-ratio:1;
       object-fit:contain;
-      border-radius:18px;
+      border-radius:50%;
+      filter:drop-shadow(0 8px 12px rgba(54,42,21,.18));
     }
     .brand-or {
       width:48px;
@@ -553,7 +554,7 @@
     }
 
 
-    /* 3 Fold Cord cooperative identity */
+    /* Principles in Practice cooperative identity */
     .setup-help { margin: 6px 0 2px; line-height: 1.35; }
     .selected-deck-ready {
       margin-top: 14px;
@@ -866,7 +867,7 @@
         radial-gradient(circle at 88% 12%, rgba(142,175,186,.18), transparent 30%),
         #fffaf0;
     }
-    .mode-invite-hero.coop img { display: block; width: min(100%, 330px); max-height: 300px; margin: -12px auto -20px; object-fit: contain; }
+    .mode-invite-hero.coop img { display:block; width:min(100%,210px); aspect-ratio:1; margin:0 auto 8px; object-fit:contain; border-radius:50%; filter:drop-shadow(0 7px 10px rgba(54,42,21,.16)); }
     .mode-invite-hero.pvp {
       color: var(--ink);
       border: 4px solid var(--ink);
@@ -906,7 +907,7 @@
       border: 1px solid #c9b894;
       background: rgba(255,250,240,.97);
     }
-    .guest-waiting-brand.coop img { display: block; width: min(100%, 300px); max-height: 235px; margin: -20px auto -25px; object-fit: contain; }
+    .guest-waiting-brand.coop img { display:block; width:min(100%,180px); aspect-ratio:1; margin:0 auto 8px; object-fit:contain; border-radius:50%; filter:drop-shadow(0 7px 10px rgba(54,42,21,.16)); }
     .guest-waiting-brand.pvp { color: var(--ink); border: 4px solid var(--ink); background: var(--cream); }
     .guest-waiting-brand h1 { margin: 4px 0 5px; font-size: clamp(1.8rem, 8vw, 3rem); }
     .guest-waiting-brand p { margin: 0; }
@@ -941,7 +942,7 @@
 
   
     /* =========================================================
-       3 FOLD CORD VINTAGE TABLETOP REDESIGN — v8
+       PRINCIPLES IN PRACTICE VINTAGE TABLETOP REDESIGN — v8
        ========================================================= */
     body.coop-game {
       --forest: #102f1e;
@@ -999,9 +1000,9 @@
       flex: 0 0 70px;
       min-height: 70px;
       display: grid;
-      grid-template-columns: 46px 48px minmax(0,1fr) 78px;
+      grid-template-columns: 46px 44px minmax(0,1fr) 72px;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       padding: 4px 7px;
       color: #efd28d;
       border-bottom: 1px solid rgba(218,182,92,.35);
@@ -1027,9 +1028,12 @@
     }
 
     .coop-bookmark-logo {
-      width: 42px;
-      height: 62px;
-      object-fit: contain;
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border: 1px solid rgba(232,202,126,.72);
+      border-radius: 50%;
+      background: #f7ead0;
       filter: drop-shadow(0 3px 3px rgba(0,0,0,.45));
     }
 
@@ -1041,10 +1045,11 @@
     }
     .coop-vintage-title strong {
       color: #f1d28a;
-      font-size: clamp(1.2rem, 5vw, 1.72rem);
-      font-weight: 500;
-      letter-spacing: .025em;
-      white-space: nowrap;
+      font-size: clamp(.92rem, 4vw, 1.22rem);
+      font-weight: 600;
+      line-height: .94;
+      letter-spacing: .015em;
+      white-space: normal;
       text-shadow: 0 2px 0 #563b15;
     }
     .coop-vintage-title span {
@@ -1284,7 +1289,7 @@
         #f1d795;
     }
     body.coop-game .play-card.problem::after {
-      content: "❧  ───  braided together  ───  ❧";
+      content: "❧  ───  ❦  ───  ❧";
       height: auto;
       border: 0;
       transform: none;
@@ -1329,18 +1334,22 @@
     }
     .coop-card-back::after { content: ""; }
     .coop-back-bookmark {
-      width: 72px;
-      height: 118px;
+      width: 108px;
+      height: 108px;
       object-fit: contain;
-      filter: drop-shadow(0 3px 2px rgba(0,0,0,.38));
+      border-radius: 50%;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.38));
     }
-    .coop-back-mark strong {
-      color: #ecd28e;
-      font-size: 1rem;
-      font-weight: 500;
-      letter-spacing: .05em;
+    .coop-back-mark strong { display:none; }
+    .coop-back-mark small {
+      display:block;
+      margin-top:8px;
+      color:#dfc47d;
+      font-size:.62rem;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
-    .coop-back-mark small { color: #bca56a; font-size: .58rem; }
 
     body.coop-game .shared-stage {
       min-height: 86px;
@@ -1383,7 +1392,7 @@
       border: 1px solid #c29135;
       border-radius: 7px;
       background:
-        url("./three-fold-bookmark.png") center / 22px auto no-repeat,
+        url("./principles-in-practice-logo.png") center / 44px auto no-repeat,
         radial-gradient(circle at 50% 45%, rgba(220,181,80,.12), transparent 35%),
         #0e3420;
       box-shadow: 0 3px 0 #071c11, 0 5px 8px rgba(0,0,0,.22);
@@ -1832,9 +1841,9 @@
     }
 
     @media (max-width: 390px) {
-      .coop-vintage-header { grid-template-columns: 42px 40px minmax(0,1fr) 70px; gap: 5px; }
-      .coop-bookmark-logo { width: 36px; height: 56px; }
-      .coop-vintage-title strong { font-size: 1.18rem; }
+      .coop-vintage-header { grid-template-columns: 42px 38px minmax(0,1fr) 68px; gap: 4px; }
+      .coop-bookmark-logo { width: 34px; height: 34px; }
+      .coop-vintage-title strong { font-size: .92rem; }
       body.coop-game .hand-card { --fan-x: calc(var(--offset) * 55px); width: min(46vw, 176px); }
       .dock-button { font-size: .72rem; }
       .dock-button.play { font-size: .91rem; }
@@ -1851,7 +1860,7 @@
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="top-brands"><div class="mini-logo" aria-label="Problem Solved"><span>Problem?</span><span>Solved!</span></div><span class="brand-divider">•</span><span class="coop-mini">3 Fold Cord</span></div>
+      <div class="top-brands"><div class="mini-logo" aria-label="Problem Solved"><span>Problem?</span><span>Solved!</span></div><span class="brand-divider">•</span><span class="coop-mini">Principles in Practice</span></div>
       <div id="connectionPill" class="connection-pill">Not connected</div>
     </header>
 
@@ -1867,16 +1876,15 @@
           </div>
           <div class="brand-or" aria-hidden="true">OR</div>
           <div class="brand-option">
-            <img class="coop-logo-home" src="./3-fold-cord-logo.png" alt="3 Fold Cord — Discuss, Discover, Grow Together">
+            <img class="coop-logo-home" src="./principles-in-practice-logo.png" alt="Principles in Practice">
             <div class="brand-mode-label">Co-op</div>
           </div>
         </div>
-        <p class="tagline">Build one deck together, then choose how your group wants to play.</p>
       </div>
 
       <div class="panel">
-        <h2>Play 3 Fold Cord or Problem? Solved! with 2–6 devices</h2>
-        <p class="muted">One person hosts. Everyone else joins with a six-character room code. The host then chooses <strong>3 Fold Cord</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
+        <h2>Play Principles in Practice or Problem? Solved! with 2–6 devices</h2>
+        <p class="muted">One person hosts. Everyone else joins with a six-character room code. The host then chooses <strong>Principles in Practice</strong> for cooperative play or <strong>Problem? Solved!</strong> for player-vs-player play.</p>
         <div class="grid-2">
           <div class="choice">
             <h3>Create a room</h3>
@@ -1910,10 +1918,10 @@
     <section id="inviteJoinScreen" class="screen">
       <div class="invite-shell">
         <div id="inviteCoopHero" class="mode-invite-hero coop">
-          <img src="./3-fold-cord-logo.png" alt="3 Fold Cord — Discuss, Discover, Grow Together">
+          <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
           <span class="invite-mode-chip">Cooperative game</span>
-          <h1>Join 3 Fold Cord</h1>
-          <p>Enter the room code your host shared. You will go directly into the 3 Fold Cord waiting room.</p>
+          <h1>Join Principles in Practice</h1>
+          <p>Enter the room code your host shared. You will go directly into the Principles in Practice waiting room.</p>
         </div>
         <div id="invitePvpHero" class="mode-invite-hero pvp hidden">
           <div class="invite-pvp-logo" aria-label="Problem Solved">
@@ -1950,14 +1958,14 @@
           <strong id="roomCodeDisplay" class="room-code">------</strong>
           <div class="host-invite-actions">
             <button id="copyCodeBtn" type="button" class="btn cream small">Copy Code</button>
-            <button id="shareInviteBtn" type="button" class="btn teal small">Share 3 Fold Cord Invite</button>
+            <button id="shareInviteBtn" type="button" class="btn teal small">Share Principles in Practice Invite</button>
           </div>
-          <p id="inviteLinkHint" class="invite-helper">The shared link opens only the 3 Fold Cord join page. Your room code is included in the invitation message.</p>
+          <p id="inviteLinkHint" class="invite-helper">The shared link opens only the Principles in Practice join page. Your room code is included in the invitation message.</p>
         </div>
         <div class="metric-grid">
           <div class="metric"><strong id="roomPlayerCount">1</strong><span>Players</span></div>
           <div class="metric"><strong>6</strong><span>Maximum</span></div>
-          <div class="metric"><strong id="roomModeMetric">3 Fold Cord</strong><span>Game Mode</span></div>
+          <div class="metric"><strong id="roomModeMetric">Principles in Practice</strong><span>Game Mode</span></div>
         </div>
         <h2>Players in the room</h2>
         <div id="roomPlayers" class="player-grid"></div>
@@ -1967,7 +1975,7 @@
         <h2>Choose how to play</h2>
         <label for="playStyleSelect">Play style</label>
         <select id="playStyleSelect">
-          <option value="coop" selected>3 Fold Cord — play cards, discuss, and reach 12 team points</option>
+          <option value="coop" selected>Principles in Practice — play cards, discuss, and reach 12 team points</option>
           <option value="pvp">Problem? Solved! — best solution earns the point</option>
         </select>
         <label for="handSizeInput">Starting Solution Cards per player</label>
@@ -2004,9 +2012,8 @@
     <section id="guestWaitingScreen" class="screen">
       <div class="guest-waiting-shell">
         <div id="guestWaitingCoopBrand" class="guest-waiting-brand coop">
-          <img src="./3-fold-cord-logo.png" alt="3 Fold Cord">
-          <h1>3 Fold Cord Waiting Room</h1>
-          <p>Discuss • Discover • Grow Together</p>
+          <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
+          <h1>Principles in Practice Waiting Room</h1>
         </div>
         <div id="guestWaitingPvpBrand" class="guest-waiting-brand pvp hidden">
           <div class="invite-pvp-logo" aria-label="Problem Solved">
@@ -2099,12 +2106,11 @@
 
 
     <section id="gameScreen" class="screen">
-      <div id="coopGameBrand" class="coop-vintage-header hidden" aria-label="3 Fold Cord cooperative mode">
+      <div id="coopGameBrand" class="coop-vintage-header hidden" aria-label="Principles in Practice cooperative mode">
         <button id="coopMenuBtn" class="coop-menu-button" type="button" aria-label="Open game menu">☰</button>
-        <img class="coop-bookmark-logo" src="./three-fold-bookmark.png" alt="">
+        <img class="coop-bookmark-logo" src="./principles-in-practice-logo.png" alt="">
         <div class="coop-vintage-title">
-          <strong>3 Fold Cord</strong>
-          <span>Ecclesiastes 4:12</span>
+          <strong>Principles in Practice</strong>
         </div>
         <div class="coop-points-box">
           <span>Points</span>
@@ -2185,13 +2191,13 @@
     <ol class="rules-list">
       <li>A room supports <strong>2–6 players</strong>, each on their own device. The host chooses the starting hand size.</li>
       <li>Typing is used only during <strong>Build Together</strong>, when everyone can add Problem and Solution Cards to the deck.</li>
-      <li><strong>3 Fold Cord:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text first and reads it aloud. Every player then privately plays exactly one Solution Card from their hand.</li>
+      <li><strong>Principles in Practice:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text first and reads it aloud. Every player then privately plays exactly one Solution Card from their hand.</li>
       <li>After everyone plays, the Solution Cards are revealed in the shared play area. Players explain aloud how the cards could help and what principles support them. The round ends with a brief outcome banner rather than a separate reveal screen.</li>
       <li>Everyone votes <strong>Agree</strong>, <strong>Disagree</strong>, or <strong>Needs More Discussion</strong>. All Agree earns one team point. Any Disagree ends the round with no point. Needs More Discussion keeps the same cards and Problem open for another discussion and vote.</li>
       <li>Played cards are discarded after an Agree or Disagree result, and every player draws back up to the host-selected hand size. The team wins when it reaches <strong>12 points</strong>.</li>
       <li><strong>Problem? Solved!:</strong> One Problem Picker draws. Everyone else secretly plays one Solution Card. The Picker chooses the best anonymous card; that player earns one point. First to five points wins.</li>
     </ol>
-    <p class="muted">Saved games store the custom card deck. The host can use the same deck for 3 Fold Cord or Problem? Solved! each time.</p>
+    <p class="muted">Saved games store the custom card deck. The host can use the same deck for Principles in Practice or Problem? Solved! each time.</p>
     <button id="closeRulesBtn" class="btn primary wide" type="button">Got It</button>
   </dialog>
 
@@ -2438,7 +2444,7 @@
       document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
       ui.inviteCoopHero.classList.toggle('hidden', inviteMode !== 'coop');
       ui.invitePvpHero.classList.toggle('hidden', inviteMode !== 'pvp');
-      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Enter the 3 Fold Cord game' : 'Enter the Problem? Solved! game';
+      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Enter the Principles in Practice game' : 'Enter the Problem? Solved! game';
       ui.inviteJoinRoomBtn.className = `btn ${inviteMode === 'coop' ? 'teal' : 'primary'} wide`;
       const suppliedCode = cleanCode(entryParams.get('code') || '');
       if (suppliedCode && !ui.inviteJoinCode.value) ui.inviteJoinCode.value = suppliedCode;
@@ -2487,7 +2493,7 @@
         }],
         settings: {
           playMode: 'coop',
-          playModeLabel: '3 Fold Cord',
+          playModeLabel: 'Principles in Practice',
           mode: 'build',
           modeLabel: 'Build Together',
           savedDeckId: '',
@@ -2883,7 +2889,7 @@
         const meta = metaSnapshot.val();
         const expectedMode = inviteMode || null;
         if (expectedMode && meta.playMode && expectedMode !== meta.playMode) {
-          const requested = expectedMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+          const requested = expectedMode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
           throw new Error(`This invitation is not for the room's current mode. Ask the host for a ${requested} invitation.`);
         }
         if (meta.phase !== 'room') throw new Error('This game has already started.');
@@ -2909,7 +2915,7 @@
           hostId: meta.hostUid,
           settings: {
             playMode: meta.playMode || expectedMode || 'coop',
-            playModeLabel: (meta.playMode || expectedMode) === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'
+            playModeLabel: (meta.playMode || expectedMode) === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice'
           },
           players: Object.values(players).concat(players[myPlayerId] ? [] : [{ id: myPlayerId, name, connected: true }])
         };
@@ -3099,7 +3105,7 @@
       if (building) {
         ui.startRoomBtn.textContent = `Start ${seconds / 60}-Minute Build`;
       } else {
-        const gameName = state?.settings?.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+        const gameName = state?.settings?.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
         ui.startRoomBtn.textContent = `Start ${gameName}`;
         const selectedLabel = (ui.roomModeSelect.selectedOptions?.[0]?.textContent || 'Selected deck').replace(/^Saved:\s*/i, '');
         ui.selectedDeckReadyTitle.textContent = `${selectedLabel} ready`;
@@ -3111,7 +3117,7 @@
       if (!isHost || state?.phase !== 'room') return;
       const playMode = ui.playStyleSelect.value === 'pvp' ? 'pvp' : 'coop';
       state.settings.playMode = playMode;
-      state.settings.playModeLabel = playMode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+      state.settings.playModeLabel = playMode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
 
       const value = ui.roomModeSelect.value;
       pendingHostDeckSelection = value;
@@ -3434,7 +3440,7 @@
 
 
     function hostPlaySolution(actorId, instanceId, explanation) {
-      if (isCoopMode()) return rejectAction(actorId, 'Choose a Solution Card from your hand for this 3 Fold Cord round.');
+      if (isCoopMode()) return rejectAction(actorId, 'Choose a Solution Card from your hand for this Principles in Practice round.');
       if (state.phase !== 'play' || state.game.phase !== 'submit') return rejectAction(actorId, 'Solutions are not being accepted right now.');
       if (!activeSolverIds().includes(actorId)) return rejectAction(actorId, 'The Problem Picker does not play a Solution Card this round.');
       if (state.game.submissions[actorId]) return rejectAction(actorId, 'You already played a card this round.');
@@ -3472,7 +3478,7 @@
 
 
     function hostSubmitCoop(actorId, instanceId) {
-      if (!isCoopMode()) return rejectAction(actorId, 'This is not a 3 Fold Cord round.');
+      if (!isCoopMode()) return rejectAction(actorId, 'This is not a Principles in Practice round.');
       if (state.phase !== 'play' || state.game.phase !== 'submit') return rejectAction(actorId, 'Solution Cards are not being accepted right now.');
       if (!activeGamePlayerIds().includes(actorId)) return;
       if (state.game.submissions[actorId]) return rejectAction(actorId, 'You already played a card this round.');
@@ -3719,11 +3725,11 @@
       showScreen('roomScreen');
       setConnection('Room open', 'waiting');
       ui.roomPlayerCount.textContent = connectedPlayers().length;
-      ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+      ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
       renderPlayerTiles(ui.roomPlayers);
       ui.hostRoomControls.classList.remove('hidden');
       ui.guestRoomControls.classList.add('hidden');
-      const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord';
+      const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
       ui.shareInviteBtn.textContent = `Share ${inviteLabel} Invite`;
       ui.inviteLinkHint.textContent = `The shared link opens only the ${inviteLabel} join page. Your room code is included in the invitation message.`;
 
@@ -3752,7 +3758,7 @@
       document.body.classList.toggle('coop-game', coop);
       document.body.classList.toggle('pvp-game', !coop);
       showScreen('guestWaitingScreen');
-      setConnection(`${coop ? '3 Fold Cord' : 'Problem? Solved!'} connected`, 'online');
+      setConnection(`${coop ? 'Principles in Practice' : 'Problem? Solved!'} connected`, 'online');
       ui.guestWaitingCoopBrand.classList.toggle('hidden', !coop);
       ui.guestWaitingPvpBrand.classList.toggle('hidden', coop);
       ui.guestWaitingRoomCode.textContent = state.roomCode;
@@ -3823,7 +3829,7 @@
       ui.saveDeckBtn.disabled = !ready;
       ui.exportDeckBtn.disabled = !ready;
       ui.saveDeckBtn.textContent = state.builder.savedAt ? 'Save Updated Game' : 'Save Game';
-      ui.startCustomGameBtn.textContent = `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : '3 Fold Cord'}`;
+      ui.startCustomGameBtn.textContent = `Start ${state.settings.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice'}`;
     }
 
     function renderDeckRows(cards, kind) {
@@ -3851,7 +3857,7 @@
 
     function cardBack(label) {
       if (isCoopMode()) {
-        return `<article class="play-card card-back coop-card-back"><img class="coop-back-bookmark" src="./three-fold-bookmark.png" alt=""><div class="coop-back-mark"><strong>3 Fold Cord</strong><small>${escapeHtml(label)}</small></div></article>`;
+        return `<article class="play-card card-back coop-card-back"><img class="coop-back-bookmark" src="./principles-in-practice-logo.png" alt=""><div class="coop-back-mark"><small>${escapeHtml(label)}</small></div></article>`;
       }
       return `<article class="play-card card-back"><div class="back-mark"><strong>PROBLEM?</strong><em>SOLVED!</em><small>${escapeHtml(label)}</small></div></article>`;
     }
@@ -3862,7 +3868,7 @@
       const maySeePrivateProblem = !coop || isMyTurnAsPicker();
       const showProblem = Boolean(game.problemId && maySeePrivateProblem);
 
-      // In 3 Fold Cord, the Problem Card is private to the player who drew it.
+      // In Principles in Practice, the Problem Card is private to the player who drew it.
       // The host also uses the full private room state, so this viewer-side check
       // is required to prevent the host from seeing another player's card.
       document.body.classList.toggle('coop-problem-private', coop && !showProblem);
@@ -3887,14 +3893,14 @@
       const coop = isCoopMode();
       document.body.classList.toggle('coop-game', coop);
       document.body.classList.toggle('pvp-game', !coop);
-      setConnection(`${coop ? '3 Fold Cord' : 'Problem? Solved!'} connected`, 'online');
+      setConnection(`${coop ? 'Principles in Practice' : 'Problem? Solved!'} connected`, 'online');
       const game = state.game;
       const leaderId = currentPickerId();
       document.body.classList.toggle('coop-vote-phase', coop && game.phase === 'coopVote');
       if ((!coop || game.phase !== 'coopVote') && ui.playedCardsDialog.open) ui.playedCardsDialog.close();
       ui.coopGameBrand.classList.toggle('hidden', !coop);
       renderPlayerTiles(ui.gamePlayers, { pickerId: leaderId });
-      ui.roundBadge.textContent = `Round ${game.round} • ${coop ? '3 Fold Cord' : 'Problem? Solved!'}`;
+      ui.roundBadge.textContent = `Round ${game.round} • ${coop ? 'Principles in Practice' : 'Problem? Solved!'}`;
 
       ui.coopScoreGrid.classList.toggle('hidden', !coop);
       ui.pvpScorePanel.classList.toggle('hidden', coop);
@@ -4418,7 +4424,7 @@
         document.body.classList.add('coop-game');
         document.body.classList.remove('pvp-game');
         ui.endIcon.textContent = '12';
-        ui.endTitle.textContent = '3 Fold Cord Complete!';
+        ui.endTitle.textContent = 'Principles in Practice Complete!';
         ui.endText.textContent = `Your team reached ${state.game.goal} agreed solutions in ${state.game.round} rounds using “${state.activeDeck.name}.”`;
       }
       ui.playAgainBtn.classList.toggle('hidden', !isHost);
@@ -4459,7 +4465,7 @@
     async function shareRoomInvite() {
       if (!isHost || state?.phase !== 'room') return;
       const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
-      const label = mode === 'coop' ? '3 Fold Cord' : 'Problem? Solved!';
+      const label = mode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
       const url = inviteUrlForMode(mode);
       const message = `You’re invited to play ${label}!\n\nTo join the game, use this code: ${roomCode}\n\nGo to this link:\n${url}\n\nEnter your name and tap Join Waiting Room.`;
       try {
