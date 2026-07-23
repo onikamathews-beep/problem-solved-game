@@ -4,11 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#b9a36a">
-  <meta name="description" content="A 2–6 player multiplayer card game with Principles in Practice co-op and Problem? Solved! player-vs-player modes.">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <title>Problem? Solved! & Principles in Practice — Multiplayer Card Game</title>
+  <meta name="description" content="Play Principles in Practice cooperative mode or Problem? Solved! competitive mode with 2–6 players.">
+  <meta name="application-name" content="Principles in Practice & Problem? Solved!">
+  <meta property="og:title" content="Principles in Practice & Problem? Solved!">
+  <meta property="og:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="./principles-in-practice-logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
+  <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
+  <link rel="manifest" href="./manifest.json?v=19">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=19">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=19">
+  <title>Principles in Practice & Problem? Solved! — Multiplayer Card Game</title>
   <style>
     :root {
       --yellow: #f2c62c;
@@ -2598,6 +2606,18 @@
     const ACTIVE_ROOM_KEY = 'problemSolved.activeFirebaseRoom.v1';
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
+
+    // Keep the browser tab, address-bar suggestion, and shared-page branding aligned
+    // with the mode the person is actually opening.
+    if (inviteMode === 'coop') {
+      document.title = 'Principles in Practice — Join Game';
+      document.querySelector('meta[name="description"]')?.setAttribute('content', 'Join a Principles in Practice cooperative card game.');
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Principles in Practice — Join Game');
+    } else if (inviteMode === 'pvp') {
+      document.title = 'Problem? Solved! — Join Game';
+      document.querySelector('meta[name="description"]')?.setAttribute('content', 'Join a Problem? Solved! competitive card game.');
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Problem? Solved! — Join Game');
+    }
 
     function uid(prefix = 'id') {
       const random = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
