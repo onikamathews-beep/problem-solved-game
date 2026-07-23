@@ -1855,6 +1855,219 @@
         grid-template-rows: auto 0 minmax(74px, auto) !important;
       }
     }
+  
+
+    /* v18: Roomier shared table, properly centered played cards, and tap-to-confirm play. */
+    body.coop-game.coop-vote-phase .table-area {
+      grid-template-rows: auto 0 minmax(250px, 1fr);
+      gap: 9px;
+    }
+    body.coop-game.coop-vote-phase .problem-stage {
+      min-height: 0 !important;
+      height: 0 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden;
+    }
+    body.coop-game.coop-vote-phase .shared-stage {
+      min-height: 250px;
+      height: 100%;
+      padding: 34px 18px 18px;
+      overflow: visible;
+    }
+    body.coop-game.coop-vote-phase .hand-wrap {
+      flex-basis: 66px !important;
+    }
+    .played-solutions-shell {
+      width: 100%;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+    .played-card-pull {
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 5px 16px;
+      font-size: .74rem;
+    }
+    .played-solutions {
+      position: relative;
+      width: 100%;
+      height: clamp(190px, 31vh, 270px);
+      display: block;
+      overflow: visible;
+    }
+    .played-solution-card {
+      position: absolute;
+      left: 50%;
+      bottom: 10px;
+      width: clamp(112px, 31vw, 154px);
+      min-height: clamp(170px, 36vw, 216px);
+      padding: 24px 12px 18px;
+      transform: translateX(calc(-50% + var(--card-spread, 0px))) rotate(var(--card-tilt, 0deg));
+      z-index: var(--card-z, 1);
+      animation: revealPlayedCard .38s cubic-bezier(.18,.82,.22,1) both;
+    }
+    @keyframes revealPlayedCard {
+      from {
+        opacity: 0;
+        transform: translateX(calc(-50% + var(--card-spread, 0px))) translateY(28px) scale(.88) rotate(var(--card-tilt, 0deg));
+      }
+      to {
+        opacity: 1;
+        transform: translateX(calc(-50% + var(--card-spread, 0px))) translateY(0) scale(1) rotate(var(--card-tilt, 0deg));
+      }
+    }
+    .played-card-text {
+      font-size: clamp(.82rem, 3.4vw, 1rem);
+      line-height: 1.18;
+    }
+
+    /* Only voting controls remain once a game has started. */
+    body.coop-game .coop-action-dock:not(.voting) { display: none !important; }
+    body.coop-game .coop-action-dock.voting {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.32fr;
+    }
+
+    .hand-gesture-hint {
+      padding-inline: 8px;
+      font-style: italic;
+      opacity: .88;
+    }
+
+    .play-card-confirm-dialog {
+      width: min(390px, calc(100vw - 24px));
+      max-width: 390px;
+      margin: auto;
+      padding: 0;
+      border: 1px solid #b98e3c;
+      border-radius: 20px;
+      color: #20351f;
+      background:
+        repeating-linear-gradient(20deg, rgba(92,62,29,.018) 0 1px, transparent 1px 5px),
+        #f7e8c8;
+      box-shadow: 0 24px 70px rgba(0,0,0,.52), inset 0 0 0 2px rgba(255,255,255,.44);
+      overflow: hidden;
+    }
+    .play-card-confirm-dialog::backdrop {
+      background: rgba(3,15,9,.72);
+      backdrop-filter: blur(3px);
+    }
+    .play-card-confirm-shell {
+      position: relative;
+      padding: 24px 18px 18px;
+      display: grid;
+      justify-items: center;
+      gap: 15px;
+      text-align: center;
+    }
+    .play-card-confirm-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #9c7838;
+      border-radius: 10px;
+      color: #f4dda3;
+      background: #102f1e;
+      font-size: 1.25rem;
+    }
+    .play-card-confirm-copy h2 {
+      margin: 0 34px 3px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.45rem;
+    }
+    .play-card-confirm-copy p {
+      margin: 0;
+      color: #6f5a38;
+      font-size: .9rem;
+    }
+    .confirm-card-preview {
+      width: min(58vw, 210px);
+      min-height: 260px;
+      padding: 42px 24px 34px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #9f7837;
+      border-radius: 15px;
+      color: #20351f;
+      background:
+        linear-gradient(90deg, transparent 0 12px, rgba(112,77,30,.13) 12px 13px, transparent 13px calc(100% - 13px), rgba(112,77,30,.13) calc(100% - 13px) calc(100% - 12px), transparent calc(100% - 12px)),
+        linear-gradient(0deg, transparent 0 12px, rgba(112,77,30,.13) 12px 13px, transparent 13px calc(100% - 13px), rgba(112,77,30,.13) calc(100% - 13px) calc(100% - 12px), transparent calc(100% - 12px)),
+        repeating-linear-gradient(20deg, rgba(92,62,29,.017) 0 1px, transparent 1px 5px),
+        #f8e9c8;
+      box-shadow: 0 6px 0 #735024, 0 12px 26px rgba(0,0,0,.25);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    .confirm-card-preview::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      background: url("./ornate-portrait-frame.svg") center / 100% 100% no-repeat;
+      opacity: .9;
+      pointer-events: none;
+    }
+    .confirm-card-preview::after {
+      content: "❧  ──  ❦  ──  ❧";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 14px;
+      color: #87672f;
+      font-size: .56rem;
+      opacity: .78;
+    }
+    .confirm-card-kicker,
+    #confirmPlayCardText { position: relative; z-index: 2; }
+    .confirm-card-kicker {
+      color: #6c542b;
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    #confirmPlayCardText {
+      font-size: 1.24rem;
+      line-height: 1.22;
+    }
+    .play-card-confirm-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .confirm-secondary,
+    .confirm-primary {
+      min-height: 48px;
+      border-radius: 13px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: .92rem;
+      font-weight: 700;
+    }
+    .confirm-secondary {
+      border: 1px solid #8d6b35;
+      color: #2b3c27;
+      background: #fff6df;
+      box-shadow: 0 3px 0 #9d7940;
+    }
+    .confirm-primary {
+      border: 1px solid #dfb454;
+      color: #fff3d1;
+      background: linear-gradient(160deg, #c79a3d, #986b22);
+      box-shadow: 0 4px 0 #563712;
+    }
+    .confirm-primary:disabled { opacity: .5; }
+
   </style>
 </head>
 <body>
@@ -2119,7 +2332,6 @@
       </div>
 
       <div id="coopMenuSheet" class="coop-menu-sheet hidden">
-        <button id="coopMenuRulesBtn" class="coop-sheet-button" type="button">Rules</button>
         <button id="coopLeaveBtn" class="coop-sheet-button danger" type="button">Leave Game</button>
       </div>
 
@@ -2155,16 +2367,13 @@
           <span id="handHelp" class="muted">Swipe left or right.</span>
         </div>
         <div id="hand" class="hand" aria-label="Your hand of Solution Cards"></div>
-        <div class="hand-gesture-hint"><span>‹</span> Swipe left or right <span>›</span></div>
+        <div class="hand-gesture-hint"><span>‹</span> Swipe left or right, or up and down <span>›</span></div>
       </div>
 
-      <div id="coopActionDock" class="coop-action-dock">
-        <button id="collapseHandBtn" class="dock-button" type="button"><span aria-hidden="true">⌃</span> Collapse</button>
-        <button id="playFocusedCardBtn" class="dock-button play" type="button" disabled>Play This Card</button>
-        <button id="gameRulesBtn" class="dock-button" type="button"><span aria-hidden="true">▤</span> Rules</button>
-        <button id="dockAgreeCoopBtn" class="dock-vote-button agree hidden" type="button">Agree</button>
-        <button id="dockDisagreeCoopBtn" class="dock-vote-button disagree hidden" type="button">Disagree</button>
-        <button id="dockDiscussCoopBtn" class="dock-vote-button discuss hidden" type="button">Needs More<br>Discussion</button>
+      <div id="coopActionDock" class="coop-action-dock hidden">
+        <button id="dockAgreeCoopBtn" class="dock-vote-button agree" type="button">Agree</button>
+        <button id="dockDisagreeCoopBtn" class="dock-vote-button disagree" type="button">Disagree</button>
+        <button id="dockDiscussCoopBtn" class="dock-vote-button discuss" type="button">Needs More<br>Discussion</button>
       </div>
 
       <div class="pvp-footer-actions">
@@ -2215,6 +2424,24 @@
       <div id="playedViewerCounter">Card 1 of 1</div>
       <div id="playedViewerDots" class="played-viewer-dots" aria-hidden="true"></div>
       <div>Swipe left or right to review every card. Flick down or tap × to close.</div>
+    </div>
+  </dialog>
+
+  <dialog id="playCardConfirmDialog" class="play-card-confirm-dialog" aria-label="Confirm Solution Card">
+    <div class="play-card-confirm-shell">
+      <button id="closePlayCardConfirmBtn" class="play-card-confirm-close" type="button" aria-label="Close">×</button>
+      <div class="play-card-confirm-copy">
+        <h2>Play this card?</h2>
+        <p>It will be placed face down in the shared play area.</p>
+      </div>
+      <article class="confirm-card-preview">
+        <span class="confirm-card-kicker">◆ &nbsp; Solution</span>
+        <strong id="confirmPlayCardText"></strong>
+      </article>
+      <div class="play-card-confirm-actions">
+        <button id="cancelPlayCardBtn" class="confirm-secondary" type="button">Keep Browsing</button>
+        <button id="confirmPlayCardBtn" class="confirm-primary" type="button">Play Card</button>
+      </div>
     </div>
   </dialog>
 
@@ -2350,6 +2577,7 @@
     let roomCode = '';
     let state = null;
     let selectedSolutionInstanceId = null;
+    let pendingConfirmInstanceId = null;
     let handFocusIndex = 0;
     let handCollapsed = false;
     let toastTimer = null;
@@ -3897,7 +4125,9 @@
       const game = state.game;
       const leaderId = currentPickerId();
       document.body.classList.toggle('coop-vote-phase', coop && game.phase === 'coopVote');
+      if (ui.rulesDialog.open) ui.rulesDialog.close();
       if ((!coop || game.phase !== 'coopVote') && ui.playedCardsDialog.open) ui.playedCardsDialog.close();
+      if ((!coop || game.phase !== 'submit' || hasSubmittedCoopCard(game)) && ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.close();
       ui.coopGameBrand.classList.toggle('hidden', !coop);
       renderPlayerTiles(ui.gamePlayers, { pickerId: leaderId });
       ui.roundBadge.textContent = `Round ${game.round} • ${coop ? 'Principles in Practice' : 'Problem? Solved!'}`;
@@ -3922,9 +4152,15 @@
     }
 
     function renderPlayedCoopCards(entries) {
+      const count = entries.length;
+      const center = (count - 1) / 2;
+      const spacing = count <= 1 ? 0 : Math.min(72, 270 / Math.max(1, count - 1));
       return `<div class="played-solutions-shell"><button type="button" class="played-card-pull" data-open-played-index="0">⌃ Expand played cards</button><div class="played-solutions">${entries.map((item, index) => {
-        const tilt = (index - (entries.length - 1) / 2) * 3;
-        return `<button type="button" class="played-solution-card" data-open-played-index="${index}" style="--card-tilt:${tilt}deg" aria-label="Open played Solution Card ${index + 1}"><span class="played-card-text">${escapeHtml(item.text)}</span></button>`;
+        const relative = index - center;
+        const tilt = relative * 4;
+        const spread = relative * spacing;
+        const z = 50 - Math.abs(relative);
+        return `<button type="button" class="played-solution-card" data-open-played-index="${index}" style="--card-tilt:${tilt}deg;--card-spread:${spread}px;--card-z:${z}" aria-label="Open played Solution Card ${index + 1}"><span class="played-card-text">${escapeHtml(item.text)}</span></button>`;
       }).join('')}</div></div>`;
     }
 
@@ -4096,13 +4332,8 @@
       if (!isCoopMode()) return;
       const voting = state.game?.phase === 'coopVote';
       const voted = (state.game?.votedPlayerIds || []).includes(myPlayerId);
+      ui.coopActionDock.classList.toggle('hidden', !voting);
       ui.coopActionDock.classList.toggle('voting', voting);
-      ui.collapseHandBtn.classList.toggle('hidden', voting);
-      ui.playFocusedCardBtn.classList.toggle('hidden', voting);
-      ui.gameRulesBtn.classList.toggle('hidden', voting);
-      ui.dockAgreeCoopBtn.classList.toggle('hidden', !voting);
-      ui.dockDisagreeCoopBtn.classList.toggle('hidden', !voting);
-      ui.dockDiscussCoopBtn.classList.toggle('hidden', !voting);
       ui.dockAgreeCoopBtn.disabled = voted;
       ui.dockDisagreeCoopBtn.disabled = voted;
       ui.dockDiscussCoopBtn.disabled = voted;
@@ -4198,7 +4429,6 @@
         handFocusIndex = 0;
         selectedSolutionInstanceId = null;
         ui.hand.innerHTML = '<div class="muted center" style="padding-top:60px">Your next card is being drawn.</div>';
-        ui.playFocusedCardBtn.disabled = true;
         return;
       }
 
@@ -4206,11 +4436,10 @@
       selectedSolutionInstanceId = selectable ? hand[handFocusIndex].instanceId : null;
       const forceVoteCollapse = game.phase === 'coopVote';
       ui.handWrap.classList.toggle('collapsed', handCollapsed || forceVoteCollapse);
-      ui.collapseHandBtn.innerHTML = handCollapsed ? '<span aria-hidden="true">⌄</span> Expand' : '<span aria-hidden="true">⌃</span> Collapse';
       ui.handHelp.textContent = submitted
         ? 'Your card is on the shared table.'
         : selectable
-          ? 'Swipe left or right to choose.'
+          ? 'Swipe left or right, or up and down.'
           : 'Your cards will be ready when play begins.';
 
       const spacing = hand.length <= 5 ? 66 : Math.max(18, 270 / Math.max(1, hand.length - 1));
@@ -4222,22 +4451,29 @@
         const x = offset * spacing;
         const opacity = Math.max(.55, 1 - abs * .08);
         const z = 100 - abs;
-        return `<button type="button" class="hand-card ${index === handFocusIndex ? 'focused selected' : ''}" data-instance-id="${card.instanceId}" data-hand-index="${index}" style="--offset:${offset};--fan-x:${x}px;--fan-rot:${tilt}deg;--fan-opacity:${opacity};--fan-z:${z}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">${suits[index % suits.length]} &nbsp; Solution</span><span>${escapeHtml(card.text)}</span></button>`;
+        return `<button type="button" class="hand-card ${index === handFocusIndex ? 'focused' : ''}" data-instance-id="${card.instanceId}" data-hand-index="${index}" style="--offset:${offset};--fan-x:${x}px;--fan-rot:${tilt}deg;--fan-opacity:${opacity};--fan-z:${z}" ${selectable ? '' : 'disabled'}><span class="hand-card-kicker">${suits[index % suits.length]} &nbsp; Solution</span><span>${escapeHtml(card.text)}</span></button>`;
       }).join('');
 
       if (options.animateFromRects) animateHandToNewPositions(options.animateFromRects);
 
-      ui.hand.querySelectorAll('[data-hand-index]').forEach(button => button.addEventListener('click', event => {
-        if (ui.hand.dataset.dragging === 'true') return;
+      ui.hand.querySelectorAll('[data-hand-index]').forEach(button => button.addEventListener('click', () => {
+        if (ui.hand.dataset.dragging === 'true' || !selectable) return;
         const nextIndex = Number(button.dataset.handIndex);
         if (handCollapsed) {
           handCollapsed = false;
-          ui.handWrap.classList.remove('collapsed');
+          renderHand();
+          return;
         }
-        moveHandFocus(nextIndex);
+        const instanceId = hand[nextIndex]?.instanceId;
+        if (!instanceId) return;
+        if (nextIndex !== handFocusIndex) {
+          moveHandFocus(nextIndex);
+          window.setTimeout(() => openPlayCardConfirmation(instanceId), 280);
+        } else {
+          openPlayCardConfirmation(instanceId);
+        }
       }));
 
-      ui.playFocusedCardBtn.disabled = !selectable || !selectedSolutionInstanceId;
       installHandGestures();
     }
 
@@ -4304,8 +4540,7 @@
           clearHandDragOffset(true);
           handCollapsed = dy > 0;
           ui.handWrap.classList.toggle('collapsed', handCollapsed);
-          ui.collapseHandBtn.innerHTML = handCollapsed ? '<span aria-hidden="true">⌄</span> Expand' : '<span aria-hidden="true">⌃</span> Collapse';
-          window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 330);
+              window.setTimeout(() => { ui.hand.dataset.dragging = 'false'; }, 330);
           return;
         }
 
@@ -4325,6 +4560,56 @@
         ui.hand.classList.remove('is-dragging');
         clearHandDragOffset(true);
         ui.hand.dataset.dragging = 'false';
+      });
+    }
+
+    function openPlayCardConfirmation(instanceId) {
+      if (!isCoopMode() || state?.game?.phase !== 'submit' || hasSubmittedCoopCard()) return;
+      const hand = state.game?.hands?.[myPlayerId] || [];
+      const card = hand.find(item => item.instanceId === instanceId);
+      if (!card) return;
+      pendingConfirmInstanceId = instanceId;
+      selectedSolutionInstanceId = instanceId;
+      ui.confirmPlayCardText.textContent = card.text;
+      ui.confirmPlayCardBtn.disabled = false;
+      if (!ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.showModal();
+    }
+
+    function closePlayCardConfirmation() {
+      pendingConfirmInstanceId = null;
+      ui.confirmPlayCardBtn.disabled = false;
+      if (ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.close();
+    }
+
+    async function submitConfirmedCoopCard() {
+      const instanceId = pendingConfirmInstanceId;
+      if (!isCoopMode() || !instanceId || state?.game?.phase !== 'submit' || hasSubmittedCoopCard()) return;
+      const round = state.game?.round;
+      ui.confirmPlayCardBtn.disabled = true;
+      if (ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.close();
+      pendingConfirmInstanceId = null;
+      selectedSolutionInstanceId = instanceId;
+      animateFocusedCardToTable(async () => {
+        try {
+          if (!isHost) {
+            pendingCoopSubmission = { instanceId, round, actionId: null };
+            selectedSolutionInstanceId = null;
+            renderGame();
+          }
+          const actionId = await sendAction('submitCoop', { instanceId });
+          if (pendingCoopSubmission) pendingCoopSubmission.actionId = actionId;
+          if (isHost) {
+            selectedSolutionInstanceId = null;
+          } else {
+            const acknowledged = await waitForOutboxAcknowledgement(actionId);
+            toast(acknowledged ? 'Card received by the game.' : 'Card sent. Waiting for the host to reconnect.');
+          }
+        } catch {
+          clearPendingCoopSubmission();
+          selectedSolutionInstanceId = instanceId;
+          renderGame();
+          toast('The card could not be sent. Please try again.');
+        }
       });
     }
 
@@ -4505,10 +4790,6 @@
     ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
     ui.coopLeaveBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
     ui.coopMenuBtn.addEventListener('click', () => ui.coopMenuSheet.classList.toggle('hidden'));
-    ui.coopMenuRulesBtn.addEventListener('click', () => {
-      ui.coopMenuSheet.classList.add('hidden');
-      ui.rulesDialog.showModal();
-    });
     ui.dockAgreeCoopBtn.addEventListener('click', () => sendAction('voteCoop', { vote: 'agree' }));
     ui.dockDisagreeCoopBtn.addEventListener('click', () => sendAction('voteCoop', { vote: 'disagree' }));
     ui.dockDiscussCoopBtn.addEventListener('click', () => sendAction('voteCoop', { vote: 'discuss' }));
@@ -4548,37 +4829,12 @@
       playedViewerPointerStartY = null;
     });
 
-    ui.collapseHandBtn.addEventListener('click', () => {
-      handCollapsed = !handCollapsed;
-      renderHand();
-    });
-    ui.playFocusedCardBtn.addEventListener('click', () => {
-      if (!isCoopMode() || !selectedSolutionInstanceId || hasSubmittedCoopCard()) return;
-      const instanceId = selectedSolutionInstanceId;
-      const round = state.game?.round;
-      ui.playFocusedCardBtn.disabled = true;
-      animateFocusedCardToTable(async () => {
-        try {
-          if (!isHost) {
-            pendingCoopSubmission = { instanceId, round, actionId: null };
-            selectedSolutionInstanceId = null;
-            renderGame();
-          }
-          const actionId = await sendAction('submitCoop', { instanceId });
-          if (pendingCoopSubmission) pendingCoopSubmission.actionId = actionId;
-          if (isHost) {
-            selectedSolutionInstanceId = null;
-          } else {
-            const acknowledged = await waitForOutboxAcknowledgement(actionId);
-            toast(acknowledged ? 'Card received by the game.' : 'Card sent. Waiting for the host to reconnect.');
-          }
-        } catch {
-          clearPendingCoopSubmission();
-          selectedSolutionInstanceId = instanceId;
-          ui.playFocusedCardBtn.disabled = false;
-          renderGame();
-        }
-      });
+    ui.closePlayCardConfirmBtn.addEventListener('click', closePlayCardConfirmation);
+    ui.cancelPlayCardBtn.addEventListener('click', closePlayCardConfirmation);
+    ui.confirmPlayCardBtn.addEventListener('click', submitConfirmedCoopCard);
+    ui.playCardConfirmDialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      closePlayCardConfirmation();
     });
     ui.endLeaveBtn.addEventListener('click', () => resetToLobby());
 
@@ -4603,7 +4859,6 @@
     ui.playAgainBtn.addEventListener('click', () => sendAction('playAgain'));
 
     ui.rulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
-    ui.gameRulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
     ui.closeRulesBtn.addEventListener('click', () => ui.rulesDialog.close());
     ui.importDeckInput.addEventListener('change', () => importDeckFile(ui.importDeckInput.files?.[0]));
 
