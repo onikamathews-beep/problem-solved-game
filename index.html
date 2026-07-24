@@ -2545,6 +2545,43 @@
       .manager-card-actions .btn { flex-basis: 42%; }
     }
 
+
+    /* v26: Keep the revealed Problem Card visible for the entire round, including voting. */
+    body.coop-game.coop-vote-phase .table-area {
+      grid-template-rows: auto minmax(178px, auto) minmax(230px, 1fr) !important;
+      gap: 10px !important;
+    }
+    body.coop-game.coop-vote-phase .problem-stage {
+      min-height: 178px !important;
+      height: auto !important;
+      padding: 10px 8px !important;
+      margin: 0 !important;
+      overflow: visible !important;
+      visibility: visible !important;
+      display: flex !important;
+    }
+    body.coop-game.coop-vote-phase .problem-stage .play-card {
+      width: min(100%, 390px) !important;
+      min-height: 160px;
+      transform: none !important;
+    }
+    body.coop-game.coop-vote-phase .shared-stage {
+      min-height: 230px !important;
+      height: auto !important;
+      padding: 28px 12px 16px !important;
+    }
+    @media (max-width: 520px) {
+      body.coop-game.coop-vote-phase .table-area {
+        grid-template-rows: auto minmax(160px, auto) minmax(220px, 1fr) !important;
+      }
+      body.coop-game.coop-vote-phase .problem-stage {
+        min-height: 160px !important;
+      }
+      body.coop-game.coop-vote-phase .problem-stage .play-card {
+        min-height: 148px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2583,12 +2620,13 @@
             <button id="createRoomBtn" class="btn primary wide" type="button">Create Room</button>
           </div>
           <div class="choice">
-            <h3>Join a room</h3>
+            <h3>Join or rejoin a room</h3>
+            <p class="muted small-text">Joining late or returning after a disconnect? Enter the room code and use the same name you used before.</p>
             <label for="guestName">Your name</label>
             <input id="guestName" maxlength="24" autocomplete="nickname" placeholder="Player name">
             <label for="joinCode">Room code</label>
             <input id="joinCode" maxlength="6" inputmode="text" autocomplete="off" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-weight:900">
-            <button id="joinRoomBtn" class="btn teal wide" type="button">Join Room</button>
+            <button id="joinRoomBtn" class="btn teal wide" type="button">Join or Rejoin Game</button>
           </div>
         </div>
         <button id="rulesBtn" class="btn cream wide" type="button">How Multiplayer Works</button>
@@ -2611,7 +2649,7 @@
         <div id="inviteCoopHero" class="mode-invite-hero coop">
           <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
           <h1>Join Principles in Practice</h1>
-          <p>Add your name to join the group. Once you enter the room, allow a moment for the host to finish setting things up and start the game.</p>
+          <p>Add your name to join the group. Joining late or returning after a disconnect? Use the same name you used before and allow a moment for the game to bring you back in.</p>
         </div>
         <div id="invitePvpHero" class="mode-invite-hero pvp hidden">
           <div class="invite-pvp-logo" aria-label="Problem Solved">
@@ -2620,7 +2658,7 @@
           </div>
           <span class="invite-mode-chip">Player vs. Player</span>
           <h1>Join Problem? Solved!</h1>
-          <p>Enter the room code your host shared. You will go directly into the competitive waiting room.</p>
+          <p>Enter the room code your host shared. Joining late or returning after a disconnect? Use the same name you used before so the game can return you to your place.</p>
         </div>
         <div class="panel invite-form-panel">
           <h2 id="inviteJoinTitle">Enter the game</h2>
@@ -2628,7 +2666,7 @@
           <input id="inviteGuestName" maxlength="24" autocomplete="nickname" placeholder="Player name">
           <label for="inviteJoinCode">Room code</label>
           <input id="inviteJoinCode" maxlength="6" inputmode="text" autocomplete="off" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-weight:900">
-          <button id="inviteJoinRoomBtn" class="btn teal wide" type="button">Join Waiting Room</button>
+          <button id="inviteJoinRoomBtn" class="btn teal wide" type="button">Join or Rejoin Game</button>
         </div>
       </div>
     </section>
@@ -2944,6 +2982,7 @@
       </div>
 
       <div id="coopMenuSheet" class="coop-menu-sheet hidden">
+        <button id="coopShareInviteBtn" class="coop-sheet-button" type="button">Invite or Reconnect a Player</button>
         <button id="coopLeaveBtn" class="coop-sheet-button danger" type="button">Leave Game</button>
       </div>
 
@@ -2989,6 +3028,7 @@
       </div>
 
       <div class="pvp-footer-actions">
+        <button id="gameShareInviteBtn" class="btn cream small hidden" type="button">Invite or Reconnect Player</button>
         <button id="leaveGameBtn" class="btn danger small" type="button">Leave Game</button>
       </div>
     </section>
@@ -3010,7 +3050,7 @@
   <dialog id="rulesDialog">
     <h2>How Both Game Modes Work</h2>
     <ol class="rules-list">
-      <li>A room supports <strong>2–6 players</strong>, each on their own device. The host chooses the starting hand size.</li>
+      <li>A room supports <strong>2–6 players</strong>, each on their own device. Players can rejoin with the room code and the same name. A new player who arrives during a round begins with the next Problem Card.</li>
       <li>Typing is used only during <strong>Build Together</strong>, when everyone can add Problem and Solution Cards to the deck.</li>
       <li><strong>Principles in Practice:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text at first. After they read it aloud, the Problem appears for everyone and remains on the table until the next Problem is drawn. Every player then privately plays exactly one Solution Card from their hand.</li>
       <li>After everyone plays, the Solution Cards are revealed in the shared play area. Players explain aloud how the cards could help and what principles support them. The round ends with a brief outcome banner rather than a separate reveal screen.</li>
@@ -3802,7 +3842,13 @@
     }
     function activeGamePlayerIds() {
       const order = state?.game?.turnOrder || [];
-      return order.filter(id => Boolean(playerById(id)));
+      const round = Number(state?.game?.round) || 1;
+      return order.filter(id => {
+        const player = playerById(id);
+        if (!player) return false;
+        const activeFromRound = Math.max(1, Number(player.activeFromRound) || 1);
+        return activeFromRound <= round;
+      });
     }
     function isCoopMode() { return (state?.game?.playMode || state?.settings?.playMode || 'coop') === 'coop'; }
     function requiredSubmitterIds() { return isCoopMode() ? activeGamePlayerIds() : activeSolverIds(); }
@@ -3812,7 +3858,7 @@
 
     function createRoomState(hostName, code, hostId) {
       return {
-        version: 14,
+        version: 15,
         roomCode: code,
         phase: 'room',
         hostId,
@@ -4029,22 +4075,120 @@
       if (message) toast(message);
     }
 
+    function normalizedPlayerName(value) {
+      return clampText(value, 24).trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+    }
+
+    function replaceObjectKey(object, oldId, newId) {
+      if (!object || oldId === newId || !Object.prototype.hasOwnProperty.call(object, oldId)) return;
+      object[newId] = object[oldId];
+      delete object[oldId];
+    }
+
+    function replacePlayerIdentity(oldId, newId, raw = {}) {
+      const player = playerById(oldId);
+      if (!player || !newId || oldId === newId) return false;
+
+      player.id = newId;
+      player.name = clampText(raw.name, 24) || player.name;
+      player.connected = raw.connected !== false;
+      player.rejoinedAt = Date.now();
+
+      for (const card of state.builder?.problems || []) if (card.authorId === oldId) card.authorId = newId;
+      for (const card of state.builder?.solutions || []) if (card.authorId === oldId) card.authorId = newId;
+
+      const game = state.game;
+      if (game) {
+        game.turnOrder = (game.turnOrder || []).map(id => id === oldId ? newId : id);
+        replaceObjectKey(game.hands, oldId, newId);
+        replaceObjectKey(game.playerScores, oldId, newId);
+        replaceObjectKey(game.submissions, oldId, newId);
+        replaceObjectKey(game.votes, oldId, newId);
+        if (game.submissions?.[newId]) game.submissions[newId].playerId = newId;
+        game.submittedPlayerIds = (game.submittedPlayerIds || []).map(id => id === oldId ? newId : id);
+        game.votedPlayerIds = (game.votedPlayerIds || []).map(id => id === oldId ? newId : id);
+        if (game.lastCardPlacedBy === oldId) game.lastCardPlacedBy = newId;
+        if (game.winnerPlayerId === oldId) game.winnerPlayerId = newId;
+        if (game.result?.pointPlayerId === oldId) game.result.pointPlayerId = newId;
+        for (const row of game.result?.reveals || []) if (row.playerId === oldId) row.playerId = newId;
+        for (const row of game.result?.votes || []) if (row.playerId === oldId) row.playerId = newId;
+      }
+
+      if (state.hostId === oldId) state.hostId = newId;
+      return true;
+    }
+
+    function addLatePlayerToCurrentGame(player) {
+      if (!state?.game || !player) return;
+      const game = state.game;
+      if (!(game.turnOrder || []).includes(player.id)) game.turnOrder.push(player.id);
+      if (!game.hands) game.hands = {};
+      if (!game.hands[player.id]) {
+        game.hands[player.id] = [];
+        for (let i = 0; i < game.handSize; i++) game.hands[player.id].push(drawSolutionInstance());
+      }
+      if (!game.playerScores) game.playerScores = {};
+      if (!Object.prototype.hasOwnProperty.call(game.playerScores, player.id)) game.playerScores[player.id] = 0;
+
+      const canEnterCurrentRound = game.phase === 'draw' && !game.problemId;
+      player.activeFromRound = canEnterCurrentRound ? game.round : game.round + 1;
+      player.joinedLate = true;
+    }
+
     function mergeFirebasePlayers(rawPlayers = {}) {
       if (!isHost || !state) return false;
       let changed = false;
-      for (const [id, raw] of Object.entries(rawPlayers || {})) {
+      const rawEntries = Object.entries(rawPlayers || {});
+      const reclaimedOldIds = new Set();
+
+      // A player may return from a different browser identity. A matching name can
+      // reclaim only a disconnected seat, so active players with similar names are
+      // never replaced.
+      for (const [newId, raw] of rawEntries) {
+        if (playerById(newId) || raw?.connected === false) continue;
+        const nameKey = normalizedPlayerName(raw?.name);
+        if (!nameKey) continue;
+        const oldPlayer = (state.players || []).find(player =>
+          player.id !== newId &&
+          player.connected === false &&
+          !reclaimedOldIds.has(player.id) &&
+          normalizedPlayerName(player.name) === nameKey
+        );
+        if (!oldPlayer) continue;
+        const oldId = oldPlayer.id;
+        if (replacePlayerIdentity(oldId, newId, raw)) {
+          reclaimedOldIds.add(oldId);
+          changed = true;
+          Promise.allSettled([
+            remove(ref(database, roomRefPath(`players/${oldId}`))),
+            remove(ref(database, roomRefPath(`views/${oldId}`))),
+            remove(ref(database, roomRefPath(`presence/${oldId}`))),
+            remove(ref(database, roomRefPath(`actions/${oldId}`)))
+          ]).catch(() => {});
+          sendNotice(newId, `Welcome back, ${oldPlayer.name}. Your place in the game has been restored.`);
+        }
+      }
+
+      for (const [id, raw] of rawEntries) {
+        if (reclaimedOldIds.has(id)) continue;
         const existing = playerById(id);
         if (!existing) {
           if ((state.players || []).length >= MAX_PLAYERS) continue;
-          state.players.push({
+          const player = {
             id,
             name: clampText(raw.name, 24) || 'Player',
             connected: raw.connected !== false,
             joinedAt: Number(raw.joinedAt) || Date.now(),
             problemsAdded: Number(raw.problemsAdded) || 0,
             solutionsAdded: Number(raw.solutionsAdded) || 0
-          });
+          };
+          state.players.push(player);
+          if (state.phase === 'play') addLatePlayerToCurrentGame(player);
           changed = true;
+          if (state.phase === 'play') {
+            const when = player.activeFromRound <= state.game.round ? 'this Problem' : 'the next Problem';
+            sendNotice(id, `Welcome, ${player.name}. You will join the active players with ${when}.`);
+          }
         } else {
           const nextConnected = raw.connected !== false;
           const nextName = clampText(raw.name, 24) || existing.name;
@@ -4234,12 +4378,14 @@
           const requested = expectedMode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
           throw new Error(`This invitation is not for the room's current mode. Ask the host for a ${requested} invitation.`);
         }
-        if (meta.phase !== 'room') throw new Error('This game has already started.');
+        if (!['room', 'build', 'review', 'play'].includes(meta.phase)) throw new Error('This game is no longer accepting players.');
 
         const playersSnapshot = await get(ref(database, roomRefPath('players')));
         const players = playersSnapshot.val() || {};
-        if (!players[myPlayerId] && Object.keys(players).filter(id => players[id]?.connected !== false).length >= MAX_PLAYERS) {
-          throw new Error('This room already has six players.');
+        const nameKey = normalizedPlayerName(name);
+        const matchingDisconnectedSeat = Object.values(players).some(player => player?.connected === false && normalizedPlayerName(player?.name) === nameKey);
+        if (!players[myPlayerId] && !matchingDisconnectedSeat && Object.keys(players).length >= MAX_PLAYERS) {
+          throw new Error('This room already has six player seats.');
         }
 
         await set(ref(database, roomRefPath(`players/${myPlayerId}`)), {
@@ -4263,9 +4409,18 @@
         };
         saveActiveRoom('guest', name);
         attachGuestRoomListeners();
-        showScreen('guestWaitingScreen');
-        setConnection('Joining waiting room…', 'waiting');
-        render();
+        if (meta.phase === 'room') {
+          showScreen('guestWaitingScreen');
+          setConnection('Joining waiting room…', 'waiting');
+          render();
+        } else {
+          ui.connectingTitle.textContent = matchingDisconnectedSeat ? 'Restoring your place…' : 'Joining the active game…';
+          ui.connectingText.textContent = matchingDisconnectedSeat
+            ? 'Using your name to return you to your cards and current place in the game.'
+            : 'The host is adding you. You will begin with the next available Problem Card.';
+          showScreen('connectingScreen');
+          setConnection('Waiting for the host…', 'waiting');
+        }
       } catch (error) {
         console.error(error);
         await resetToLobby(error.message || 'Could not join the room.');
@@ -5532,6 +5687,8 @@
       if ((!coop || game.phase !== 'coopVote') && ui.playedCardsDialog.open) ui.playedCardsDialog.close();
       if ((!coop || game.phase !== 'submit' || hasSubmittedCoopCard(game)) && ui.playCardConfirmDialog.open) ui.playCardConfirmDialog.close();
       ui.coopGameBrand.classList.toggle('hidden', !coop);
+      ui.coopShareInviteBtn.classList.toggle('hidden', !isHost);
+      ui.gameShareInviteBtn.classList.toggle('hidden', !isHost || coop);
       renderPlayerTiles(ui.gamePlayers, { pickerId: leaderId });
       ui.roundBadge.textContent = `Round ${game.round} • ${coop ? 'Principles in Practice' : 'Problem? Solved!'}`;
 
@@ -5650,6 +5807,13 @@
       let html = '';
 
       if (isCoopMode()) {
+        const activeThisRound = activeGamePlayerIds().includes(myPlayerId);
+        if (!activeThisRound) {
+          const activeRound = Math.max(game.round + 1, Number(playerById(myPlayerId)?.activeFromRound) || game.round + 1);
+          html = `<div><h3>You’re in the game</h3><p>You joined during an active round. Follow the discussion now. Your cards become active when Round ${activeRound} begins.</p></div>`;
+          ui.actionPanel.innerHTML = html;
+          return;
+        }
         const submitted = serverSubmittedIds(game);
         const pendingMyCard = hasPendingCoopSubmission(game);
         const submittedOrPendingCount = coopSubmittedCount(game);
@@ -5726,7 +5890,8 @@
 
     function renderCoopActionDock() {
       if (!isCoopMode()) return;
-      const voting = state.game?.phase === 'coopVote';
+      const activeThisRound = activeGamePlayerIds().includes(myPlayerId);
+      const voting = state.game?.phase === 'coopVote' && activeThisRound;
       const voted = (state.game?.votedPlayerIds || []).includes(myPlayerId);
       ui.coopActionDock.classList.toggle('hidden', !voting);
       ui.coopActionDock.classList.toggle('voting', voting);
@@ -5832,11 +5997,14 @@
       selectedSolutionInstanceId = selectable ? hand[handFocusIndex].instanceId : null;
       const forceVoteCollapse = game.phase === 'coopVote';
       ui.handWrap.classList.toggle('collapsed', handCollapsed || forceVoteCollapse);
+      const activeThisRound = activeGamePlayerIds().includes(myPlayerId);
       ui.handHelp.textContent = submitted
         ? 'Your card is on the shared table.'
         : selectable
           ? 'Swipe left or right, or up and down.'
-          : 'Your cards will be ready when play begins.';
+          : !activeThisRound
+            ? `Your hand joins the game in Round ${Math.max(game.round + 1, Number(playerById(myPlayerId)?.activeFromRound) || game.round + 1)}.`
+            : 'Your cards will be ready when play begins.';
 
       const spacing = hand.length <= 5 ? 66 : Math.max(18, 270 / Math.max(1, hand.length - 1));
       const suits = ['◆', '★', '♥', '♣', '♠'];
@@ -6092,7 +6260,10 @@
       let text = '';
 
       if (isCoopMode()) {
-        if (game.phase === 'draw') {
+        if (!activeGamePlayerIds().includes(myPlayerId)) {
+          const activeRound = Math.max(game.round + 1, Number(playerById(myPlayerId)?.activeFromRound) || game.round + 1);
+          text = `You joined successfully. Your cards become active in Round ${activeRound}`;
+        } else if (game.phase === 'draw') {
           const outcomeText = game.lastOutcome?.outcome === 'agreed'
             ? 'Point Earned!'
             : game.lastOutcome?.outcome === 'disagree'
@@ -6102,18 +6273,18 @@
             ? (isMyTurnAsPicker() ? `${outcomeText} Your turn to draw the next Problem Card` : `${outcomeText} ${drawer} draws the next Problem Card`)
             : (isMyTurnAsPicker() ? 'Your turn to draw the Problem Card' : `${drawer} is drawing the Problem Card`);
         }
-        if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem aloud, then reveal it' : `Listen while ${drawer} reads the Problem`;
-        if (game.phase === 'submit') text = submitted.includes(myPlayerId)
+        else if (game.phase === 'readProblem') text = isMyTurnAsPicker() ? 'Read the Problem aloud, then reveal it' : `Listen while ${drawer} reads the Problem`;
+        else if (game.phase === 'submit') text = submitted.includes(myPlayerId)
           ? `Card placed: ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
           : pendingMyCard
             ? `Card sent: ${submittedOrPendingCount} of ${activeGamePlayerIds().length} ready`
             : 'Choose a Solution Card from your hand';
-        if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
+        else if (game.phase === 'coopVote') text = voted.includes(myPlayerId)
           ? `Vote placed: ${voted.length} of ${activeGamePlayerIds().length} ready`
           : game.lastVoteSummary
             ? 'Needs More Discussion. Talk it through and vote again'
             : 'Discuss the played cards, then vote';
-        if (game.phase === 'roundResult') text = game.result?.outcome === 'agreed'
+        else if (game.phase === 'roundResult') text = game.result?.outcome === 'agreed'
           ? 'Point Earned! Great discussion!'
           : 'No point this round';
       } else {
@@ -6672,11 +6843,11 @@
     }
 
     async function shareRoomInvite() {
-      if (!isHost || state?.phase !== 'room') return;
+      if (!isHost || !state || !['room', 'build', 'review', 'play'].includes(state.phase)) return;
       const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
       const label = mode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
       const url = inviteUrlForMode(mode);
-      const message = `You’re invited to play ${label}!\n\nTo join the game, use this code: ${roomCode}\n\nGo to this link:\n${url}\n\nEnter your name and tap Join Waiting Room.`;
+      const message = `You’re invited to play ${label}!\n\nRoom code: ${roomCode}\n\nOpen this link:\n${url}\n\nEnter your name and tap Join or Rejoin Game. Joining late or returning after a disconnect? Use the same name you used before.`;
       try {
         if (navigator.share) {
           await navigator.share({ title: `${label} game invite`, text: message });
@@ -6710,6 +6881,8 @@
     ui.cancelConnectingBtn.addEventListener('click', () => resetToLobby());
     ui.copyCodeBtn.addEventListener('click', copyRoomCode);
     ui.shareInviteBtn.addEventListener('click', shareRoomInvite);
+    ui.coopShareInviteBtn.addEventListener('click', () => { ui.coopMenuSheet.classList.add('hidden'); shareRoomInvite(); });
+    ui.gameShareInviteBtn.addEventListener('click', shareRoomInvite);
     ui.leaveRoomBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the room.'));
     ui.guestLeaveRoomBtn.addEventListener('click', () => resetToLobby('You left the waiting room.'));
     ui.leaveGameBtn.addEventListener('click', () => resetToLobby(isHost ? 'Room closed.' : 'You left the game.'));
