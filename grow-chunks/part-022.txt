@@ -405,6 +405,51 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     return mm(Rz, mm(Ry, Rx));
   }
 
+  function qNormalize(q) {
+    const m = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+    return q.map(v => v / m);
+  }
+
+  function qMultiply(a, b) {
+    return [
+      a[3]*b[0] + a[0]*b[3] + a[1]*b[2] - a[2]*b[1],
+      a[3]*b[1] - a[0]*b[2] + a[1]*b[3] + a[2]*b[0],
+      a[3]*b[2] + a[0]*b[1] - a[1]*b[0] + a[2]*b[3],
+      a[3]*b[3] - a[0]*b[0] - a[1]*b[1] - a[2]*b[2]
+    ];
+  }
+
+  function qAxis(axis, angle) {
+    const m = Math.hypot(axis[0], axis[1], axis[2]) || 1;
+    const s = Math.sin(angle / 2) / m;
+    return [axis[0]*s, axis[1]*s, axis[2]*s, Math.cos(angle / 2)];
+  }
+
+  function qFromEuler(rx, ry, rz) {
+    // Match rot(): Rz * Ry * Rx.
+    return qNormalize(qMultiply(qAxis([0,0,1], rz), qMultiply(qAxis([0,1,0], ry), qAxis([1,0,0], rx))));
+  }
+
+  function qSlerp(a, b, t) {
+    let q1=qNormalize(a), q2=qNormalize(b);
+    let dot=q1[0]*q2[0]+q1[1]*q2[1]+q1[2]*q2[2]+q1[3]*q2[3];
+    if(dot<0){q2=q2.map(v=>-v);dot=-dot;}
+    if(dot>.9995)return qNormalize(q1.map((v,i)=>v+(q2[i]-v)*t));
+    const theta=Math.acos(Math.max(-1,Math.min(1,dot)));
+    const s=Math.sin(theta);
+    const aW=Math.sin((1-t)*theta)/s, bW=Math.sin(t*theta)/s;
+    return q1.map((v,i)=>v*aW+q2[i]*bW);
+  }
+
+  function qMatrix(q) {
+    const [x,y,z,w]=qNormalize(q);
+    return [
+      [1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
+      [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
+      [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]
+    ];
+  }
+
   function resizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const rect = dieHit.getBoundingClientRect();
@@ -452,7 +497,8 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     // Apply table yaw in 3D before the camera tilt. Unlike rotating the whole
     // canvas in CSS, this keeps the landed face on top and reveals the cube's
     // other side angles as the table turns.
-    const R=mm(rot(tilt,0,0),mm(rot(0,0,dice.rz+tableViewYaw),rot(dice.rx,dice.ry,0)));
+    const cubeOrientation = Array.isArray(dice.q) ? qMatrix(dice.q) : rot(dice.rx,dice.ry,dice.rz);
+    const R=mm(rot(tilt,0,0),mm(rot(0,0,tableViewYaw),cubeOrientation));
     function project(v){const q=mv(R,v),k=7/(7-q[2]);return {x:cx+q[0]*unit*k,y:cy+q[1]*unit*k,z:q[2]};}
     ctx.save();ctx.filter='blur(5px)';ctx.fillStyle='rgba(31,23,13,.35)';ctx.beginPath();
     ctx.ellipse(W*.5+dice.x,H*.5+dice.y*planeScale+unit*.1,unit*1.18,unit*.65,0,0,Math.PI*2);ctx.fill();ctx.restore();
@@ -460,20 +506,21 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     const visible=faces.map((f,i)=>({f,i,n:mv(R,f.normal),depth:f.verts.reduce((v,k)=>v+tv[k].z,0)/4})).filter(v=>v.n[2]>.001).sort((a,b)=>a.depth-b.depth);
     for(const {f,i,n} of visible){
       const pts=f.verts.map(k=>tv[k]);
-      ctx.beginPath();
-      const rounding=.11;
-      for(let j=0;j<4;j++){
-        const prev=pts[(j+3)%4],v=pts[j],next=pts[(j+1)%4];
-        const before={x:v.x+(prev.x-v.x)*rounding,y:v.y+(prev.y-v.y)*rounding};
-        const after={x:v.x+(next.x-v.x)*rounding,y:v.y+(next.y-v.y)*rounding};
-        if(j===0)ctx.moveTo(before.x,before.y);else ctx.lineTo(before.x,before.y);
-        ctx.quadraticCurveTo(v.x,v.y,after.x,after.y);
-      }ctx.closePath();
+      // Draw the complete quadrilateral all the way to the shared vertices.
+      // The previous rounded cutout stopped short at every corner, which exposed
+      // the background between faces and made the die look assembled from cards.
+      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+      for(let j=1;j<4;j++)ctx.lineTo(pts[j].x,pts[j].y);
+      ctx.closePath();
       const light=Math.max(0,Math.min(1,.52+n[2]*.32-n[0]*.15-n[1]*.20));
       const gradient=ctx.createLinearGradient(pts[0].x,pts[0].y,pts[2].x,pts[2].y);
       gradient.addColorStop(0,`rgb(${Math.round(201+53*light)},${Math.round(188+62*light)},${Math.round(165+73*light)})`);
       gradient.addColorStop(1,`rgb(${Math.round(181+60*light)},${Math.round(164+68*light)},${Math.round(138+80*light)})`);
-      ctx.fillStyle=gradient;ctx.fill();ctx.strokeStyle='rgba(255,248,221,.75)';ctx.lineWidth=Math.max(1,unit*.055);ctx.stroke();
+      ctx.fillStyle=gradient;ctx.fill();
+      ctx.save();
+      ctx.lineJoin='round';ctx.lineCap='round';
+      ctx.strokeStyle='rgba(255,248,221,.78)';ctx.lineWidth=Math.max(1.2,unit*.075);ctx.stroke();
+      ctx.restore();
       engraveFace(pts,i);
     }
   }
@@ -487,43 +534,57 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     const p = nextPattern();
     const base = categories[chosen].base;
     const start = { ...dice };
+    const startQ = Array.isArray(dice.q) ? dice.q.slice() : qFromEuler(dice.rx,dice.ry,dice.rz);
+    const finalYaw = (Math.random() - .5) * .72;
+    const targetQ = qFromEuler(base.rx, base.ry, finalYaw);
 
-    // Put the selected face on top for the roll, then spin around that vertical
-    // axis. This gives the "turn the die in your hand" look: the correct face
-    // remains on top while the side faces travel through view instead of the
-    // whole die pivoting like a flat picture.
-    dice.rx = base.rx;
-    dice.ry = base.ry;
+    // A diagonal 3D axis forces visible end-over-end flips as well as side roll.
+    // It cannot degrade into a flat Z-axis spin.
+    const axis = qNormalize([
+      .72 + Math.random()*.52,
+      (Math.random()<.5?-1:1)*(.58 + Math.random()*.55),
+      (Math.random()-.5)*.55,
+      0
+    ]).slice(0,3);
     const direction = p.dx < 0 ? -1 : 1;
-    const turns = 3 + (Math.abs(p.sx) % 3);
-    const finalYaw = (Math.random() - .5) * .75;
-    const spinDistance = direction * turns * Math.PI * 2 + finalYaw;
+    const turns = 3.25 + (Math.abs(p.sy)%3)*.55 + Math.random()*.45;
+    const totalAngle = direction * turns * Math.PI * 2;
 
     const travelLimit=tableShell.getBoundingClientRect().width*.045;
     const landing={x:(Math.random()-.5)*travelLimit,y:(Math.random()-.5)*travelLimit};
     const t0 = performance.now();
 
-    function ease(t) {
-      return 1 - Math.pow(1 - t, 2.35);
-    }
+    function easeTravel(t) { return 1 - Math.pow(1 - t, 3); }
+    function smoothstep(a,b,t){const x=Math.max(0,Math.min(1,(t-a)/(b-a)));return x*x*(3-2*x);}
 
     function pos(t) {
-      const travel=1-Math.pow(1-t,3);
-      const bounce=t<.5?Math.sin(Math.PI*t/.5)*travelLimit:t<.8?Math.sin(Math.PI*(t-.5)/.3)*travelLimit*.35:Math.sin(Math.PI*(t-.8)/.2)*travelLimit*.1;
-      return {x:start.x+(landing.x-start.x)*travel+Math.sin(t*Math.PI)*travelLimit*.5,y:start.y+(landing.y-start.y)*travel,h:bounce};
+      const travel=easeTravel(t);
+      // Three progressively smaller impacts make it feel like a die hitting the
+      // felt rather than a cube levitating and spinning in place.
+      let bounce=0;
+      if(t<.46) bounce=Math.sin(Math.PI*t/.46)*travelLimit*1.15;
+      else if(t<.72) bounce=Math.sin(Math.PI*(t-.46)/.26)*travelLimit*.42;
+      else if(t<.91) bounce=Math.sin(Math.PI*(t-.72)/.19)*travelLimit*.14;
+      return {
+        x:start.x+(landing.x-start.x)*travel + Math.sin(t*Math.PI)*travelLimit*.42,
+        y:start.y+(landing.y-start.y)*travel,
+        h:Math.max(0,bounce)
+      };
     }
 
     function tick(now) {
-      const t = Math.min(1, (now - t0) / p.ms);
+      const t = Math.min(1, (now - t0) / Math.max(1500,p.ms+180));
       const ps = pos(t);
-      const e = ease(t);
 
+      const spinProgress = 1 - Math.pow(1-t,1.22);
+      const tumbleQ = qMultiply(qAxis(axis,totalAngle*spinProgress),startQ);
+      // Do not force the chosen face until the final portion of the roll.
+      // The die visibly flips through its other faces first, then settles cleanly.
+      const settle = smoothstep(.66,1,t);
+      dice.q = qSlerp(tumbleQ,targetQ,settle);
       dice.x = ps.x;
       dice.y = ps.y;
       dice.h = ps.h;
-      dice.rx = base.rx;
-      dice.ry = base.ry;
-      dice.rz = start.rz + spinDistance * e;
       drawDice();
 
       if (t < 1) {
@@ -534,8 +595,8 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         dice.h = 0;
         dice.rx = base.rx;
         dice.ry = base.ry;
-        // Keep angles small after each roll without changing the visible pose.
-        dice.rz = Math.atan2(Math.sin(start.rz + spinDistance), Math.cos(start.rz + spinDistance));
+        dice.rz = finalYaw;
+        dice.q = targetQ;
         drawDice();
         locked = false;
         selectDeck(chosen, false);
@@ -643,7 +704,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       closeQuestion();
       if (snapshot.category && categories[snapshot.category]) {
         const base = categories[snapshot.category].base;
-        Object.assign(dice, {rx:base.rx, ry:base.ry, rz:0, x:0, y:0, h:0});
+        Object.assign(dice, {rx:base.rx, ry:base.ry, rz:0, q:qFromEuler(base.rx,base.ry,0), x:0, y:0, h:0});
         drawDice(); selectDeck(snapshot.category, false);
         if (snapshot.type === 'draw') showQuestion(snapshot.prompt);
       }
@@ -669,6 +730,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=39" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=40" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
