@@ -689,6 +689,15 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   }
   await markPresence();
 
+  onValue(ref(db, base + "/meta"), snapshot => {
+    const meta = snapshot.val();
+    if (!meta || meta.phase === "closed") {
+      try { localStorage.removeItem("problemSolved.activeFirebaseRoom.v1"); } catch (_) {}
+      badge.textContent = "Room closed";
+      if (role !== "host") setTimeout(() => { location.href = "./"; }, 650);
+    }
+  });
+
   async function broadcastEvent(event) {
     const stateSnap = await get(ref(db, base + "/private/state"));
     const roomState = stateSnap.val() || {};
