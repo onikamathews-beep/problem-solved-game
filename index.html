@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=31">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=31">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=31">
+  <link rel="manifest" href="./manifest.json?v=32">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=32">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=32">
   <title>Principles in Practice, Problem? Solved! & Grow Where You're Planted</title>
   <style>
     :root {
@@ -2895,6 +2895,15 @@
           <h1>Join Problem? Solved!</h1>
           <p>Enter the room code your host shared. Joining late or returning after a disconnect? Use the same name you used before so the game can return you to your place.</p>
         </div>
+        <div id="inviteGrowHero" class="mode-invite-hero hidden" style="background:linear-gradient(145deg,#fffaf0,#e7eddc);border-color:#66835e">
+          <div class="grow-picker-mark" style="margin:0 auto 10px">
+            <strong>Grow</strong>
+            <span>Where You’re Planted</span>
+          </div>
+          <span class="invite-mode-chip">Multiplayer Conversation Game</span>
+          <h1>Join Grow Where You’re Planted</h1>
+          <p>Enter your name and join the room. Everyone will see the same category roll and the same conversation card.</p>
+        </div>
         <div class="panel invite-form-panel">
           <h2 id="inviteJoinTitle">Enter the game</h2>
           <label for="inviteGuestName">Your name</label>
@@ -4063,6 +4072,7 @@
       if (inviteMode !== 'grow') document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
       ui.inviteCoopHero.classList.toggle('hidden', inviteMode !== 'coop');
       ui.invitePvpHero.classList.toggle('hidden', inviteMode !== 'pvp');
+      ui.inviteGrowHero.classList.toggle('hidden', inviteMode !== 'grow');
       if (inviteMode === 'grow') {
         ui.inviteJoinTitle.textContent = 'Join Grow Where You’re Planted';
         ui.inviteJoinRoomBtn.className = 'btn teal wide';
@@ -7368,7 +7378,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=31').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=32').catch(() => {});
       });
     }
 </script>
