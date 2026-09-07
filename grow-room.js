@@ -17,19 +17,56 @@ const lobby=document.createElement('button');lobby.textContent='Return room to l
 lobby.className='setting-action';menu.append(lobby);
 const turnNote=document.createElement('p');turnNote.setAttribute('role','status');turnNote.style.cssText='margin:6px 0 0;font:14px Georgia;color:#fff1d2';document.querySelector('.title-wrap').append(turnNote);
 const tableShell=document.getElementById('tableShell');
+const table=document.getElementById('table');
+// Keep the illustrated outer rim stationary and rotate the actual playing
+// layer above it. Moving the existing deck nodes preserves all standalone
+// click/keyboard listeners already attached to them.
+const tableTurner=document.createElement('div');
+tableTurner.className='grow-table-turner';
+Array.from(table.querySelectorAll('.deck')).forEach(deck=>tableTurner.appendChild(deck));
+table.appendChild(tableTurner);
+
 const tableStyle=document.createElement('style');
 tableStyle.textContent=`
-  /* Keep the board's existing perspective tilt, then rotate the whole lazy Susan
-     in its own plane. The decks are children of .table, so they turn with it. */
+  /* A real lazy-Susan structure: the heavy outer board stays in the camera
+     plane while a raised inner platter and the card layer rotate above it.
+     This prevents the baked highlights/shadows in the board artwork from
+     rotating like a flat photograph. */
   .table{
-    transform:rotateX(52deg) rotateZ(var(--table-rotation))!important;
-    transform-origin:50% 50%!important
+    transform:rotateX(52deg)!important;
+    transform-origin:50% 50%!important;
+    transform-style:preserve-3d!important;
+    position:relative
   }
+  .table::before{
+    content:"";
+    position:absolute;
+    inset:8.5%;
+    border-radius:50%;
+    background:var(--board-art) center/120.5% 120.5% no-repeat;
+    transform:translateZ(3px) rotateZ(var(--table-rotation));
+    transform-origin:50% 50%;
+    pointer-events:none;
+    z-index:0;
+    box-shadow:inset 0 0 0 2px rgba(126,80,45,.32),inset 0 8px 15px rgba(255,225,177,.08),0 3px 5px rgba(36,19,10,.38)
+  }
+  .grow-table-turner{
+    position:absolute;
+    inset:0;
+    transform-style:preserve-3d;
+    transform:translateZ(7px) rotateZ(var(--table-rotation));
+    transform-origin:50% 50%;
+    z-index:2;
+    pointer-events:none
+  }
+  .grow-table-turner .deck{pointer-events:auto}
   @media(max-width:620px){
-    .table{transform:rotateX(44deg) rotateZ(var(--table-rotation))!important}
+    .table{transform:rotateX(44deg)!important}
   }
-  .table-shell.grow-turning .table,
-  .table-shell.grow-spinning .table{transition:none!important}
+  .table-shell.grow-turning .grow-table-turner,
+  .table-shell.grow-spinning .grow-table-turner,
+  .table-shell.grow-turning .table::before,
+  .table-shell.grow-spinning .table::before{transition:none!important}
 
   /* Keep the full-size dice canvas fixed. The cube itself now receives the
      table rotation as a true 3D yaw inside drawDice(), so its landed face stays
