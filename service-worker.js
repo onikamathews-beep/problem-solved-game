@@ -1,13 +1,15 @@
-const CACHE_NAME = 'problem-solved-v32';
+const CACHE_NAME = 'problem-solved-v33';
 const CORE_ASSETS = [
   './',
   './index.html',
   './grow-where-youre-planted.html',
   './grow-decks.html',
+  './grow-decks-store.js?v=33',
+  './grow-room.js?v=33',
   './principles-in-practice-logo.png',
-  './manifest.json?v=32',
-  './icon-192.png?v=32',
-  './icon-512.png?v=32'
+  './manifest.json?v=33',
+  './icon-192.png?v=33',
+  './icon-512.png?v=33'
 ];
 
 self.addEventListener('install', event => {

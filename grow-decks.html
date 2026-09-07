@@ -58,7 +58,7 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
           <option>Married Couples</option>
           <option>Families</option>
           <option>Friends</option>
-          <option>Young & Old</option>
+          <option>Younger Groups</option><option>Older Groups</option>
           <option>All Ages</option>
           <option>Custom</option>
         </select>
@@ -79,7 +79,7 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
       <div><span id="audienceBadge" class="badge"></span><h2 id="deckTitle">Roots</h2></div>
       <button id="addPromptBtn" class="btn gold" type="button">+ Add Question</button>
     </div>
-    <div id="promptList"></div>
+    <div id="promptList"></div><h3>Deleted questions</h3><div id="deletedList"></div>
   </div>
 
   <div class="panel">
@@ -138,6 +138,21 @@ function load(){
   const s=[starter()]; localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); return s;
 }
 let sets=load();
+const starters = {
+ 'Families': ['What family tradition helps you feel loved?', 'What could we do together to help someone this week?', 'When did someone in our family make you smile?', 'What helps our family feel close to Jehovah?', 'What change would you like our family to face together?'],
+ 'Friends': ['What experience helped shape the person you are?', 'What act of kindness could we try together?', 'What makes you feel included by your friends?', 'What quality do you appreciate in a close friend?', 'What are you looking forward to in this season of life?'],
+ 'Younger Groups': ['Who helps you learn good things?', 'How could you help someone at school or at home?', 'What is a kind thing a friend did for you?', 'What do you like to thank Jehovah for?', 'What is something new you would like to learn?'],
+ 'Older Groups': ['What lesson from earlier in life has stayed with you?', 'What is a meaningful way you enjoy helping others now?', 'Who has brought you encouragement lately?', 'What has helped your faith grow through the years?', 'What helps you find joy as your circumstances change?']
+};
+// Seed distinct audience starters once, preserving every saved edit.
+if (!localStorage.getItem('growWherePlanted.audienceStarters.v1')) {
+ for(const [audience,questions] of Object.entries(starters)) {
+  if(!sets.some(s=>s.name===audience)) sets.push({id:'starter-'+audience.toLowerCase().replaceAll(' ','-'),name:audience,audience,decks:Object.fromEntries(CATS.map((c,i)=>[c,[questions[i]]]))});
+ }
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));
+ localStorage.setItem('growWherePlanted.audienceStarters.v1','1');
+}
+
 let currentId=localStorage.getItem(ACTIVE_KEY)||sets[0].id;
 if(!sets.some(s=>s.id===currentId)) currentId=sets[0].id;
 let category="Roots";
@@ -153,17 +168,28 @@ function render(){
   const s=current();
   audienceSelect.value=[...audienceSelect.options].some(o=>o.value===s.audience)?s.audience:"Custom";
   $("activeNote").textContent=(localStorage.getItem(ACTIVE_KEY)||sets[0].id)===s.id
-    ? "This is the active Grow deck set and will be used when you host a game."
+    ? "This is the active Grow deck set. It is copied into your room when you start. Edits are saved on this browser; an ongoing game keeps its original questions."
     : "This set is not active yet. Tap “Use This Set in Games” to make it the host deck set.";
   $("audienceBadge").textContent=s.audience;
   $("deckTitle").textContent=category;
   $("tabs").innerHTML=CATS.map(c=>'<button class="tab '+(c===category?'active':'')+'" data-cat="'+c+'" type="button">'+c+'</button>').join("");
   $("tabs").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render()});
+  const deleted=s.deleted||[];
+  $('deletedList').replaceChildren();
+  deleted.forEach((q,i)=>{
+    if(q.category!==category)return;
+    const row=document.createElement('div');row.className='card';
+    const text=document.createElement('p');text.textContent=q.text;
+    const button=document.createElement('button');button.className='btn small';button.textContent='Restore Question';
+    button.onclick=()=>{s.decks[q.category].push(q.text);s.deleted.splice(i,1);save()};
+    row.append(text,button);$('deletedList').append(row);
+  });
+  if(!$('deletedList').children.length)$('deletedList').textContent='No deleted questions in this deck.';
   const prompts=s.decks[category]||[];
   promptList.innerHTML=prompts.length?prompts.map((p,i)=>`
     <div class="card">
       <div class="card-number">Question ${i+1}</div>
-      <textarea data-prompt-index="${i}"></textarea>
+      <textarea aria-label="Question ${i+1}" maxlength="2000" data-prompt-index="${i}"></textarea>
       <div class="card-actions">
         <button class="btn small" data-save="${i}" type="button">Save</button>
         <button class="btn danger small" data-delete="${i}" type="button">Delete</button>
@@ -176,16 +202,16 @@ function render(){
     s.decks[category][i]=val;save();
   });
   promptList.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
-    const i=Number(b.dataset.delete); if(confirm("Delete this question?")){s.decks[category].splice(i,1);save()}
+    const i=Number(b.dataset.delete); if(confirm("Delete this question?")){(s.deleted ||= []).push({category,text:s.decks[category][i]});s.decks[category].splice(i,1);save()}
   });
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 setSelect.onchange=render;
 audienceSelect.onchange=()=>{current().audience=audienceSelect.value;save()};
-$("useSetBtn").onclick=()=>{localStorage.setItem(ACTIVE_KEY,current().id);render()};
+$("useSetBtn").onclick=()=>{if(!CATS.every(c=>current().decks[c]?.some(q=>q.trim())))return alert('Add at least one question to all five decks first.');localStorage.setItem(ACTIVE_KEY,current().id);render()};
 $("newSetBtn").onclick=()=>{
   const base=current(); const name=prompt("Name the new deck set:",base.audience+" Copy"); if(!name)return;
-  const audience=prompt("Audience label (Families, Friends, Young & Old, All Ages, Custom):",base.audience)||"Custom";
+  const audience="Custom";
   const copy={id:uid(),name:name.trim(),audience:audience.trim(),decks:clone(base.decks),included:false};
   sets.push(copy);save();setSelect.value=copy.id;render();
 };

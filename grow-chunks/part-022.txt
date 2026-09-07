@@ -627,6 +627,15 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   });
 
   window.GrowGameAPI = {
+    restore: snapshot => {
+      closeQuestion();
+      if (snapshot.category && categories[snapshot.category]) {
+        const base = categories[snapshot.category].base;
+        Object.assign(dice, {rx:base.rx, ry:base.ry, rz:0, x:0, y:0, h:0});
+        drawDice(); selectDeck(snapshot.category, false);
+        if (snapshot.type === 'draw') showQuestion(snapshot.prompt);
+      }
+    },
     roll,
     selectDeck,
     showQuestion,
@@ -642,181 +651,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 })();
 </script>
 
-<script type="module">
-(async () => {
-  const params = new URLSearchParams(location.search);
-  const roomCode = (params.get("room") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-  const role = params.get("role") === "host" ? "host" : "guest";
-  if (!roomCode || !window.GrowGameAPI) return;
-
-  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-  const { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js");
-  const { getDatabase, ref, set, get, update, remove, onValue, onDisconnect, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI",
-    authDomain: "planning-with-ai-642ec.firebaseapp.com",
-    databaseURL: "https://planning-with-ai-642ec-default-rtdb.firebaseio.com",
-    projectId: "planning-with-ai-642ec",
-    storageBucket: "planning-with-ai-642ec.firebasestorage.app",
-    messagingSenderId: "560868808729",
-    appId: "1:560868808729:web:1b0b6fc13eadb1c1047288"
-  };
-
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  await setPersistence(auth, browserLocalPersistence);
-  if (!auth.currentUser) await signInAnonymously(auth);
-  const uid = auth.currentUser.uid;
-  const db = getDatabase(app);
-  const base = "rooms/" + roomCode;
-  const api = window.GrowGameAPI;
-  let lastSeq = 0;
-  let hostSeq = 0;
-  const processedActions = new Set();
-
-  const badge = document.createElement("div");
-  badge.style.cssText = "position:fixed;z-index:90;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);padding:7px 12px;border:1px solid rgba(255,247,220,.5);border-radius:999px;background:rgba(27,61,42,.88);color:#fff9e8;font:700 12px system-ui,sans-serif;box-shadow:0 5px 18px rgba(0,0,0,.22);backdrop-filter:blur(8px);pointer-events:none";
-  badge.textContent = "Room " + roomCode + " • Connected";
-  document.body.appendChild(badge);
-
-  async function markPresence() {
-    try {
-      await set(ref(db, base + "/players/" + uid + "/connected"), true);
-      await set(ref(db, base + "/presence/" + uid), { connected:true, lastSeen:serverTimestamp() });
-      onDisconnect(ref(db, base + "/players/" + uid + "/connected")).set(false).catch(()=>{});
-    } catch (_) {}
-  }
-  await markPresence();
-
-  onValue(ref(db, base + "/meta"), snapshot => {
-    const meta = snapshot.val();
-    if (!meta || meta.phase === "closed") {
-      try { localStorage.removeItem("problemSolved.activeFirebaseRoom.v1"); } catch (_) {}
-      badge.textContent = "Room closed";
-      if (role !== "host") setTimeout(() => { location.href = "./"; }, 650);
-    }
-  });
-
-  async function broadcastEvent(event) {
-    const stateSnap = await get(ref(db, base + "/private/state"));
-    const roomState = stateSnap.val() || {};
-    const previous = Number(roomState.growGame?.seq) || hostSeq || 0;
-    hostSeq = Math.max(previous, hostSeq) + 1;
-    const payload = { ...event, seq: hostSeq, at: Date.now() };
-    await update(ref(db, base + "/private/state"), { growGame: payload });
-    const playersSnap = await get(ref(db, base + "/players"));
-    const players = playersSnap.val() || {};
-    await Promise.all(Object.keys(players).map(playerId =>
-      set(ref(db, base + "/views/" + playerId + "/growGame"), payload)
-    ));
-    return payload;
-  }
-
-  function randomCategory() {
-    const names = api.names || [];
-    return names[Math.floor(Math.random() * names.length)] || "Garden";
-  }
-
-  function randomPrompt(category) {
-    const prompts = api.getPrompts(category);
-    return prompts[Math.floor(Math.random() * prompts.length)] || "What would you like to talk about together?";
-  }
-
-  async function applyAuthorityAction(action) {
-    if (!action?.type) return;
-    if (action.type === "grow-roll") {
-      if (api.isLocked()) return;
-      const category = randomCategory();
-      api.roll(category);
-      await broadcastEvent({ type:"roll", category });
-    } else if (action.type === "grow-draw") {
-      if (api.isLocked()) return;
-      const category = api.names.includes(action.category) ? action.category : "Garden";
-      const prompt = randomPrompt(category);
-      api.selectDeck(category, false);
-      api.showQuestion(prompt);
-      await broadcastEvent({ type:"draw", category, prompt });
-    } else if (action.type === "grow-close") {
-      api.closeQuestion();
-      await broadcastEvent({ type:"close" });
-    }
-  }
-
-  async function sendGuestAction(type, extra = {}) {
-    const id = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8);
-    await set(ref(db, base + "/actions/" + uid + "/" + id), {
-      type,
-      ...extra,
-      at: Date.now()
-    });
-  }
-
-  if (role === "host") {
-    const privateSnap = await get(ref(db, base + "/private/state/growGame"));
-    hostSeq = Number(privateSnap.val()?.seq) || 0;
-
-    onValue(ref(db, base + "/actions"), async snapshot => {
-      const all = snapshot.val() || {};
-      for (const [playerId, actions] of Object.entries(all)) {
-        for (const [actionId, action] of Object.entries(actions || {})) {
-          const key = playerId + "/" + actionId;
-          if (processedActions.has(key) || !String(action?.type || "").startsWith("grow-")) continue;
-          processedActions.add(key);
-          await applyAuthorityAction(action);
-          remove(ref(db, base + "/actions/" + playerId + "/" + actionId)).catch(()=>{});
-        }
-      }
-    });
-  } else {
-    onValue(ref(db, base + "/views/" + uid + "/growGame"), snapshot => {
-      const event = snapshot.val();
-      if (!event || Number(event.seq) <= lastSeq) return;
-      lastSeq = Number(event.seq);
-      if (event.type === "roll" && event.category) {
-        api.roll(event.category);
-      } else if (event.type === "draw" && event.category) {
-        api.selectDeck(event.category, false);
-        api.showQuestion(event.prompt || null);
-      } else if (event.type === "close") {
-        api.closeQuestion();
-      }
-    });
-  }
-
-  document.addEventListener("click", async event => {
-    const die = event.target.closest("#dieTap,#dieHit");
-    const deck = event.target.closest(".deck");
-    const done = event.target.closest("#doneBtn");
-    const home = event.target.closest("#homeBtn");
-
-    if (home) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      try {
-        localStorage.removeItem("problemSolved.activeFirebaseRoom.v1");
-        if (role === "host") await update(ref(db, base + "/meta"), { phase:"closed", updatedAt:serverTimestamp() });
-        else await set(ref(db, base + "/players/" + uid + "/connected"), false);
-      } catch (_) {}
-      location.href = "./";
-      return;
-    }
-
-    if (!die && !deck && !done) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    if (role === "host") {
-      if (die) await applyAuthorityAction({ type:"grow-roll" });
-      else if (deck) await applyAuthorityAction({ type:"grow-draw", category:deck.dataset.name });
-      else if (done) await applyAuthorityAction({ type:"grow-close" });
-    } else {
-      if (die) await sendGuestAction("grow-roll");
-      else if (deck) await sendGuestAction("grow-draw", { category:deck.dataset.name });
-      else if (done) await sendGuestAction("grow-close");
-    }
-  }, true);
-})();
-</script>
+<script>document.body.inert = true;</script>
+<script type="module" src="./grow-room.js?v=33" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>

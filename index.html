@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=32">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=32">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=32">
+  <link rel="manifest" href="./manifest.json?v=33">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=33">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=33">
   <title>Principles in Practice, Problem? Solved! & Grow Where You're Planted</title>
   <style>
     :root {
@@ -2947,6 +2947,7 @@
         <h2>Grow Where You’re Planted</h2>
         <p class="muted">Everyone in the room will see the same category roll and the same conversation card. The host’s Grow decks are used for the game.</p>
         <div class="selected-game-note">Decks: Roots • Field • Garden • Vine • Seasons</div>
+        <p id="growDeckSummary" class="muted"></p>
         <a id="manageGrowDecksRoomBtn" class="btn teal wide" href="./grow-decks.html?return=room">Manage Grow Decks</a>
         <button id="startGrowRoomBtn" class="btn primary wide" type="button">Start Grow Where You’re Planted</button>
       </div>
@@ -3381,7 +3382,8 @@
     </div>
   </dialog>
 
-  <script type="module">
+  <script src="./grow-decks-store.js?v=33"></script>
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
     import { getDatabase, ref, set, get, update, remove, push, onValue, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
@@ -5780,6 +5782,8 @@
       ui.inviteLinkHint.textContent = `The shared link opens the ${inviteLabel} join page with your room code included.`;
 
       if (growMode) {
+        const selectedSet = GrowDecks.active();
+        ui.growDeckSummary.textContent = `${selectedSet.name} · ${selectedSet.audience} · ${GrowDecks.categories.map(c => c + ': ' + (selectedSet.decks[c]?.length || 0)).join(' / ')}`;
         ui.startGrowRoomBtn.disabled = connectedPlayers().length < 2;
         return;
       }
@@ -7209,13 +7213,29 @@
     async function hostStartGrowGame() {
       if (!isHost || state?.settings?.playMode !== 'grow') return;
       if (connectedPlayers().length < 2) return toast('At least two players must be connected.');
-      state.phase = 'grow';
-      state.settings.mode = 'grow';
-      state.settings.modeLabel = 'Grow Decks';
-      state.settings.deckDescription = 'Roots, Field, Garden, Vine, and Seasons';
-      await broadcastState();
-      render();
+      const deckSet = GrowDecks.active();
+      if (!GrowDecks.validate(deckSet)) return toast('Add at least one question to each of the five Grow decks before starting.');
+      ui.startGrowRoomBtn.disabled = true;
+      try {
+        await broadcastQueue;
+        const next = deepClone(state);
+        next.phase = 'grow';
+        next.growDeckSet = deckSet;
+        next.growGame = {seq: 0, type: 'ready', category: null, prompt: null};
+        const writes = {'private/state': next, 'meta/phase': 'grow', 'meta/updatedAt': serverTimestamp()};
+        for (const player of next.players) writes[`views/${player.id}`] = sanitizeStateFor(player.id, next);
+        clearRoomListeners();
+        await update(ref(database, roomRefPath()), writes);
+        state = next;
+        render();
+      } catch (error) {
+        attachHostRoomListeners();
+        toast('Could not start the room. Check your connection and try again.');
+        ui.startGrowRoomBtn.disabled = false;
+      }
     }
+
+    if (entryParams.get('game') === 'grow') selectLobbyGame('grow', false);
 
     ui.startGrowRoomBtn.addEventListener('click', hostStartGrowGame);
 
@@ -7378,7 +7398,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=32').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=33').catch(() => {});
       });
     }
 </script>
