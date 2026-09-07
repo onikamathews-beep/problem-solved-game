@@ -18,155 +18,191 @@ lobby.className='setting-action';menu.append(lobby);
 const turnNote=document.createElement('p');turnNote.setAttribute('role','status');turnNote.style.cssText='margin:6px 0 0;font:14px Georgia;color:#fff1d2';document.querySelector('.title-wrap').append(turnNote);
 const tableShell=document.getElementById('tableShell');
 const table=document.getElementById('table');
-// Keep the illustrated outer rim stationary and rotate the actual playing
-// layer above it. Moving the existing deck nodes preserves all standalone
-// click/keyboard listeners already attached to them.
-const tableTurner=document.createElement('div');
-tableTurner.className='grow-table-turner';
-Array.from(table.querySelectorAll('.deck')).forEach(deck=>tableTurner.appendChild(deck));
-table.appendChild(tableTurner);
 
 const tableStyle=document.createElement('style');
 tableStyle.textContent=`
-  /* A real lazy-Susan structure: the heavy outer board stays in the camera
-     plane while a raised inner platter and the card layer rotate above it.
-     This prevents the baked highlights/shadows in the board artwork from
-     rotating like a flat photograph. */
+  /* Rotate the real illustrated board and every card stack as one rigid
+     lazy-Susan surface. Keeping a single transform prevents the platter,
+     artwork, and cards from drifting out of alignment. */
   .table{
-    /* Preserve the board's original absolute square. Changing this to
-       position:relative collapses the board because all of its playing pieces
-       are absolutely positioned; that is what made the board disappear and
-       sent the decks to the top of the screen. */
     position:absolute!important;
     inset:0!important;
-    transform:rotateX(52deg)!important;
+    transform:rotateX(52deg) rotateZ(var(--table-rotation))!important;
     transform-origin:50% 50%!important;
     transform-style:preserve-3d!important;
-    isolation:isolate
+    will-change:transform;
+    backface-visibility:hidden
   }
-  .table::before{
-    content:"";
-    position:absolute;
-    inset:8.5%;
-    border-radius:50%;
-    background:var(--board-art) center/120.5% 120.5% no-repeat;
-    transform:translateZ(3px) rotateZ(var(--table-rotation));
-    transform-origin:50% 50%;
-    pointer-events:none;
-    z-index:0;
-    box-shadow:inset 0 0 0 2px rgba(126,80,45,.32),inset 0 8px 15px rgba(255,225,177,.08),0 3px 5px rgba(36,19,10,.38)
-  }
-  .grow-table-turner{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    border-radius:50%;
-    transform-style:preserve-3d;
-    transform:translateZ(7px) rotateZ(var(--table-rotation));
-    transform-origin:50% 50%;
-    z-index:2;
-    pointer-events:none
-  }
-  .grow-table-turner .deck{pointer-events:auto}
   @media(max-width:620px){
-    .table{transform:rotateX(44deg)!important}
+    .table{transform:rotateX(44deg) rotateZ(var(--table-rotation))!important}
   }
-  .table-shell.grow-turning .grow-table-turner,
-  .table-shell.grow-spinning .grow-table-turner,
-  .table-shell.grow-turning .table::before,
-  .table-shell.grow-spinning .table::before{transition:none!important}
+  .table-shell.grow-turning .table,
+  .table-shell.grow-spinning .table{transition:none!important}
 
-  /* Keep the full-size dice canvas fixed. The cube itself now receives the
-     table rotation as a true 3D yaw inside drawDice(), so its landed face stays
-     on top while its side faces rotate naturally through view. */
+  /* The die remains physically centered. Its cube receives the same table yaw
+     inside GrowGameAPI so the correct landed face remains on top while the
+     visible side faces turn with the table. */
   .die-hit{
     transform:none!important;
     transform-origin:50% 50%!important;
     transition:none!important
   }
-  /* The invisible tap target stays centered and does not need to rotate. */
-  .die-tap{
-    transform:translate(-50%,-50%)!important
-  }
-  .table-shell.grow-turning .die-hit,
-  .table-shell.grow-spinning .die-hit{transition:none!important}
+  .die-tap{transform:translate(-50%,-50%)!important}
   .table-shell{cursor:grab!important;touch-action:none!important}
   .table-shell.grow-turning{cursor:grabbing!important}
+
+  /* Make the rolled category unmistakable without covering the card art. */
+  .deck.selected{
+    z-index:14!important;
+    filter:drop-shadow(0 0 10px rgba(255,224,139,.95))
+           drop-shadow(0 0 22px rgba(245,190,66,.78))!important
+  }
+  .deck.selected .deck-card,
+  .deck.selected:hover .deck-card{
+    transform:translateZ(32px) scale(1.045)!important;
+    box-shadow:
+      inset 1px 1px 0 #fff8e6,
+      0 0 0 3px rgba(255,232,166,.98),
+      0 0 15px 5px rgba(255,218,120,.88),
+      0 0 32px 10px rgba(242,180,55,.58),
+      0 5px 0 #9c7745,
+      2px 19px 18px rgba(39,23,12,.48)!important;
+    animation:growDeckSelectedGlow 1.55s ease-in-out infinite
+  }
+  @keyframes growDeckSelectedGlow{
+    0%,100%{
+      filter:brightness(1.03);
+      box-shadow:
+        inset 1px 1px 0 #fff8e6,
+        0 0 0 3px rgba(255,232,166,.94),
+        0 0 14px 4px rgba(255,218,120,.80),
+        0 0 28px 8px rgba(242,180,55,.48),
+        0 5px 0 #9c7745,
+        2px 19px 18px rgba(39,23,12,.48)
+    }
+    50%{
+      filter:brightness(1.10);
+      box-shadow:
+        inset 1px 1px 0 #fffaf0,
+        0 0 0 4px rgba(255,240,190,1),
+        0 0 20px 7px rgba(255,222,128,.98),
+        0 0 42px 14px rgba(244,184,57,.68),
+        0 5px 0 #9c7745,
+        2px 19px 18px rgba(39,23,12,.48)
+    }
+  }
+  @media(prefers-reduced-motion:reduce){
+    .deck.selected .deck-card{animation:none!important}
+  }
 `;
 document.head.append(tableStyle);
 
 let tableRotation=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--table-rotation'))||0;
-let tableTurning=false,lastPointerAngle=0,lastPointerTime=0,angularVelocity=0,inertiaFrame=0;
+let tableTurning=false,lastPointerPoint=null,lastPointerTime=0,angularVelocity=0,inertiaFrame=0,paintFrame=0;
 
-function pointerAngle(event){
+function projectedPointer(event){
  const box=tableShell.getBoundingClientRect();
- return Math.atan2(event.clientY-(box.top+box.height/2),event.clientX-(box.left+box.width/2))*180/Math.PI;
+ const cx=box.left+box.width/2;
+ const cy=box.top+box.height/2;
+ const tilt=(matchMedia('(max-width:620px)').matches?44:52)*Math.PI/180;
+ const planeScale=Math.max(.48,Math.cos(tilt));
+ return {
+   x:event.clientX-cx,
+   y:(event.clientY-cy)/planeScale,
+   minRadius:box.width*.19
+ };
 }
-function normalizeTurn(delta){
- while(delta>180)delta-=360;
- while(delta<-180)delta+=360;
- return delta;
+
+function tangentRotationDelta(from,to){
+ const radius=Math.max(from.minRadius,Math.hypot(from.x,from.y));
+ const tx=-from.y/radius;
+ const ty= from.x/radius;
+ const dx=to.x-from.x;
+ const dy=to.y-from.y;
+ const tangentialPixels=dx*tx+dy*ty;
+ const degrees=tangentialPixels/radius*180/Math.PI;
+ return Math.max(-14,Math.min(14,degrees));
 }
-function paintTableRotation(){
+
+function applyTablePaint(){
  document.documentElement.style.setProperty('--table-rotation',tableRotation+'deg');
  api.setTableRotation?.(tableRotation);
 }
-paintTableRotation();
+
+function requestTablePaint(){
+ if(paintFrame)return;
+ paintFrame=requestAnimationFrame(()=>{
+   paintFrame=0;
+   applyTablePaint();
+ });
+}
+
+applyTablePaint();
+
 function stopTableSpin(){
  if(inertiaFrame)cancelAnimationFrame(inertiaFrame);
  inertiaFrame=0;
  tableShell.classList.remove('grow-spinning');
 }
+
 function startTableInertia(velocity){
  stopTableSpin();
- velocity=Math.max(-0.35,Math.min(0.35,Number(velocity)||0));
- if(Math.abs(velocity)<0.015)return;
+ velocity=Math.max(-.22,Math.min(.22,Number(velocity)||0));
+ if(Math.abs(velocity)<.012)return;
  tableShell.classList.add('grow-spinning');
  let last=performance.now();
  const frame=now=>{
-   const dt=Math.min(32,Math.max(8,now-last||16));
+   const dt=Math.min(28,Math.max(8,now-last||16));
    last=now;
    tableRotation+=velocity*dt;
-   paintTableRotation();
-   velocity*=Math.pow(.96,dt/16);
-   if(Math.abs(velocity)>0.01)inertiaFrame=requestAnimationFrame(frame);
-   else{inertiaFrame=0;tableShell.classList.remove('grow-spinning');}
+   applyTablePaint();
+   velocity*=Math.pow(.945,dt/16);
+   if(Math.abs(velocity)>.008)inertiaFrame=requestAnimationFrame(frame);
+   else{
+     inertiaFrame=0;
+     tableShell.classList.remove('grow-spinning');
+   }
  };
  inertiaFrame=requestAnimationFrame(frame);
 }
+
 tableShell.addEventListener('pointerdown',event=>{
  if(event.button!==undefined&&event.button!==0)return;
  if(event.target.closest('#dieTap,#dieHit,.deck'))return;
  if(document.getElementById('questionLayer')?.classList.contains('show'))return;
  stopTableSpin();
  tableTurning=true;
- lastPointerAngle=pointerAngle(event);
+ lastPointerPoint=projectedPointer(event);
  lastPointerTime=performance.now();
  angularVelocity=0;
  tableShell.classList.add('grow-turning');
  try{tableShell.setPointerCapture(event.pointerId);}catch{}
 });
+
 tableShell.addEventListener('pointermove',event=>{
- if(!tableTurning)return;
+ if(!tableTurning||!lastPointerPoint)return;
  const now=performance.now();
- const angle=pointerAngle(event);
- const delta=normalizeTurn(angle-lastPointerAngle);
+ const point=projectedPointer(event);
+ const delta=tangentRotationDelta(lastPointerPoint,point);
  const dt=Math.max(1,now-lastPointerTime);
  tableRotation+=delta;
- angularVelocity=delta/dt;
- lastPointerAngle=angle;
+ const instantVelocity=delta/dt;
+ angularVelocity=angularVelocity*.68+instantVelocity*.32;
+ lastPointerPoint=point;
  lastPointerTime=now;
- paintTableRotation();
+ requestTablePaint();
 });
+
 function endTableTurn(event){
  if(!tableTurning)return;
  tableTurning=false;
  tableShell.classList.remove('grow-turning');
  try{tableShell.releasePointerCapture(event.pointerId);}catch{}
- if(performance.now()-lastPointerTime>90)angularVelocity=0;
+ if(performance.now()-lastPointerTime>95)angularVelocity=0;
  startTableInertia(angularVelocity);
+ lastPointerPoint=null;
 }
+
 tableShell.addEventListener('pointerup',endTableTurn);
 tableShell.addEventListener('pointercancel',endTableTurn);
 function controls(){
