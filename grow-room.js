@@ -31,13 +31,13 @@ tableStyle.textContent=`
   .table-shell.grow-turning .table,
   .table-shell.grow-spinning .table{transition:none!important}
 
-  /* The dice canvas fills the table shell. Rotate that canvas around its own
-     center without translating it; translating the full-size canvas moved the
-     visible die into the upper-left corner. */
+  /* Keep the full-size dice canvas fixed. The cube itself now receives the
+     table rotation as a true 3D yaw inside drawDice(), so its landed face stays
+     on top while its side faces rotate naturally through view. */
   .die-hit{
-    transform:rotate(var(--table-rotation))!important;
+    transform:none!important;
     transform-origin:50% 50%!important;
-    transition:transform 1s cubic-bezier(.2,.84,.2,1)
+    transition:none!important
   }
   /* The invisible tap target stays centered and does not need to rotate. */
   .die-tap{
@@ -64,7 +64,9 @@ function normalizeTurn(delta){
 }
 function paintTableRotation(){
  document.documentElement.style.setProperty('--table-rotation',tableRotation+'deg');
+ api.setTableRotation?.(tableRotation);
 }
+paintTableRotation();
 function stopTableSpin(){
  if(inertiaFrame)cancelAnimationFrame(inertiaFrame);
  inertiaFrame=0;
