@@ -33,10 +33,16 @@ tableStyle.textContent=`
      This prevents the baked highlights/shadows in the board artwork from
      rotating like a flat photograph. */
   .table{
+    /* Preserve the board's original absolute square. Changing this to
+       position:relative collapses the board because all of its playing pieces
+       are absolutely positioned; that is what made the board disappear and
+       sent the decks to the top of the screen. */
+    position:absolute!important;
+    inset:0!important;
     transform:rotateX(52deg)!important;
     transform-origin:50% 50%!important;
     transform-style:preserve-3d!important;
-    position:relative
+    isolation:isolate
   }
   .table::before{
     content:"";
@@ -53,6 +59,9 @@ tableStyle.textContent=`
   .grow-table-turner{
     position:absolute;
     inset:0;
+    width:100%;
+    height:100%;
+    border-radius:50%;
     transform-style:preserve-3d;
     transform:translateZ(7px) rotateZ(var(--table-rotation));
     transform-origin:50% 50%;
