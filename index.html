@@ -1203,6 +1203,126 @@ html:not(.room-loading) #entryLoading{display:none}
       letter-spacing: .16em;
     }
     .waiting-message { margin: 10px 0 0; padding: 12px; border-radius: 13px; background: #e5eef0; color: #566768; line-height: 1.4; }
+    /* Grow waiting room: warm, readable garden-lounge treatment */
+    body.grow-waiting {
+      color: #2c382d;
+      background:
+        linear-gradient(rgba(244,238,222,.72), rgba(217,226,207,.82)),
+        url("./assets/grow-living-room.webp?v=37") center / cover fixed,
+        #dfe7d3;
+    }
+    body.grow-waiting .topbar {
+      padding: 8px 11px;
+      border: 1px solid rgba(148,126,78,.34);
+      border-radius: 16px;
+      background: rgba(255,250,240,.91);
+      box-shadow: 0 8px 22px rgba(43,54,38,.12);
+      backdrop-filter: blur(8px);
+    }
+    body.grow-waiting .connection-pill {
+      color: #39513d;
+      background: #edf3e5;
+      border-color: #b6c3a5;
+    }
+    body.grow-waiting #guestWaitingScreen.active {
+      padding-top: 4px;
+    }
+    body.grow-waiting .guest-waiting-shell {
+      width: min(720px,100%);
+    }
+    .guest-waiting-brand.grow {
+      position: relative;
+      overflow: hidden;
+      color: #294333;
+      border: 2px solid #c6a35e;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255,255,255,.82), transparent 27%),
+        radial-gradient(circle at 88% 15%, rgba(126,155,109,.18), transparent 30%),
+        linear-gradient(145deg, rgba(255,251,240,.98), rgba(238,240,220,.98));
+      box-shadow: 0 18px 40px rgba(48,62,43,.18);
+    }
+    .guest-waiting-brand.grow::before,
+    .guest-waiting-brand.grow::after {
+      content: "";
+      position: absolute;
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      border: 20px solid rgba(63,99,68,.07);
+      pointer-events: none;
+    }
+    .guest-waiting-brand.grow::before { left: -78px; top: -72px; }
+    .guest-waiting-brand.grow::after { right: -76px; bottom: -78px; }
+    .guest-waiting-brand.grow .grow-picker-mark {
+      position: relative;
+      z-index: 1;
+      max-width: 250px;
+      background: rgba(255,250,236,.94);
+      box-shadow: 0 7px 20px rgba(56,69,47,.10), inset 0 0 0 3px rgba(49,88,63,.05);
+    }
+    .guest-waiting-brand.grow h1 {
+      position: relative;
+      z-index: 1;
+      margin: 8px 0 6px;
+      color: #244b34;
+      font-family: Georgia,"Times New Roman",serif;
+      font-size: clamp(1.75rem,7vw,2.8rem);
+      line-height: 1.02;
+    }
+    .guest-waiting-brand.grow p {
+      position: relative;
+      z-index: 1;
+      max-width: 48ch;
+      margin: 0 auto;
+      color: #5f6657;
+      font-weight: 650;
+      line-height: 1.42;
+    }
+    body.grow-waiting #guestWaitingScreen > .guest-waiting-shell > .panel {
+      color: #2d3d30;
+      border: 1px solid rgba(150,128,84,.34);
+      background: rgba(255,251,241,.96);
+      box-shadow: 0 16px 38px rgba(43,55,38,.16);
+      backdrop-filter: blur(8px);
+    }
+    body.grow-waiting .waiting-room-code {
+      min-width: 150px;
+      padding: 10px 16px;
+      border: 2px solid #baa060;
+      background: #fffaf0;
+      color: #244b34;
+      font-size: 1.18rem;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    body.grow-waiting #guestDeckReadyWrap {
+      border: 1px solid #b9c89f;
+      background: linear-gradient(145deg,#f5f7e9,#e8efd9);
+      color: #354a36;
+    }
+    body.grow-waiting #guestDeckReadyWrap strong { color: #294a31; }
+    body.grow-waiting #guestDeckReadyWrap span { color: #5d6858; line-height: 1.38; }
+    body.grow-waiting #guestWaitingPlayers .player-tile {
+      border-color: #c5b58e;
+      background: linear-gradient(145deg,#fffdf6,#f1eadb);
+      color: #2f3b30;
+      box-shadow: 0 4px 0 rgba(87,72,47,.18);
+    }
+    body.grow-waiting #guestWaitingPlayers .player-meta { color: #6b6d61; }
+    body.grow-waiting .waiting-message {
+      border: 1px solid #c9b67d;
+      background: #fff7dd;
+      color: #554b32;
+      font-weight: 750;
+    }
+    body.grow-waiting #guestLeaveRoomBtn {
+      border-color: #6f554f;
+      background: #a8685f;
+      color: #fffaf0;
+    }
+    @media (max-width:560px) {
+      .guest-waiting-brand.grow { padding: 15px 12px; }
+      body.grow-waiting #guestWaitingScreen > .guest-waiting-shell > .panel { padding: 13px; }
+    }
     body.entry-coop {
       color: #514535;
       background:
@@ -3133,7 +3253,7 @@ html:not(.room-loading) #entryLoading{display:none}
           <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
           <h1>Principles in Practice Waiting Room</h1>
         </div>
-        <div id="guestWaitingGrowBrand" class="guest-waiting-brand hidden">
+        <div id="guestWaitingGrowBrand" class="guest-waiting-brand grow hidden">
           <div class="grow-picker-mark" style="margin:0 auto 10px">
             <strong>Grow</strong>
             <span>Where You’re Planted</span>
@@ -5788,7 +5908,7 @@ html:not(.room-loading) #entryLoading{display:none}
     function renderRoom() {
       if (!isHost) return renderGuestWaitingRoom();
       clearEntryTheme();
-      document.body.classList.remove('coop-game', 'pvp-game');
+      document.body.classList.remove('coop-game', 'pvp-game', 'grow-waiting');
       showScreen('roomScreen');
       setConnection('Room open', 'waiting');
       const growMode = state.settings.playMode === 'grow';
@@ -5838,6 +5958,7 @@ html:not(.room-loading) #entryLoading{display:none}
       clearEntryTheme();
       document.body.classList.toggle('coop-game', coop);
       document.body.classList.toggle('pvp-game', state.settings.playMode === 'pvp');
+      document.body.classList.toggle('grow-waiting', growMode);
       showScreen('guestWaitingScreen');
       const label = growMode ? 'Grow Where You’re Planted' : coop ? 'Principles in Practice' : 'Problem? Solved!';
       setConnection(`${label} connected`, 'online');
@@ -7462,7 +7583,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=36').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=37').catch(() => {});
       });
     }
 </script>
