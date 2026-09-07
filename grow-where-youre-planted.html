@@ -8,20 +8,82 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:Georgia,"Times New Roman",serif}
-body{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 18%,#fff9e9,#dfe7d3 55%,#819b78);color:#244632}
-.loader{width:min(86vw,420px);padding:28px;text-align:center;background:rgba(255,252,241,.92);border:2px solid #c9aa63;border-radius:24px;box-shadow:0 18px 42px rgba(0,0,0,.2)}
-.loader h1{margin:0 0 8px;font-size:clamp(27px,7vw,42px)}
-.loader p{margin:8px 0;color:#596b59}
-.track{height:10px;margin-top:18px;background:#dfe3d4;border-radius:999px;overflow:hidden}
-.bar{height:100%;width:0;background:#315b43;transition:width .15s ease}
-#error{color:#8a3b37;font:600 14px/1.4 system-ui,sans-serif}
+body{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  color:#233b2c;
+  background:
+    linear-gradient(rgba(28,48,35,.34),rgba(28,48,35,.52)),
+    url('./assets/grow-living-room.webp?v=37') center/cover fixed,
+    #dfe7d3;
+}
+.loader{
+  width:min(90vw,470px);
+  padding:30px 26px 25px;
+  text-align:center;
+  background:linear-gradient(180deg,rgba(255,252,242,.97),rgba(244,236,218,.96));
+  border:2px solid #c9aa63;
+  border-radius:30px;
+  box-shadow:0 24px 60px rgba(0,0,0,.32),inset 0 0 0 1px rgba(255,255,255,.65);
+  backdrop-filter:blur(8px);
+  position:relative;
+  overflow:hidden;
+}
+.loader:before,.loader:after{
+  content:"";
+  position:absolute;
+  width:120px;height:120px;
+  border-radius:50%;
+  border:18px solid rgba(73,108,73,.08);
+  pointer-events:none;
+}
+.loader:before{left:-72px;top:-64px}
+.loader:after{right:-72px;bottom:-70px}
+.mark{
+  display:inline-flex;
+  padding:6px 11px;
+  border-radius:999px;
+  border:1px solid #b8944d;
+  background:#fff8e6;
+  color:#547052;
+  font:800 11px/1 system-ui,sans-serif;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+.loader h1{margin:12px 0 4px;font-size:clamp(30px,8vw,48px);line-height:.96;color:#244b34}
+.tagline{margin:7px 0 0;color:#9a6a1e;font-family:"Segoe Script","Brush Script MT",cursive;font-size:clamp(18px,5vw,25px)}
+#status{margin:19px 0 0;color:#4f5e51;font:700 15px/1.35 system-ui,sans-serif}
+.track{
+  height:13px;
+  margin-top:14px;
+  padding:2px;
+  background:#e1dece;
+  border:1px solid #b9af91;
+  border-radius:999px;
+  overflow:hidden;
+}
+.bar{
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,#6b8a61,#315b43,#b68d3e);
+  transition:width .15s ease;
+}
+.loading-note{margin:11px 0 0;color:#746d5f;font:600 12px/1.35 system-ui,sans-serif}
+#error{min-height:18px;margin:10px 0 0;color:#8a3b37;font:700 13px/1.4 system-ui,sans-serif}
+@media(max-width:520px){body{padding:14px}.loader{padding:25px 18px 21px;border-radius:25px}}
 </style>
 </head>
 <body>
 <div class="loader">
+<div class="mark">Conversation Game</div>
 <h1>Grow Where You're Planted</h1>
+<p class="tagline">Good Conversations Go Deep</p>
 <p id="status">Opening the garden…</p>
-<div class="track"><div class="bar" id="bar"></div></div>
+<div class="track" aria-hidden="true"><div class="bar" id="bar"></div></div>
+<p class="loading-note">Gathering the table, cards, and room connection.</p>
 <p id="error"></p>
 </div>
 <script>
@@ -32,7 +94,7 @@ body{min-height:100vh;display:grid;place-items:center;background:radial-gradient
  const status=document.getElementById('status'),bar=document.getElementById('bar'),error=document.getElementById('error');
  try{
    for(let i=0;i<total;i++){
-     const name='./grow-chunks/part-'+String(i).padStart(3,'0')+'.txt?v=36';
+     const name='./grow-chunks/part-'+String(i).padStart(3,'0')+'.txt?v=37';
      const response=await fetch(name);
      if(!response.ok) throw new Error('Could not load game part '+(i+1)+'.');
      parts.push(await response.text());
