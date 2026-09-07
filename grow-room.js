@@ -19,17 +19,32 @@ const turnNote=document.createElement('p');turnNote.setAttribute('role','status'
 const tableShell=document.getElementById('tableShell');
 const tableStyle=document.createElement('style');
 tableStyle.textContent=`
+  /* Keep the board's existing perspective tilt, then rotate the whole lazy Susan
+     in its own plane. The decks are children of .table, so they turn with it. */
+  .table{
+    transform:rotateX(52deg) rotateZ(var(--table-rotation))!important;
+    transform-origin:50% 50%!important
+  }
+  @media(max-width:620px){
+    .table{transform:rotateX(44deg) rotateZ(var(--table-rotation))!important}
+  }
   .table-shell.grow-turning .table,
   .table-shell.grow-spinning .table{transition:none!important}
-  .die-hit,.die-tap{
-    transform:translate(-50%,-50%) rotate(var(--table-rotation))!important;
-    transform-origin:50% 50%;
+
+  /* The dice canvas fills the table shell. Rotate that canvas around its own
+     center without translating it; translating the full-size canvas moved the
+     visible die into the upper-left corner. */
+  .die-hit{
+    transform:rotate(var(--table-rotation))!important;
+    transform-origin:50% 50%!important;
     transition:transform 1s cubic-bezier(.2,.84,.2,1)
   }
+  /* The invisible tap target stays centered and does not need to rotate. */
+  .die-tap{
+    transform:translate(-50%,-50%)!important
+  }
   .table-shell.grow-turning .die-hit,
-  .table-shell.grow-turning .die-tap,
-  .table-shell.grow-spinning .die-hit,
-  .table-shell.grow-spinning .die-tap{transition:none!important}
+  .table-shell.grow-spinning .die-hit{transition:none!important}
   .table-shell{cursor:grab!important;touch-action:none!important}
   .table-shell.grow-turning{cursor:grabbing!important}
 `;
