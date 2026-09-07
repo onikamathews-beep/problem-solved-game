@@ -1,11 +1,12 @@
-const CACHE_NAME = 'problem-solved-v26';
+const CACHE_NAME = 'problem-solved-v27';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './grow-where-youre-planted.html',
   './principles-in-practice-logo.png',
-  './manifest.json?v=26',
-  './icon-192.png?v=26',
-  './icon-512.png?v=26'
+  './manifest.json?v=27',
+  './icon-192.png?v=27',
+  './icon-512.png?v=27'
 ];
 
 self.addEventListener('install', event => {
@@ -29,10 +30,10 @@ self.addEventListener('fetch', event => {
       fetch(event.request, { cache: 'no-store' })
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
     );
     return;
   }
