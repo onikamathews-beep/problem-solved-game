@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=28">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=28">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=28">
+  <link rel="manifest" href="./manifest.json?v=29">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=29">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=29">
   <title>Principles in Practice, Problem? Solved! & Grow Where You're Planted</title>
   <style>
     :root {
@@ -2831,14 +2831,14 @@
             <span class="game-choice-action">Choose Principles in Practice</span>
           </button>
 
-          <a class="game-choice-card grow" href="./grow-where-youre-planted.html">
+          <button class="game-choice-card grow" type="button" data-lobby-mode="grow" aria-pressed="false">
             <div class="grow-picker-mark" aria-label="Grow Where You're Planted">
               <strong>Grow</strong>
               <span>Where You’re Planted</span>
             </div>
-            <span class="game-choice-mode">Conversation Game</span>
-            <span class="game-choice-action">Play Grow Where You’re Planted</span>
-          </a>
+            <span class="game-choice-mode">Multiplayer Conversation Game</span>
+            <span class="game-choice-action">Choose Grow Where You’re Planted</span>
+          </button>
         </div>
       </div>
 
@@ -2846,6 +2846,7 @@
         <h2 id="multiplayerLobbyTitle">Choose Problem? Solved! or Principles in Practice above</h2>
         <p id="multiplayerLobbyCopy" class="muted">Those two games use multiplayer rooms. Choose one above before creating a room. Guests can join any room with the six-character code from the host.</p>
         <p id="selectedGameNote" class="selected-game-note">No multiplayer game selected yet.</p>
+        <a id="manageGrowDecksLobbyBtn" class="btn teal wide hidden" href="./grow-decks.html">Manage Grow Decks</a>
         <div class="grid-2">
           <div class="choice" id="createRoomChoice">
             <h3 id="createRoomChoiceTitle">Create a room</h3>
@@ -2931,6 +2932,14 @@
         </div>
         <h2>Players in the room</h2>
         <div id="roomPlayers" class="player-grid"></div>
+      </div>
+
+      <div id="growHostRoomControls" class="panel hidden">
+        <h2>Grow Where You’re Planted</h2>
+        <p class="muted">Everyone in the room will see the same category roll and the same conversation card. The host’s Grow decks are used for the game.</p>
+        <div class="selected-game-note">Decks: Roots • Field • Garden • Vine • Seasons</div>
+        <a id="manageGrowDecksRoomBtn" class="btn teal wide" href="./grow-decks.html?return=room">Manage Grow Decks</a>
+        <button id="startGrowRoomBtn" class="btn primary wide" type="button">Start Grow Where You’re Planted</button>
       </div>
 
       <div id="hostRoomControls" class="panel hidden">
@@ -3098,6 +3107,14 @@
         <div id="guestWaitingCoopBrand" class="guest-waiting-brand coop">
           <img src="./principles-in-practice-logo.png" alt="Principles in Practice">
           <h1>Principles in Practice Waiting Room</h1>
+        </div>
+        <div id="guestWaitingGrowBrand" class="guest-waiting-brand hidden">
+          <div class="grow-picker-mark" style="margin:0 auto 10px">
+            <strong>Grow</strong>
+            <span>Where You’re Planted</span>
+          </div>
+          <h1>Grow Where You’re Planted Waiting Room</h1>
+          <p>Wait here while the host finishes setting up the conversation decks.</p>
         </div>
         <div id="guestWaitingPvpBrand" class="guest-waiting-brand pvp hidden">
           <div class="invite-pvp-logo" aria-label="Problem Solved">
@@ -3840,7 +3857,7 @@
     let lastManagerRemoval = null;
     let managerThemeDraft = null;
     const entryParams = new URLSearchParams(window.location.search);
-    let inviteMode = ['coop', 'pvp'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
+    let inviteMode = ['coop', 'pvp', 'grow'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
 
     // Keep the browser tab, address-bar suggestion, and shared-page branding aligned
     // with the mode the person is actually opening.
@@ -4040,14 +4057,19 @@
     }
 
     function showInviteJoin(mode = 'coop') {
-      inviteMode = mode === 'pvp' ? 'pvp' : 'coop';
+      inviteMode = ['pvp','grow'].includes(mode) ? mode : 'coop';
       document.body.classList.remove('coop-game', 'pvp-game');
       clearEntryTheme();
-      document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
+      if (inviteMode !== 'grow') document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
       ui.inviteCoopHero.classList.toggle('hidden', inviteMode !== 'coop');
       ui.invitePvpHero.classList.toggle('hidden', inviteMode !== 'pvp');
-      ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Add your name and join the group' : 'Enter the Problem? Solved! game';
-      ui.inviteJoinRoomBtn.className = `btn ${inviteMode === 'coop' ? 'teal' : 'primary'} wide`;
+      if (inviteMode === 'grow') {
+        ui.inviteJoinTitle.textContent = 'Join Grow Where You’re Planted';
+        ui.inviteJoinRoomBtn.className = 'btn teal wide';
+      } else {
+        ui.inviteJoinTitle.textContent = inviteMode === 'coop' ? 'Add your name and join the group' : 'Enter the Problem? Solved! game';
+        ui.inviteJoinRoomBtn.className = `btn ${inviteMode === 'coop' ? 'teal' : 'primary'} wide`;
+      }
       const suppliedCode = cleanCode(entryParams.get('code') || '');
       if (suppliedCode && !ui.inviteJoinCode.value) ui.inviteJoinCode.value = suppliedCode;
       showScreen('inviteJoinScreen');
@@ -4545,7 +4567,7 @@
     }
 
     async function hostCreateRoom() {
-      if (!lobbySelectedMode) return toast('Choose Problem? Solved! or Principles in Practice first.');
+      if (!lobbySelectedMode) return toast('Choose a game first.');
       const name = clampText(ui.hostName.value, 24);
       if (!name) return toast('Enter your name first.');
       cleanupConnection();
@@ -4567,8 +4589,8 @@
 
         state = createRoomState(name, roomCode, myPlayerId);
         state.settings.playMode = lobbySelectedMode;
-        state.settings.playModeLabel = lobbySelectedMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
-        if (ui.playStyleSelect) ui.playStyleSelect.value = lobbySelectedMode;
+        state.settings.playModeLabel = lobbySelectedMode === 'pvp' ? 'Problem? Solved!' : lobbySelectedMode === 'grow' ? 'Grow Where You’re Planted' : 'Principles in Practice';
+        if (ui.playStyleSelect && lobbySelectedMode !== 'grow') ui.playStyleSelect.value = lobbySelectedMode;
         await set(ref(database, roomRefPath('meta')), {
           hostUid: myPlayerId,
           phase: 'room',
@@ -4614,7 +4636,7 @@
         const meta = metaSnapshot.val();
         const expectedMode = inviteMode || null;
         if (expectedMode && meta.playMode && expectedMode !== meta.playMode) {
-          const requested = expectedMode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
+          const requested = expectedMode === 'coop' ? 'Principles in Practice' : expectedMode === 'grow' ? 'Grow Where You’re Planted' : 'Problem? Solved!';
           throw new Error(`This invitation is not for the room's current mode. Ask the host for a ${requested} invitation.`);
         }
         if (!['room', 'build', 'review', 'play'].includes(meta.phase)) throw new Error('This game is no longer accepting players.');
@@ -4642,7 +4664,7 @@
           hostId: meta.hostUid,
           settings: {
             playMode: meta.playMode || expectedMode || 'coop',
-            playModeLabel: (meta.playMode || expectedMode) === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice'
+            playModeLabel: (meta.playMode || expectedMode) === 'pvp' ? 'Problem? Solved!' : (meta.playMode || expectedMode) === 'grow' ? 'Grow Where You’re Planted' : 'Principles in Practice'
           },
           players: Object.values(players).concat(players[myPlayerId] ? [] : [{ id: myPlayerId, name, connected: true }])
         };
@@ -5696,6 +5718,14 @@
       applyCurrentTheme();
       ui.roomCodeDisplay.textContent = roomCode;
       if (deckManagerOpen && state.phase === 'room' && isHost) { renderDeckManager(); return; }
+      if (state.phase === 'grow') {
+        const role = isHost ? 'host' : 'guest';
+        const url = new URL('./grow-where-youre-planted.html', window.location.href);
+        url.searchParams.set('room', state.roomCode);
+        url.searchParams.set('role', role);
+        window.location.replace(url.toString());
+        return;
+      }
       if (state.phase === 'room') renderRoom();
       else if (state.phase === 'build') renderBuild();
       else if (state.phase === 'review') renderReview();
@@ -5727,14 +5757,22 @@
       document.body.classList.remove('coop-game', 'pvp-game');
       showScreen('roomScreen');
       setConnection('Room open', 'waiting');
+      const growMode = state.settings.playMode === 'grow';
+      const label = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : growMode ? 'Grow Where You’re Planted' : 'Principles in Practice';
       ui.roomPlayerCount.textContent = connectedPlayers().length;
-      ui.roomModeMetric.textContent = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
+      ui.roomModeMetric.textContent = label;
       renderPlayerTiles(ui.roomPlayers);
-      ui.hostRoomControls.classList.remove('hidden');
+      ui.growHostRoomControls.classList.toggle('hidden', !growMode);
+      ui.hostRoomControls.classList.toggle('hidden', growMode);
       ui.guestRoomControls.classList.add('hidden');
-      const inviteLabel = state.settings.playMode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
+      const inviteLabel = label;
       ui.shareInviteBtn.textContent = `Share ${inviteLabel} Invite`;
-      ui.inviteLinkHint.textContent = `The shared link opens only the ${inviteLabel} join page. Your room code is included in the invitation message.`;
+      ui.inviteLinkHint.textContent = `The shared link opens the ${inviteLabel} join page with your room code included.`;
+
+      if (growMode) {
+        ui.startGrowRoomBtn.disabled = connectedPlayers().length < 2;
+        return;
+      }
 
       if (isHost) {
         const saved = getSavedGames();
@@ -5759,25 +5797,39 @@
     }
 
     function renderGuestWaitingRoom() {
-      const coop = state.settings.playMode !== 'pvp';
+      const growMode = state.settings.playMode === 'grow';
+      const coop = state.settings.playMode === 'coop';
       clearEntryTheme();
       document.body.classList.toggle('coop-game', coop);
-      document.body.classList.toggle('pvp-game', !coop);
+      document.body.classList.toggle('pvp-game', state.settings.playMode === 'pvp');
       showScreen('guestWaitingScreen');
-      setConnection(`${coop ? 'Principles in Practice' : 'Problem? Solved!'} connected`, 'online');
+      const label = growMode ? 'Grow Where You’re Planted' : coop ? 'Principles in Practice' : 'Problem? Solved!';
+      setConnection(`${label} connected`, 'online');
       ui.guestWaitingCoopBrand.classList.toggle('hidden', !coop);
-      ui.guestWaitingPvpBrand.classList.toggle('hidden', coop);
+      ui.guestWaitingPvpBrand.classList.toggle('hidden', state.settings.playMode !== 'pvp');
+      ui.guestWaitingGrowBrand.classList.toggle('hidden', !growMode);
       ui.guestWaitingRoomCode.textContent = state.roomCode;
-      const deckName = state.settings.modeLabel || 'Deck being selected';
-      const deckDescription = state.settings.deckDescription || 'The host is choosing the deck and will start the game shortly.';
-      ui.guestDeckReadyTitle.textContent = state.settings.mode === 'build' ? deckName : `${deckName} ready`;
-      ui.guestDeckReadyText.textContent = deckDescription;
+      if (growMode) {
+        ui.guestDeckReadyTitle.textContent = 'Grow decks ready';
+        ui.guestDeckReadyText.textContent = 'Roots, Field, Garden, Vine, and Seasons will be synchronized for everyone in the room.';
+      } else {
+        const deckName = state.settings.modeLabel || 'Deck being selected';
+        const deckDescription = state.settings.deckDescription || 'The host is choosing the deck and will start the game shortly.';
+        ui.guestDeckReadyTitle.textContent = state.settings.mode === 'build' ? deckName : `${deckName} ready`;
+        ui.guestDeckReadyText.textContent = deckDescription;
+      }
       renderPlayerTiles(ui.guestWaitingPlayers);
       const playerCount = connectedPlayers().length;
-      const openingCards = state.settings.handSize || DEFAULT_HAND_SIZE;
-      ui.guestWaitingText.textContent = playerCount < 2
-        ? `You’re all set. Allow a moment for another player to join and for the host to start the game. You’ll begin with ${openingCards} Solution Cards.`
-        : `You’re all set. Allow a moment for the host to finish setting up and start the game. You’ll begin with ${openingCards} Solution Cards.`;
+      if (growMode) {
+        ui.guestWaitingText.textContent = playerCount < 2
+          ? 'You’re ready. Waiting for another player and for the host to start Grow Where You’re Planted.'
+          : 'You’re ready. Waiting for the host to start Grow Where You’re Planted.';
+      } else {
+        const openingCards = state.settings.handSize || DEFAULT_HAND_SIZE;
+        ui.guestWaitingText.textContent = playerCount < 2
+          ? `You’re all set. Allow a moment for another player to join and for the host to start the game. You’ll begin with ${openingCards} Solution Cards.`
+          : `You’re all set. Allow a moment for the host to finish setting up and start the game. You’ll begin with ${openingCards} Solution Cards.`;
+      }
     }
 
 
@@ -7076,15 +7128,15 @@
       const url = new URL(window.location.href);
       url.search = '';
       url.hash = '';
-      url.searchParams.set('join', mode === 'pvp' ? 'pvp' : 'coop');
+      url.searchParams.set('join', ['pvp','grow'].includes(mode) ? mode : 'coop');
       if (roomCode) url.searchParams.set('code', roomCode);
       return url.toString();
     }
 
     async function shareRoomInvite() {
       if (!isHost || !state || !['room', 'build', 'review', 'play'].includes(state.phase)) return;
-      const mode = state.settings.playMode === 'pvp' ? 'pvp' : 'coop';
-      const label = mode === 'coop' ? 'Principles in Practice' : 'Problem? Solved!';
+      const mode = ['pvp','grow'].includes(state.settings.playMode) ? state.settings.playMode : 'coop';
+      const label = mode === 'pvp' ? 'Problem? Solved!' : mode === 'grow' ? 'Grow Where You’re Planted' : 'Principles in Practice';
       const url = inviteUrlForMode(mode);
       const message = `You’re invited to play ${label}!\n\nRoom code: ${roomCode}\n\nOpen this link:\n${url}\n\nEnter your name and tap Join or Rejoin Game. Joining late or returning after a disconnect? Use the same name you used before.`;
       try {
@@ -7110,12 +7162,14 @@
     }
 
     function selectLobbyGame(mode, shouldScroll = true) {
-      if (!['coop', 'pvp'].includes(mode)) return;
+      if (!['coop', 'pvp', 'grow'].includes(mode)) return;
       lobbySelectedMode = mode;
-      const label = mode === 'pvp' ? 'Problem? Solved!' : 'Principles in Practice';
+      const label = mode === 'pvp' ? 'Problem? Solved!' : mode === 'grow' ? 'Grow Where You’re Planted' : 'Principles in Practice';
       const description = mode === 'pvp'
         ? 'Player vs. Player — create a multiplayer room, invite the other players, then start Problem? Solved!'
-        : 'Co-op — create a multiplayer room, invite the group, then start Principles in Practice.';
+        : mode === 'grow'
+          ? 'Multiplayer conversation game — create a room, invite everyone, manage the five Grow decks, then start together.'
+          : 'Co-op — create a multiplayer room, invite the group, then start Principles in Practice.';
 
       document.querySelectorAll('[data-lobby-mode]').forEach(card => {
         const selected = card.dataset.lobbyMode === mode;
@@ -7129,7 +7183,8 @@
       ui.multiplayerLobbyTitle.textContent = 'Play ' + label + ' with 2–6 devices';
       ui.multiplayerLobbyCopy.textContent = description;
       ui.selectedGameNote.textContent = 'Selected: ' + label;
-      if (ui.playStyleSelect) ui.playStyleSelect.value = mode;
+      ui.manageGrowDecksLobbyBtn.classList.toggle('hidden', mode !== 'grow');
+      if (ui.playStyleSelect && mode !== 'grow') ui.playStyleSelect.value = mode;
 
       if (shouldScroll) {
         ui.multiplayerLobbyPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -7139,6 +7194,19 @@
     document.querySelectorAll('[data-lobby-mode]').forEach(card => {
       card.addEventListener('click', () => selectLobbyGame(card.dataset.lobbyMode));
     });
+
+    async function hostStartGrowGame() {
+      if (!isHost || state?.settings?.playMode !== 'grow') return;
+      if (connectedPlayers().length < 2) return toast('At least two players must be connected.');
+      state.phase = 'grow';
+      state.settings.mode = 'grow';
+      state.settings.modeLabel = 'Grow Decks';
+      state.settings.deckDescription = 'Roots, Field, Garden, Vine, and Seasons';
+      await broadcastState();
+      render();
+    }
+
+    ui.startGrowRoomBtn.addEventListener('click', hostStartGrowGame);
 
     ui.createRoomBtn.addEventListener('click', hostCreateRoom);
     ui.joinRoomBtn.addEventListener('click', guestJoinRoom);
@@ -7299,7 +7367,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=28').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=29').catch(() => {});
       });
     }
 </script>
