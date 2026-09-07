@@ -16,6 +16,96 @@ badge.textContent='Connecting to room '+code+'…';menu.append(badge);
 const lobby=document.createElement('button');lobby.textContent='Return room to lobby';lobby.hidden=true;
 lobby.className='setting-action';menu.append(lobby);
 const turnNote=document.createElement('p');turnNote.setAttribute('role','status');turnNote.style.cssText='margin:6px 0 0;font:14px Georgia;color:#fff1d2';document.querySelector('.title-wrap').append(turnNote);
+const tableShell=document.getElementById('tableShell');
+const tableStyle=document.createElement('style');
+tableStyle.textContent=`
+  .table-shell.grow-turning .table,
+  .table-shell.grow-spinning .table{transition:none!important}
+  .die-hit,.die-tap{
+    transform:translate(-50%,-50%) rotate(var(--table-rotation))!important;
+    transform-origin:50% 50%;
+    transition:transform 1s cubic-bezier(.2,.84,.2,1)
+  }
+  .table-shell.grow-turning .die-hit,
+  .table-shell.grow-turning .die-tap,
+  .table-shell.grow-spinning .die-hit,
+  .table-shell.grow-spinning .die-tap{transition:none!important}
+  .table-shell{cursor:grab!important;touch-action:none!important}
+  .table-shell.grow-turning{cursor:grabbing!important}
+`;
+document.head.append(tableStyle);
+
+let tableRotation=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--table-rotation'))||0;
+let tableTurning=false,lastPointerAngle=0,lastPointerTime=0,angularVelocity=0,inertiaFrame=0;
+
+function pointerAngle(event){
+ const box=tableShell.getBoundingClientRect();
+ return Math.atan2(event.clientY-(box.top+box.height/2),event.clientX-(box.left+box.width/2))*180/Math.PI;
+}
+function normalizeTurn(delta){
+ while(delta>180)delta-=360;
+ while(delta<-180)delta+=360;
+ return delta;
+}
+function paintTableRotation(){
+ document.documentElement.style.setProperty('--table-rotation',tableRotation+'deg');
+}
+function stopTableSpin(){
+ if(inertiaFrame)cancelAnimationFrame(inertiaFrame);
+ inertiaFrame=0;
+ tableShell.classList.remove('grow-spinning');
+}
+function startTableInertia(velocity){
+ stopTableSpin();
+ velocity=Math.max(-0.35,Math.min(0.35,Number(velocity)||0));
+ if(Math.abs(velocity)<0.015)return;
+ tableShell.classList.add('grow-spinning');
+ let last=performance.now();
+ const frame=now=>{
+   const dt=Math.min(32,Math.max(8,now-last||16));
+   last=now;
+   tableRotation+=velocity*dt;
+   paintTableRotation();
+   velocity*=Math.pow(.96,dt/16);
+   if(Math.abs(velocity)>0.01)inertiaFrame=requestAnimationFrame(frame);
+   else{inertiaFrame=0;tableShell.classList.remove('grow-spinning');}
+ };
+ inertiaFrame=requestAnimationFrame(frame);
+}
+tableShell.addEventListener('pointerdown',event=>{
+ if(event.button!==undefined&&event.button!==0)return;
+ if(event.target.closest('#dieTap,#dieHit,.deck'))return;
+ if(document.getElementById('questionLayer')?.classList.contains('show'))return;
+ stopTableSpin();
+ tableTurning=true;
+ lastPointerAngle=pointerAngle(event);
+ lastPointerTime=performance.now();
+ angularVelocity=0;
+ tableShell.classList.add('grow-turning');
+ try{tableShell.setPointerCapture(event.pointerId);}catch{}
+});
+tableShell.addEventListener('pointermove',event=>{
+ if(!tableTurning)return;
+ const now=performance.now();
+ const angle=pointerAngle(event);
+ const delta=normalizeTurn(angle-lastPointerAngle);
+ const dt=Math.max(1,now-lastPointerTime);
+ tableRotation+=delta;
+ angularVelocity=delta/dt;
+ lastPointerAngle=angle;
+ lastPointerTime=now;
+ paintTableRotation();
+});
+function endTableTurn(event){
+ if(!tableTurning)return;
+ tableTurning=false;
+ tableShell.classList.remove('grow-turning');
+ try{tableShell.releasePointerCapture(event.pointerId);}catch{}
+ if(performance.now()-lastPointerTime>90)angularVelocity=0;
+ startTableInertia(angularVelocity);
+}
+tableShell.addEventListener('pointerup',endTableTurn);
+tableShell.addEventListener('pointercancel',endTableTurn);
 function controls(){
  const mine=latest?.turnPlayerId===uid;
  document.getElementById('dieHit').tabIndex=-1;
@@ -32,7 +122,7 @@ function apply(snapshot){
  controls();
  clearTimeout(renderTimer);
  const draw=()=>{if(api.isLocked()){renderTimer=setTimeout(draw,60);return;} api.restore(snapshot);};
- if(snapshot.type==='roll'&&!first&&!api.isLocked()){api.closeQuestion();api.roll(snapshot.category);}else draw();
+ if(snapshot.type==='roll'&&!first&&!api.isLocked()){stopTableSpin();api.closeQuestion();api.roll(snapshot.category);}else draw();
 }
 async function publish(snapshot){
  const writes={'private/state/growGame':snapshot};
@@ -78,7 +168,7 @@ document.addEventListener('click',event=>{
   localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');
   update(path('players/'+uid),{connected:false}).finally(()=>{location.href='./?join=grow&code='+encodeURIComponent(code);});return;
  }
- if(die)send('grow-roll');else if(deck)send('grow-draw',{category:deck.dataset.name});else send('grow-close');
+ if(die){stopTableSpin();send('grow-roll');}else if(deck){stopTableSpin();send('grow-draw',{category:deck.dataset.name});}else send('grow-close');
 },true);
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&document.body.classList.contains('reading')){event.preventDefault();event.stopImmediatePropagation();send('grow-close');}
