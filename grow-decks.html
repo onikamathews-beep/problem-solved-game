@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#31583f">
+<title>Manage Grow Decks</title>
+<style>
+:root{--ink:#2c2a25;--green:#31583f;--gold:#c8a35e;--cream:#fffaf0;--paper:#f3ead9;--muted:#6f685c}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}
+body{background:radial-gradient(circle at 10% 0,#fff9e9,transparent 34%),linear-gradient(145deg,#eef1df,#d8e2cf 55%,#b8c7ac)}
+.wrap{width:min(100%,980px);margin:auto;padding:18px 12px 48px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.back{border:2px solid var(--ink);border-radius:12px;background:var(--cream);padding:10px 13px;font-weight:800;text-decoration:none;color:var(--ink);box-shadow:0 3px 0 var(--ink)}
+h1{font-family:Georgia,serif;color:#244b34;margin:0;font-size:clamp(1.8rem,6vw,3rem)}
+.sub{margin:4px 0 0;color:var(--muted)}
+.panel{background:rgba(255,250,240,.96);border:2px solid rgba(70,58,36,.28);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 12px 28px rgba(37,45,28,.12)}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+label{display:grid;gap:6px;font-weight:800;font-size:.83rem;text-transform:uppercase;letter-spacing:.04em}
+select,input,textarea{width:100%;border:2px solid #b9ad92;border-radius:12px;background:#fffdf7;color:#2b2924;padding:11px 12px;font:inherit}
+textarea{min-height:108px;resize:vertical;line-height:1.4}
+.btn{border:2px solid var(--ink);border-radius:11px;background:#fffdf7;color:var(--ink);padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.btn.green{background:var(--green);color:white}
+.btn.gold{background:#e8c75f}
+.btn.danger{background:#f2c4bd}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:14px 0}
+.tab{border:2px solid #6d654f;border-radius:999px;background:#fffaf0;padding:9px 7px;font-weight:900;cursor:pointer}
+.tab.active{background:var(--green);color:white;border-color:#1d3928}
+.deck-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:10px}
+.deck-head h2{margin:0;font-family:Georgia,serif;color:#31583f}
+.card{background:#fffdf7;border:1px solid #cabd9f;border-radius:14px;padding:12px;margin:9px 0}
+.card-number{font-weight:900;color:#6f623f;margin-bottom:6px}
+.card-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
+.small{font-size:.83rem;padding:8px 10px}
+.note{padding:10px 12px;background:#edf3e5;border:1px solid #bdcaad;border-radius:12px;color:#58604f;font-size:.88rem;line-height:1.4}
+.empty{padding:24px;text-align:center;color:var(--muted);border:2px dashed #c7baa0;border-radius:14px}
+.badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eee4c9;border:1px solid #c5ae72;font-size:.74rem;font-weight:900}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.deck-head{align-items:flex-start;flex-direction:column}.top{align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a id="backLink" class="back" href="./">← Back</a>
+    <div><h1>Manage Grow Decks</h1><p class="sub">Edit the five conversation decks and keep separate versions for different groups.</p></div>
+  </div>
+
+  <div class="panel">
+    <div class="grid">
+      <label>Deck set
+        <select id="setSelect"></select>
+      </label>
+      <label>Audience
+        <select id="audienceSelect">
+          <option>Married Couples</option>
+          <option>Families</option>
+          <option>Friends</option>
+          <option>Young & Old</option>
+          <option>All Ages</option>
+          <option>Custom</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button class="btn green" id="useSetBtn" type="button">Use This Set in Games</button>
+      <button class="btn" id="newSetBtn" type="button">Duplicate as New Set</button>
+      <button class="btn" id="renameSetBtn" type="button">Rename Set</button>
+      <button class="btn danger" id="deleteSetBtn" type="button">Delete Set</button>
+    </div>
+    <p id="activeNote" class="note"></p>
+  </div>
+
+  <div class="panel">
+    <div class="tabs" id="tabs"></div>
+    <div class="deck-head">
+      <div><span id="audienceBadge" class="badge"></span><h2 id="deckTitle">Roots</h2></div>
+      <button id="addPromptBtn" class="btn gold" type="button">+ Add Question</button>
+    </div>
+    <div id="promptList"></div>
+  </div>
+
+  <div class="panel">
+    <strong>Included deck backup</strong>
+    <p class="sub">The original Married Couples questions are always available here if you want to restore them.</p>
+    <div class="actions">
+      <button id="restoreDefaultsBtn" class="btn" type="button">Restore Included Married Couples Set</button>
+    </div>
+  </div>
+</div>
+<script>
+(()=>{
+"use strict";
+const STORAGE_KEY="growWherePlanted.deckSets.v1";
+const ACTIVE_KEY="growWherePlanted.activeSet.v1";
+const CATS=["Roots","Field","Garden","Vine","Seasons"];
+const defaults={
+  Roots:[
+    "What is something about your spiritual life right now that you don’t want to overlook while thinking about the future?",
+    "If neither of you received a new assignment or privilege this year, what could still make it spiritually rich and satisfying?",
+    "What growth can you see in yourself that didn’t require a new title or assignment?",
+    "What spiritual quality have you watched grow in your spouse that you don’t want them to overlook?"
+  ],
+  Field:[
+    "Is there someone you met in the ministry who has stayed in your mind? What was it about that person or conversation?",
+    "Which part of the ministry has been bringing you the most genuine joy lately, and why?",
+    "Without hours, placements, or measurable results, what would make a month in the ministry feel meaningful?",
+    "What form of the ministry, territory, approach, or habit would be enjoyable for you to experience together?"
+  ],
+  Garden:[
+    "Who among the friends has quietly made your spiritual life better lately, and what did they do?",
+    "Who in the congregation would you simply enjoy getting to know better?",
+    "What has the example of someone with limiting circumstances taught you about what Jehovah values?",
+    "What do you currently contribute to the congregation as a couple, apart from any assignment?"
+  ],
+  Vine:[
+    "What have you learned or been reminded about Jehovah recently that affected how you see him?",
+    "What circumstances or activities tend to make you feel especially close to Jehovah?",
+    "What spiritual quality would you like to become a more natural part of you?",
+    "What would you like your spouse to include more often when praying for you or when you pray together?"
+  ],
+  Seasons:[
+    "What spiritual hope do you have for someday, and what do you never want to lose while waiting?",
+    "Choose one spiritual goal. What do you hope to give, experience, or become through it—and can part of that happen now?",
+    "How can you keep working toward something you want without mentally living in the future?",
+    "Name one hope for your spiritual future. What can you do, what belongs in Jehovah’s hands, and what would contentment look like now?"
+  ]
+};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const starter=()=>({id:"married-couples",name:"Married Couples",audience:"Married Couples",decks:clone(defaults),included:true});
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+    if(Array.isArray(x)&&x.length) return x;
+  }catch{}
+  const s=[starter()]; localStorage.setItem(STORAGE_KEY,JSON.stringify(s)); return s;
+}
+let sets=load();
+let currentId=localStorage.getItem(ACTIVE_KEY)||sets[0].id;
+if(!sets.some(s=>s.id===currentId)) currentId=sets[0].id;
+let category="Roots";
+const $=id=>document.getElementById(id);
+const setSelect=$("setSelect"),audienceSelect=$("audienceSelect"),promptList=$("promptList");
+function current(){return sets.find(s=>s.id===setSelect.value)||sets[0]}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));render()}
+function uid(){return "set-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
+function render(){
+  const prior=setSelect.value||currentId;
+  setSelect.innerHTML=sets.map(s=>'<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>').join("");
+  setSelect.value=sets.some(s=>s.id===prior)?prior:sets[0].id;
+  const s=current();
+  audienceSelect.value=[...audienceSelect.options].some(o=>o.value===s.audience)?s.audience:"Custom";
+  $("activeNote").textContent=(localStorage.getItem(ACTIVE_KEY)||sets[0].id)===s.id
+    ? "This is the active Grow deck set and will be used when you host a game."
+    : "This set is not active yet. Tap “Use This Set in Games” to make it the host deck set.";
+  $("audienceBadge").textContent=s.audience;
+  $("deckTitle").textContent=category;
+  $("tabs").innerHTML=CATS.map(c=>'<button class="tab '+(c===category?'active':'')+'" data-cat="'+c+'" type="button">'+c+'</button>').join("");
+  $("tabs").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render()});
+  const prompts=s.decks[category]||[];
+  promptList.innerHTML=prompts.length?prompts.map((p,i)=>`
+    <div class="card">
+      <div class="card-number">Question ${i+1}</div>
+      <textarea data-prompt-index="${i}"></textarea>
+      <div class="card-actions">
+        <button class="btn small" data-save="${i}" type="button">Save</button>
+        <button class="btn danger small" data-delete="${i}" type="button">Delete</button>
+      </div>
+    </div>`).join(""):'<div class="empty">No questions in this deck yet.</div>';
+  promptList.querySelectorAll("[data-prompt-index]").forEach(t=>{t.value=prompts[Number(t.dataset.promptIndex)]});
+  promptList.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>{
+    const i=Number(b.dataset.save),t=promptList.querySelector('[data-prompt-index="'+i+'"]');
+    const val=t.value.trim(); if(!val)return alert("Question cannot be blank.");
+    s.decks[category][i]=val;save();
+  });
+  promptList.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
+    const i=Number(b.dataset.delete); if(confirm("Delete this question?")){s.decks[category].splice(i,1);save()}
+  });
+}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+setSelect.onchange=render;
+audienceSelect.onchange=()=>{current().audience=audienceSelect.value;save()};
+$("useSetBtn").onclick=()=>{localStorage.setItem(ACTIVE_KEY,current().id);render()};
+$("newSetBtn").onclick=()=>{
+  const base=current(); const name=prompt("Name the new deck set:",base.audience+" Copy"); if(!name)return;
+  const audience=prompt("Audience label (Families, Friends, Young & Old, All Ages, Custom):",base.audience)||"Custom";
+  const copy={id:uid(),name:name.trim(),audience:audience.trim(),decks:clone(base.decks),included:false};
+  sets.push(copy);save();setSelect.value=copy.id;render();
+};
+$("renameSetBtn").onclick=()=>{const s=current(),name=prompt("New name:",s.name);if(name&&name.trim()){s.name=name.trim();save()}};
+$("deleteSetBtn").onclick=()=>{
+  const s=current(); if(sets.length===1)return alert("Keep at least one deck set.");
+  if(!confirm('Delete "'+s.name+'"?'))return;
+  sets=sets.filter(x=>x.id!==s.id);
+  if(localStorage.getItem(ACTIVE_KEY)===s.id)localStorage.setItem(ACTIVE_KEY,sets[0].id);
+  save();
+};
+$("addPromptBtn").onclick=()=>{
+  const q=prompt("New "+category+" question:"); if(!q||!q.trim())return;
+  current().decks[category].push(q.trim());save();
+};
+$("restoreDefaultsBtn").onclick=()=>{
+  if(!confirm("Restore the included Married Couples set to its original questions?"))return;
+  const i=sets.findIndex(s=>s.id==="married-couples");
+  if(i>=0)sets[i]=starter();else sets.unshift(starter());
+  save();setSelect.value="married-couples";render();
+};
+const params=new URLSearchParams(location.search);
+$("backLink").href=params.get("return")==="room"?"./":"./";
+render();
+})();
+</script>
+</body>
+</html>
