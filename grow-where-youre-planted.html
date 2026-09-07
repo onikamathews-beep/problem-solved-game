@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#244632">
+<title>Grow Where You're Planted</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Georgia,"Times New Roman",serif}
+body{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 18%,#fff9e9,#dfe7d3 55%,#819b78);color:#244632}
+.loader{width:min(86vw,420px);padding:28px;text-align:center;background:rgba(255,252,241,.92);border:2px solid #c9aa63;border-radius:24px;box-shadow:0 18px 42px rgba(0,0,0,.2)}
+.loader h1{margin:0 0 8px;font-size:clamp(27px,7vw,42px)}
+.loader p{margin:8px 0;color:#596b59}
+.track{height:10px;margin-top:18px;background:#dfe3d4;border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:#315b43;transition:width .15s ease}
+#error{color:#8a3b37;font:600 14px/1.4 system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div class="loader">
+<h1>Grow Where You're Planted</h1>
+<p id="status">Opening the garden…</p>
+<div class="track"><div class="bar" id="bar"></div></div>
+<p id="error"></p>
+</div>
+<script>
+(async()=>{
+ const total=23, parts=[];
+ const status=document.getElementById('status'),bar=document.getElementById('bar'),error=document.getElementById('error');
+ try{
+   for(let i=0;i<total;i++){
+     const name='./grow-chunks/part-'+String(i).padStart(3,'0')+'.txt';
+     const response=await fetch(name);
+     if(!response.ok) throw new Error('Could not load game part '+(i+1)+'.');
+     parts.push(await response.text());
+     const pct=Math.round(((i+1)/total)*100);
+     bar.style.width=pct+'%';
+     status.textContent='Opening the garden… '+pct+'%';
+   }
+   const full=parts.join('');
+   document.open();
+   document.write(full);
+   document.close();
+ }catch(err){
+   error.textContent=err.message+' Please refresh and try again.';
+   status.textContent='The game could not finish loading.';
+ }
+})();
+</script>
+</body>
+</html>
