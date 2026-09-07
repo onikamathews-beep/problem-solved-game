@@ -94,7 +94,7 @@ body{
  const status=document.getElementById('status'),bar=document.getElementById('bar'),error=document.getElementById('error');
  try{
    for(let i=0;i<total;i++){
-     const name='./grow-chunks/part-'+String(i).padStart(3,'0')+'.txt?v=40';
+     const name='./grow-chunks/part-'+String(i).padStart(3,'0')+'.txt?v=41';
      const response=await fetch(name);
      if(!response.ok) throw new Error('Could not load game part '+(i+1)+'.');
      parts.push(await response.text());
