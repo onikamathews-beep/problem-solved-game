@@ -13,26 +13,35 @@ function fixture(){
  async function client(id){
   const events={},calls=[];
   const element=()=>({style:{},setAttribute(){},append(){},hidden:false});
+  const elements={};
   const api={names:categories,isLocked:()=>false,restore:s=>calls.push(['restore',copy(s)]),roll:c=>calls.push(['roll',c]),closeQuestion(){}};
-  const context={window:{GrowGameAPI:api},URLSearchParams,location:{search:'?room=ABC123&role=host',replace(url){calls.push(['redirect',url])}},document:{createElement:element,body:{append(){},classList:{contains:()=>false}},addEventListener:(e,f)=>events[e]=f},console,Date,Math,Map,Set,crypto:require('node:crypto').webcrypto,setTimeout,clearTimeout,localStorage:{setItem(){},removeItem(){}},initializeApp:()=>({}),getAuth:()=>({currentUser:{uid:id}}),getDatabase:()=>({}),setPersistence:async()=>{},signInAnonymously:async()=>{},browserLocalPersistence:{},ref:(_,p)=>p,serverTimestamp:()=>Date.now(),onDisconnect:()=>({set:async()=>{}}),get:async p=>({val:()=>copy(read(p))}),set:async(p,v)=>{write(p,v);notify([p]);},remove:async p=>{write(p,null);notify([p]);},update:async(p,values)=>{let paths=[];for(const [key,v]of Object.entries(values)){write(p+'/'+key,v);paths.push(p+'/'+key);}notify(paths);},onValue:(p,fn)=>{assert.notEqual(p,'rooms/ABC123/actions','Must listen at permitted player inbox path');const l={p,fn};listeners.push(l);queueMicrotask(()=>fn({val:()=>copy(read(p))}));return()=>listeners.splice(listeners.indexOf(l),1);}};
+  const context={window:{GrowGameAPI:api},URLSearchParams,location:{search:'?room=ABC123&role=host',replace(url){calls.push(['redirect',url])}},document:{createElement:element,getElementById:id=>elements[id]??=element(),querySelectorAll:()=>[],querySelector:()=>element(),body:{append(){},classList:{contains:()=>false}},addEventListener:(e,f)=>events[e]=f},console,Date,Math,Map,Set,crypto:require('node:crypto').webcrypto,setTimeout,clearTimeout,localStorage:{setItem(){},removeItem(){}},initializeApp:()=>({}),getAuth:()=>({currentUser:{uid:id}}),getDatabase:()=>({}),setPersistence:async()=>{},signInAnonymously:async()=>{},browserLocalPersistence:{},ref:(_,p)=>p,serverTimestamp:()=>Date.now(),onDisconnect:()=>({set:async()=>{}}),get:async p=>({val:()=>copy(read(p))}),set:async(p,v)=>{write(p,v);notify([p]);},remove:async p=>{write(p,null);notify([p]);},update:async(p,values)=>{let paths=[];for(const [key,v]of Object.entries(values)){write(p+'/'+key,v);paths.push(p+'/'+key);}notify(paths);},onValue:(p,fn)=>{assert.notEqual(p,'rooms/ABC123/actions','Must listen at permitted player inbox path');const l={p,fn};listeners.push(l);queueMicrotask(()=>fn({val:()=>copy(read(p))}));return()=>listeners.splice(listeners.indexOf(l),1);}};
   vm.createContext(context);await vm.runInContext('(async()=>{'+source+'})()',context);await settle();
-  return {context,calls,click:selector=>events.click({target:{closest:s=>s===selector?{dataset:{name:'Roots'}}:null},preventDefault(){},stopImmediatePropagation(){}})};
+  return {context,calls,click:(selector,category="Roots")=>events.click({target:{closest:s=>s===selector?{dataset:{name:category}}:null},preventDefault(){},stopImmediatePropagation(){}})};
  }
  return {client,read,write,notify};
 }
 async function settle(){for(let i=0;i<15;i++)await new Promise(r=>setImmediate(r));}
-test('guest requests use host deck, persist full state, and restore after refresh',async()=>{
+test('only the turn owner can roll, draw the matching card, and finish; turns advance',async()=>{
  const f=fixture(),h=await f.client('host'),g=await f.client('guest');
- g.click('.deck');await settle();
- assert.equal(f.read('rooms/ABC123/private/state/growGame').prompt,'Host Roots question');
- assert.equal(f.read('rooms/ABC123/views/guest/growGame').prompt,'Host Roots question');
- assert.ok(h.calls.some(c=>c[1]?.prompt==='Host Roots question'));
+ g.click('#dieTap,#dieHit');g.click('.deck');await settle();
+ assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'ready');
+ h.click('#dieTap,#dieHit');await settle();
+ const rolled=f.read('rooms/ABC123/private/state/growGame');
+ assert.equal(rolled.type,'roll');
+ assert.equal(rolled.turnPlayerId,'host');
+ g.click('#doneBtn');await settle();assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'roll');
+ await new Promise(r=>setTimeout(r,1750));
+ // Use the rolled category instead of the fixture's default Roots target.
+ h.click('.deck',rolled.category);await settle();
+ assert.equal(f.read('rooms/ABC123/private/state/growGame').prompt,'Host '+rolled.category+' question');
+ g.click('#doneBtn');await settle();assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'draw');
  const reload=await f.client('guest');
- assert.ok(reload.calls.some(c=>c[1]?.prompt==='Host Roots question'));
- g.click('#doneBtn');await settle();
- assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'close');
- g.click('#dieTap,#dieHit');await settle();
- assert.equal(f.read('rooms/ABC123/views/guest/growGame').category,f.read('rooms/ABC123/views/host/growGame').category);
+ assert.ok(reload.calls.some(c=>c[1]?.prompt==='Host '+rolled.category+' question'));
+ h.click('#doneBtn');await settle();
+ assert.equal(f.read('rooms/ABC123/private/state/growGame').turnPlayerId,'guest');
+ h.click('#dieTap,#dieHit');await settle();assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'close');
+ g.click('#dieTap,#dieHit');await settle();assert.equal(f.read('rooms/ABC123/private/state/growGame').type,'roll');
 });
 test('late player receives complete session and URL role cannot grant hosting',async()=>{
  const f=fixture();await f.client('host');

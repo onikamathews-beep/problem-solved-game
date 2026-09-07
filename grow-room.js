@@ -8,17 +8,28 @@ const auth=getAuth(app), db=getDatabase(app), base='rooms/'+code;
 const path=p=>ref(db,base+'/'+p);
 let ready=false, online=false, host=false, uid, room, latest, lastSeq=-1, queue=Promise.resolve(), renderTimer, busyUntil=0;
 const inboxes=new Map(), pending=new Set();
+const menu=document.getElementById('roomMenu');
 const badge=document.createElement('div');
 badge.setAttribute('role','status');
-badge.style.cssText='position:fixed;z-index:200;top:120px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:18px;background:#233c2eed;color:#fff5df;font:13px system-ui;text-align:center';
-badge.textContent='Connecting to room '+code+'…';document.body.append(badge);
+badge.style.cssText='padding:12px 0;font:14px system-ui';
+badge.textContent='Connecting to room '+code+'…';menu.append(badge);
 const lobby=document.createElement('button');lobby.textContent='Return room to lobby';lobby.hidden=true;
-lobby.style.cssText='position:fixed;z-index:200;right:12px;bottom:15px;padding:10px;border-radius:12px;background:#fff5df;color:#233c2e';document.body.append(lobby);
+lobby.className='setting-action';menu.append(lobby);
+const turnNote=document.createElement('p');turnNote.setAttribute('role','status');turnNote.style.cssText='margin:6px 0 0;font:14px Georgia;color:#fff1d2';document.querySelector('.title-wrap').append(turnNote);
+function controls(){
+ const mine=latest?.turnPlayerId===uid;
+ document.getElementById('dieHit').tabIndex=-1;
+ document.getElementById('dieTap').disabled=!mine||!['ready','close'].includes(latest?.type);
+ document.querySelectorAll('.deck').forEach(deck=>{const enabled=mine&&latest?.type==='roll'&&latest.category===deck.dataset.name;deck.setAttribute('aria-disabled',String(!enabled));deck.tabIndex=enabled?0:-1;});
+ document.getElementById('doneBtn').hidden=!mine;
+ turnNote.textContent=mine?'Your turn':(latest?.playerNames?.[latest.turnPlayerId]||'Another player')+'’s turn';
+}
 function fail(error){document.body.inert=false;console.error(error);badge.textContent='Connection interrupted. Your room is saved; refresh to reconnect.';ready=false;}
 function enqueue(fn){queue=queue.then(fn).catch(fail);return queue;}
 function apply(snapshot){
  if(!snapshot||snapshot.seq<=lastSeq)return;
  const first=lastSeq<0;lastSeq=snapshot.seq;latest=snapshot;
+ controls();
  clearTimeout(renderTimer);
  const draw=()=>{if(api.isLocked()){renderTimer=setTimeout(draw,60);return;} api.restore(snapshot);};
  if(snapshot.type==='roll'&&!first&&!api.isLocked()){api.closeQuestion();api.roll(snapshot.category);}else draw();
@@ -29,24 +40,30 @@ async function publish(snapshot){
  await update(ref(db,base),writes);
  latest=snapshot;
 }
-async function act(action){
- if(!ready||!online||Date.now()<busyUntil)return;
+async function act(action,actorId){
+ if(!ready||!online||Date.now()<busyUntil||actorId!==latest?.turnPlayerId||action.seq!==latest.seq)return;
  let next={...latest,seq:(latest?.seq||0)+1,at:Date.now()};
  if(action.type==='grow-roll'){
-  if(latest?.type==='draw')return;
+  if(!['ready','close'].includes(latest?.type))return;
   next={...next,type:'roll',category:api.names[Math.floor(Math.random()*api.names.length)],prompt:null};busyUntil=Date.now()+1700;
  }else if(action.type==='grow-draw'){
-  if(latest?.type==='draw'||!api.names.includes(action.category))return;
+  if(latest?.type!=='roll'||action.category!==latest.category||Date.now()-latest.at<1700)return;
   const prompts=room.growDeckSet.decks[action.category];
   if(!prompts?.length)return;
   next={...next,type:'draw',category:action.category,prompt:prompts[Math.floor(Math.random()*prompts.length)]};
- }else if(action.type==='grow-close')next={...next,type:'close',prompt:null};else return;
+ }else if(action.type==='grow-close'){
+  if(latest.type!=='draw')return;
+  const order=[...latest.turnOrder,...Object.keys(room.players).filter(id=>!latest.turnOrder.includes(id))];
+  const current=order.indexOf(actorId);
+  const nextId=Array.from({length:order.length},(_,i)=>order[(current+i+1)%order.length]).find(id=>room.players[id]?.connected!==false)||actorId;
+  next={...next,type:'close',prompt:null,category:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
+ }else return;
  await publish(next);
 }
 async function send(type,extra={}){
- if(!ready||!online)return;
- const action={type,...extra,at:Date.now()};
- if(host)return enqueue(()=>act(action));
+ if(!ready||!online||uid!==latest?.turnPlayerId)return;
+ const action={type,...extra,seq:latest.seq,at:Date.now()};
+ if(host)return enqueue(()=>act(action,uid));
  await set(path('actions/'+uid+'/'+crypto.randomUUID()),action).catch(fail);
 }
 // Capture every route that would otherwise mutate the standalone board.
@@ -88,6 +105,9 @@ try{
  if(!room?.growDeckSet)throw new Error('Return to the lobby and start a new Grow session.');
  room.players=Object.fromEntries((room.players||[]).map(p=>[p.id,p]));
  latest=room.growGame;
+ if(host&&!latest?.turnPlayerId){
+  await publish({...latest,seq:(latest?.seq||0)+1,turnPlayerId:uid,turnOrder:Object.keys(room.players),playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))});
+ }
  const name=player.name||'Player';
  localStorage.setItem('problemSolved.activeFirebaseRoom.v1',JSON.stringify({roomCode:code,role:host?'host':'guest',mode:'grow',name}));
  lobby.hidden=!host;
@@ -118,7 +138,7 @@ try{
       for(const [actionId,action] of Object.entries(snapshot.val()||{})){
        const key=id+'/'+actionId;if(pending.has(key))continue;pending.add(key);
        enqueue(async()=>{
-        if(room.players[id]?.connected!==false&&Date.now()-Number(action.at)<15000)await act(action);
+        if(room.players[id]?.connected!==false&&Date.now()-Number(action.at)<15000)await act(action,id);
         await remove(path('actions/'+key));pending.delete(key);
        });
       }
