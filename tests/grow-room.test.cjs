@@ -52,3 +52,13 @@ test('late player receives complete session and URL role cannot grant hosting',a
 test('unknown identity is sent through join flow',async()=>{
  const f=fixture();const unknown=await f.client('stranger');assert.ok(unknown.calls.some(c=>c[0]==='redirect'&&c[1].includes('join=grow&code=ABC123')));
 });
+test('guests leave and return to waiting without opening the host game picker',async()=>{
+ const f=fixture(),host=await f.client('host'),guest=await f.client('guest');
+ guest.click('#homeBtn');await settle();
+ assert.equal(guest.context.location.href,'./?join=grow&code=ABC123');
+ f.write('rooms/ABC123/meta/phase','room');f.notify(['rooms/ABC123/meta/phase']);await settle();
+ assert.ok(guest.calls.some(c=>c[0]==='redirect'&&c[1]==='./?join=grow&code=ABC123'));
+ assert.ok(host.calls.some(c=>c[0]==='redirect'&&c[1]==='./'));
+ f.write('rooms/ABC123/meta/phase','closed');f.notify(['rooms/ABC123/meta/phase']);await settle();
+ assert.deepEqual(guest.calls.filter(c=>c[0]==='redirect').at(-1),['redirect','./?join=grow']);
+});

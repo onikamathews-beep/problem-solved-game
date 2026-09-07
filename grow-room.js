@@ -76,7 +76,7 @@ document.addEventListener('click',event=>{
  if(home){
   if(host){lobby.click();return;}
   localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');
-  update(path('players/'+uid),{connected:false}).finally(()=>{location.href='./?game=grow';});return;
+  update(path('players/'+uid),{connected:false}).finally(()=>{location.href='./?join=grow&code='+encodeURIComponent(code);});return;
  }
  if(die)send('grow-roll');else if(deck)send('grow-draw',{category:deck.dataset.name});else send('grow-close');
 },true);
@@ -121,7 +121,7 @@ try{
    await set(path('presence/'+uid),{connected:true,lastSeen:serverTimestamp()});
   }
  },fail);
- onValue(path('meta'),snapshot=>{const m=snapshot.val();if(!m||m.phase==='closed'){localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');location.replace('./?game=grow');}else if(m.phase!=='grow')location.replace('./');},fail);
+ onValue(path('meta'),snapshot=>{const m=snapshot.val();if(!m||m.phase==='closed'){localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');location.replace(host?'./?game=grow':'./?join=grow');}else if(m.phase!=='grow')location.replace(host?'./':'./?join=grow&code='+encodeURIComponent(code));},fail);
  onValue(path('views/'+uid+'/growGame'),snapshot=>apply(snapshot.val()),fail);
  document.body.inert=false;
  ready=true;

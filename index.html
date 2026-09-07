@@ -1,6 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="room-loading">
 <head>
+<script>
+try {
+ const entry=new URLSearchParams(location.search);
+ const saved=JSON.parse(localStorage.getItem('problemSolved.activeFirebaseRoom.v1')||'null');
+ if(entry.has('join')||saved?.role==='guest') document.documentElement.classList.add('guest-entry');
+} catch {}
+</script>
+<style>
+.room-loading .app{visibility:hidden}
+#entryLoading{position:fixed;inset:0;display:grid;place-items:center;color:#fff5df;background:#203429;font:20px Georgia;z-index:500}
+html:not(.room-loading) #entryLoading{display:none}
+.guest-entry .topbar{display:none}
+</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#b9a36a">
@@ -13,9 +26,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=35">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=35">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=35">
+  <link rel="manifest" href="./manifest.json?v=36">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=36">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=36">
   <title>Principles in Practice, Problem? Solved! & Grow Where You're Planted</title>
   <style>
     :root {
@@ -2806,13 +2819,14 @@
   </style>
 </head>
 <body>
+  <div id="entryLoading" role="status">Opening your room…</div>
   <main class="app">
     <header class="topbar">
       <div class="top-brands"><div class="mini-logo" aria-label="Problem Solved"><span>Problem?</span><span>Solved!</span></div><span class="brand-divider">•</span><span class="coop-mini">Principles in Practice</span><span class="brand-divider">•</span><span class="coop-mini">Grow</span></div>
       <div id="connectionPill" class="connection-pill">Not connected</div>
     </header>
 
-    <section id="lobbyScreen" class="screen active">
+    <section id="lobbyScreen" class="screen">
       <div class="hero game-picker-hero">
         <h1 class="game-picker-title">Choose a Game</h1>
         <p class="game-picker-subtitle">Pick the game you want to play.</p>
@@ -3383,7 +3397,7 @@
     </div>
   </dialog>
 
-  <script src="./grow-decks-store.js?v=35"></script>
+  <script src="./grow-decks-store.js?v=36"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -3870,6 +3884,10 @@
     let managerThemeDraft = null;
     const entryParams = new URLSearchParams(window.location.search);
     let inviteMode = ['coop', 'pvp', 'grow'].includes(entryParams.get('join')) ? entryParams.get('join') : null;
+    try {
+      const saved = JSON.parse(localStorage.getItem(ACTIVE_ROOM_KEY) || 'null');
+      if (!inviteMode && saved?.role === 'guest') inviteMode = saved.mode || 'grow';
+    } catch {}
 
     // Keep the browser tab, address-bar suggestion, and shared-page branding aligned
     // with the mode the person is actually opening.
@@ -4061,6 +4079,7 @@
     }
 
     function showScreen(screenId) {
+      document.documentElement.classList.remove('room-loading');
       document.querySelectorAll('.screen').forEach(screen => screen.classList.toggle('active', screen.id === screenId));
     }
 
@@ -4070,6 +4089,7 @@
 
     function showInviteJoin(mode = 'coop') {
       inviteMode = ['pvp','grow'].includes(mode) ? mode : 'coop';
+      document.documentElement.classList.add('guest-entry');
       document.body.classList.remove('coop-game', 'pvp-game');
       clearEntryTheme();
       if (inviteMode !== 'grow') document.body.classList.add(inviteMode === 'coop' ? 'entry-coop' : 'entry-pvp');
@@ -4305,6 +4325,7 @@
       const oldRoom = roomCode;
       const oldUid = myPlayerId;
       const wasHost = isHost;
+      if (!wasHost && state?.settings?.playMode) inviteMode = state.settings.playMode;
       clearRoomListeners();
       localStorage.removeItem(ACTIVE_ROOM_KEY);
 
@@ -7441,7 +7462,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=35').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=36').catch(() => {});
       });
     }
 </script>
