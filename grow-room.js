@@ -56,7 +56,11 @@ document.addEventListener('click',event=>{
  const backdrop=target.id==='questionLayer';
  if(!die&&!deck&&!done&&!home&&!backdrop)return;
  event.preventDefault();event.stopImmediatePropagation();
- if(home){location.href='./';return;}
+ if(home){
+  if(host){lobby.click();return;}
+  localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');
+  update(path('players/'+uid),{connected:false}).finally(()=>{location.href='./?game=grow';});return;
+ }
  if(die)send('grow-roll');else if(deck)send('grow-draw',{category:deck.dataset.name});else send('grow-close');
 },true);
 document.addEventListener('keydown',event=>{
