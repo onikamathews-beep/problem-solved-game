@@ -258,6 +258,10 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   let selected = null;
   let locked = false;
   let currentRotation = 0;
+  // Visual yaw of the die that follows the lazy-Susan rotation. This rotates
+  // the cube around the table's vertical axis, so the landed face stays on top
+  // while the side faces move naturally through view.
+  let tableViewYaw = 0;
   let dragging = false;
   let dragStartAngle = 0;
   let dragStartRotation = 0;
@@ -445,7 +449,10 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     const tilt=innerWidth<=620 ? 44*Math.PI/180 : 52*Math.PI/180;
     const planeScale=Math.cos(tilt);
     const cx=W*.5+dice.x, cy=H*.5+dice.y*planeScale-dice.h-unit*Math.sin(tilt);
-    const R=mm(rot(tilt,0,0),mm(rot(0,0,dice.rz),rot(dice.rx,dice.ry,0)));
+    // Apply table yaw in 3D before the camera tilt. Unlike rotating the whole
+    // canvas in CSS, this keeps the landed face on top and reveals the cube's
+    // other side angles as the table turns.
+    const R=mm(rot(tilt,0,0),mm(rot(0,0,dice.rz+tableViewYaw),rot(dice.rx,dice.ry,0)));
     function project(v){const q=mv(R,v),k=7/(7-q[2]);return {x:cx+q[0]*unit*k,y:cy+q[1]*unit*k,z:q[2]};}
     ctx.save();ctx.filter='blur(5px)';ctx.fillStyle='rgba(31,23,13,.35)';ctx.beginPath();
     ctx.ellipse(W*.5+dice.x,H*.5+dice.y*planeScale+unit*.1,unit*1.18,unit*.65,0,0,Math.PI*2);ctx.fill();ctx.restore();
@@ -480,18 +487,24 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     const p = nextPattern();
     const base = categories[chosen].base;
     const start = { ...dice };
-    const end = {
-      rx: base.rx + p.sx * Math.PI * 2,
-      ry: base.ry + p.sy * Math.PI * 2,
-      rz: (Math.random() - .5) * .5
-    };
+
+    // Put the selected face on top for the roll, then spin around that vertical
+    // axis. This gives the "turn the die in your hand" look: the correct face
+    // remains on top while the side faces travel through view instead of the
+    // whole die pivoting like a flat picture.
+    dice.rx = base.rx;
+    dice.ry = base.ry;
+    const direction = p.dx < 0 ? -1 : 1;
+    const turns = 3 + (Math.abs(p.sx) % 3);
+    const finalYaw = (Math.random() - .5) * .75;
+    const spinDistance = direction * turns * Math.PI * 2 + finalYaw;
 
     const travelLimit=tableShell.getBoundingClientRect().width*.045;
     const landing={x:(Math.random()-.5)*travelLimit,y:(Math.random()-.5)*travelLimit};
     const t0 = performance.now();
 
     function ease(t) {
-      return 1 - Math.pow(1 - t, 3);
+      return 1 - Math.pow(1 - t, 2.35);
     }
 
     function pos(t) {
@@ -508,9 +521,9 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       dice.x = ps.x;
       dice.y = ps.y;
       dice.h = ps.h;
-      dice.rx = start.rx + (end.rx - start.rx) * e;
-      dice.ry = start.ry + (end.ry - start.ry) * e;
-      dice.rz = start.rz + (end.rz - start.rz) * e;
+      dice.rx = base.rx;
+      dice.ry = base.ry;
+      dice.rz = start.rz + spinDistance * e;
       drawDice();
 
       if (t < 1) {
@@ -519,9 +532,10 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         dice.x = landing.x;
         dice.y = landing.y;
         dice.h = 0;
-        dice.rx = end.rx;
-        dice.ry = end.ry;
-        dice.rz = end.rz;
+        dice.rx = base.rx;
+        dice.ry = base.ry;
+        // Keep angles small after each roll without changing the visible pose.
+        dice.rz = Math.atan2(Math.sin(start.rz + spinDistance), Math.cos(start.rz + spinDistance));
         drawDice();
         locked = false;
         selectDeck(chosen, false);
@@ -642,6 +656,11 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     categories,
     names,
     isLocked: () => locked,
+    setTableRotation: deg => {
+      const n = Number(deg);
+      tableViewYaw = (Number.isFinite(n) ? n : 0) * Math.PI / 180;
+      drawDice();
+    },
     getPrompts: name => Array.isArray(categories[name]?.prompts) ? categories[name].prompts.slice() : []
   };
 
@@ -650,6 +669,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=38" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=39" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
