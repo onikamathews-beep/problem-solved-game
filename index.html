@@ -13,9 +13,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Principles in Practice & Problem? Solved!">
   <meta name="twitter:description" content="A multiplayer card game with cooperative and competitive modes for 2–6 players.">
-  <link rel="manifest" href="./manifest.json?v=33">
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=33">
-  <link rel="apple-touch-icon" href="./icon-192.png?v=33">
+  <link rel="manifest" href="./manifest.json?v=34">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=34">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=34">
   <title>Principles in Practice, Problem? Solved! & Grow Where You're Planted</title>
   <style>
     :root {
@@ -226,6 +226,7 @@
     .btn.blue { background: var(--blue); color: white; }
     .btn.small { min-height: 39px; padding: 7px 11px; font-size: .84rem; box-shadow: 0 3px 0 var(--ink); }
     .btn.wide { width: 100%; margin-top: 12px; }
+    a.btn.wide { display: block; text-align: center; text-decoration: none; }
 
     .button-row { display: flex; gap: 9px; flex-wrap: wrap; align-items: center; }
     .button-row .btn { flex: 1 1 150px; }
@@ -2846,7 +2847,6 @@
         <h2 id="multiplayerLobbyTitle">Choose Problem? Solved! or Principles in Practice above</h2>
         <p id="multiplayerLobbyCopy" class="muted">Those two games use multiplayer rooms. Choose one above before creating a room. Guests can join any room with the six-character code from the host.</p>
         <p id="selectedGameNote" class="selected-game-note">No multiplayer game selected yet.</p>
-        <a id="manageGrowDecksLobbyBtn" class="btn teal wide hidden" href="./grow-decks.html">Manage Grow Decks</a>
         <div class="grid-2">
           <div class="choice" id="createRoomChoice">
             <h3 id="createRoomChoiceTitle">Create a room</h3>
@@ -2865,6 +2865,7 @@
           </div>
         </div>
         <button id="rulesBtn" class="btn cream wide" type="button">How Multiplayer Works</button>
+        <a id="manageGrowDecksLobbyBtn" style="display:block;text-align:center;text-decoration:none" class="btn teal wide hidden" href="./grow-decks.html">Manage Grow Decks</a>
         <button id="manageDecksLobbyBtn" class="btn teal wide" type="button">Manage Decks</button>
       </div>
 
@@ -3309,8 +3310,8 @@
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <dialog id="rulesDialog">
-    <h2>How Both Game Modes Work</h2>
-    <ol class="rules-list">
+    <h2 id="rulesTitle">How to Play</h2>
+    <ol id="selectedGameRules" class="rules-list">
       <li>A room supports <strong>2–6 players</strong>, each on their own device. Players can rejoin with the room code and the same name. A new player who arrives during a round begins with the next Problem Card.</li>
       <li>Typing is used only during <strong>Build Together</strong>, when everyone can add Problem and Solution Cards to the deck.</li>
       <li><strong>Principles in Practice:</strong> The turn to draw the Problem Card rotates in player order. Only the person who draws it sees the text at first. After they read it aloud, the Problem appears for everyone and remains on the table until the next Problem is drawn. Every player then privately plays exactly one Solution Card from their hand.</li>
@@ -3319,7 +3320,7 @@
       <li>Played cards are discarded after an Agree or Disagree result, and every player draws back up to the host-selected hand size. The team wins when it reaches <strong>12 points</strong>.</li>
       <li><strong>Problem? Solved!:</strong> One Problem Picker draws. Everyone else secretly plays one Solution Card. The Picker chooses the best anonymous card; that player earns one point. First to five points wins.</li>
     </ol>
-    <p class="muted">Saved games can contain deck-specific solutions and contributions to the Shared Bible Solution Deck. The host chooses which sources to include before each Principles in Practice game.</p>
+    <p id="rulesNote" class="muted">Saved games can contain deck-specific solutions and contributions to the Shared Bible Solution Deck. The host chooses which sources to include before each Principles in Practice game.</p>
     <button id="closeRulesBtn" class="btn primary wide" type="button">Got It</button>
   </dialog>
 
@@ -3382,7 +3383,7 @@
     </div>
   </dialog>
 
-  <script src="./grow-decks-store.js?v=33"></script>
+  <script src="./grow-decks-store.js?v=34"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import { getAuth, signInAnonymously, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -7338,7 +7339,49 @@
     ui.startCustomGameBtn.addEventListener('click', () => { const deck = customDeckFromBuilder(); mergeUserSharedSolutions(deck.sharedSolutions); if (state.settings.playMode === 'pvp') startGameWithDeck({ ...deck, solutions: uniqueTexts([...deck.deckSolutions, ...deck.sharedSolutions]) }); else startGameWithDeck(prepareDeckForPlay(deck, true, true)); });
     ui.playAgainBtn.addEventListener('click', () => sendAction('playAgain'));
 
-    ui.rulesBtn.addEventListener('click', () => ui.rulesDialog.showModal());
+    function showSelectedGameRules() {
+      const mode = state?.settings?.playMode || lobbySelectedMode || inviteMode;
+      const common = 'A room supports 2–6 players on separate devices. Create a room or join with its code. Rejoin with the same name and room code.';
+      const rules = {
+        grow: {
+          title: 'How to Play Grow Where You’re Planted',
+          steps: [common,
+            'Before starting, the host chooses a question set in Manage Grow Decks. The five decks are Roots, Field, Garden, Vine, and Seasons. Questions can be added, edited, deleted, or restored.',
+            'When everyone has joined, the host starts the game. Everyone enters the same board and sees the same category and question.',
+            'Click the engraved die to roll, then draw a card from the matching deck. You can also choose a deck directly.',
+            'Read the question aloud and give everyone time to answer. When everyone is finished, select Everyone Answered to return to the table and continue.',
+            'Grow is a conversation game without points or a winner. The host can return the room to the lobby to change question sets.'],
+          note: 'Keep the host’s game tab open and all devices online. The question set is copied into the room when the host starts.'
+        },
+        coop: {
+          title: 'How to Play Principles in Practice',
+          steps: [common,
+            'The host selects the decks and hand size. Build Together lets players add Problem and Solution Cards before playing.',
+            'The turn to draw a Problem Card rotates in player order. The drawer sees it first, reads it aloud, then reveals it to everyone.',
+            'Every player privately plays one Solution Card. After everyone plays, the solutions are revealed. Explain how the cards could help and which principles support them.',
+            'Everyone votes Agree, Disagree, or Needs More Discussion. All Agree earns one team point. Any Disagree ends the round without a point. Needs More Discussion keeps the cards open for more discussion and another vote.',
+            'After an Agree or Disagree result, played cards are discarded and hands refill. Reach 12 team points to win.'],
+          note: 'The host chooses deck-specific solutions and Shared Bible Solution Deck sources before starting. Late arrivals begin with the next Problem Card.'
+        },
+        pvp: {
+          title: 'How to Play Problem? Solved!',
+          steps: [common,
+            'The host selects a deck and hand size. Build Together lets everyone contribute Problem and Solution Cards before playing.',
+            'One player is the Problem Picker and draws a Problem Card. Everyone else secretly plays one Solution Card.',
+            'The Picker reviews the anonymous solutions and chooses the best one. The player who submitted it earns one point.',
+            'Continue with the next Problem Picker. The first player to earn five points wins.'],
+          note: 'Late arrivals begin with the next Problem Card. Keep the host’s tab open and all devices online.'
+        }
+      };
+      const selected = rules[mode] || {title:'Choose a Game First', steps:['Select a game to see its rules, create a room, or manage its decks.'], note:''};
+      ui.rulesTitle.textContent = selected.title;
+      ui.selectedGameRules.replaceChildren(...selected.steps.map(text => {
+        const item = document.createElement('li'); item.textContent = text; return item;
+      }));
+      ui.rulesNote.textContent = selected.note;
+      ui.rulesDialog.showModal();
+    }
+    ui.rulesBtn.addEventListener('click', showSelectedGameRules);
     ui.closeRulesBtn.addEventListener('click', () => ui.rulesDialog.close());
     ui.importDeckInput.addEventListener('change', () => importDeckFile(ui.importDeckInput.files?.[0]));
 
@@ -7398,7 +7441,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=33').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=34').catch(() => {});
       });
     }
 </script>

@@ -65,7 +65,7 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
       </label>
     </div>
     <div class="actions">
-      <button class="btn green" id="useSetBtn" type="button">Use This Set in Games</button>
+
       <button class="btn" id="newSetBtn" type="button">Duplicate as New Set</button>
       <button class="btn" id="renameSetBtn" type="button">Rename Set</button>
       <button class="btn danger" id="deleteSetBtn" type="button">Delete Set</button>
@@ -166,10 +166,10 @@ function render(){
   setSelect.innerHTML=sets.map(s=>'<option value="'+s.id+'">'+escapeHtml(s.name)+'</option>').join("");
   setSelect.value=sets.some(s=>s.id===prior)?prior:sets[0].id;
   const s=current();
+  currentId=s.id;
+  localStorage.setItem(ACTIVE_KEY,s.id);
   audienceSelect.value=[...audienceSelect.options].some(o=>o.value===s.audience)?s.audience:"Custom";
-  $("activeNote").textContent=(localStorage.getItem(ACTIVE_KEY)||sets[0].id)===s.id
-    ? "This is the active Grow deck set. It is copied into your room when you start. Edits are saved on this browser; an ongoing game keeps its original questions."
-    : "This set is not active yet. Tap “Use This Set in Games” to make it the host deck set.";
+  $("activeNote").textContent="Selected for your next game. Your selection and saved edits stay in this browser. An ongoing game keeps its original questions.";
   $("audienceBadge").textContent=s.audience;
   $("deckTitle").textContent=category;
   $("tabs").innerHTML=CATS.map(c=>'<button class="tab '+(c===category?'active':'')+'" data-cat="'+c+'" type="button">'+c+'</button>').join("");
@@ -208,7 +208,7 @@ function render(){
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 setSelect.onchange=render;
 audienceSelect.onchange=()=>{current().audience=audienceSelect.value;save()};
-$("useSetBtn").onclick=()=>{if(!CATS.every(c=>current().decks[c]?.some(q=>q.trim())))return alert('Add at least one question to all five decks first.');localStorage.setItem(ACTIVE_KEY,current().id);render()};
+
 $("newSetBtn").onclick=()=>{
   const base=current(); const name=prompt("Name the new deck set:",base.audience+" Copy"); if(!name)return;
   const audience="Custom";
@@ -233,8 +233,7 @@ $("restoreDefaultsBtn").onclick=()=>{
   if(i>=0)sets[i]=starter();else sets.unshift(starter());
   save();setSelect.value="married-couples";render();
 };
-const params=new URLSearchParams(location.search);
-$("backLink").href=params.get("return")==="room"?"./":"./";
+$("backLink").href="./?game=grow";
 render();
 })();
 </script>
