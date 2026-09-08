@@ -729,7 +729,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 })();
 </script>
 
-<script>document.body.inert = true;</script>
+<script src="./grow-notes.js?v=43"></script>\n\n<script>document.body.inert = true;</script>
 <script type="module" src="./grow-room.js?v=42" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
