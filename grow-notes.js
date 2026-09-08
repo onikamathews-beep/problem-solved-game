@@ -38,7 +38,7 @@ document.body.append(fab);
 
 const layer=document.createElement("div");
 layer.id="growNotesLayer";layer.className="grow-notes-layer";layer.setAttribute("role","dialog");layer.setAttribute("aria-modal","true");layer.setAttribute("aria-hidden","true");layer.setAttribute("aria-labelledby","growNotesTitle");
-layer.innerHTML="<section class='grow-notes-sheet' id='growNotesSheet'><button class='grow-notes-close' id='growNotesClose' type='button' aria-label='Close notes'>×</button><h2 class='grow-notes-title' id='growNotesTitle'>Notes</h2><div class='grow-notes-heart' aria-hidden='true'>♡</div><textarea id='growNotesEditor' class='grow-notes-editor' spellcheck='true' placeholder='Write anything you want to remember from the conversation...'></textarea><div class='grow-notes-save' id='growNotesSave'>Saved on this device</div></section>";
+layer.innerHTML="<section class='grow-notes-sheet' id='growNotesSheet'><button class='grow-notes-close' id='growNotesClose' type='button' aria-label='Close notes'>×</button><h2 class='grow-notes-title' id='growNotesTitle'>Notes</h2><div class='grow-notes-heart' aria-hidden='true'>♡</div><textarea id='growNotesEditor' class='grow-notes-editor' spellcheck='true' placeholder='Write anything you want to remember from the conversation...'></textarea><div class='grow-notes-save' id='growNotesSave'>Kept until this game ends</div></section>";
 document.body.append(layer);
 
 const sheet=document.getElementById("growNotesSheet"),editor=document.getElementById("growNotesEditor"),closeBtn=document.getElementById("growNotesClose"),saveNote=document.getElementById("growNotesSave");
@@ -46,11 +46,18 @@ function colorKey(){const k=localStorage.getItem(COLOR_KEY)||"cream";return COLO
 function applyColor(k){if(!COLORS[k])k="cream";localStorage.setItem(COLOR_KEY,k);const c=COLORS[k];sheet.style.setProperty("--note-paper",c.paper);sheet.style.setProperty("--note-line",c.line);sheet.style.setProperty("--note-ink",c.ink);document.querySelectorAll("[data-grow-note-color]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.growNoteColor===k)));}
 function autoGrow(){editor.style.height="0px";editor.style.height=Math.max(470,editor.scrollHeight+12)+"px";}
 let saveTimer=0;editor.value=localStorage.getItem(NOTE_KEY)||"";autoGrow();
-editor.addEventListener("input",()=>{autoGrow();localStorage.setItem(NOTE_KEY,editor.value);saveNote.textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNote.textContent="Saved on this device",260);});
+editor.addEventListener("input",()=>{autoGrow();localStorage.setItem(NOTE_KEY,editor.value);saveNote.textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveNote.textContent="Kept until this game ends",260);});
 function openNotes(){applyColor(colorKey());layer.classList.add("show");layer.setAttribute("aria-hidden","false");requestAnimationFrame(()=>{autoGrow();editor.focus();});}
 function closeNotes(){layer.classList.remove("show");layer.setAttribute("aria-hidden","true");fab.focus();}
 fab.addEventListener("click",openNotes);closeBtn.addEventListener("click",closeNotes);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&layer.classList.contains("show")){e.preventDefault();e.stopImmediatePropagation();closeNotes();}},true);
+function clearSession(){
+ localStorage.removeItem(NOTE_KEY);
+ editor.value="";
+ autoGrow();
+ saveNote.textContent="Kept until this game ends";
+}
+window.GrowNotesAPI={open:openNotes,close:closeNotes,clearSession};
 
 const settingsCard=document.querySelector("#settingsLayer .settings-card");
 if(settingsCard){
