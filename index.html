@@ -7487,13 +7487,16 @@ html:not(.room-loading) #entryLoading{display:none}
       const rules = {
         grow: {
           title: 'How to Play Grow Where You’re Planted',
-          steps: [common,
-            'Before starting, the host chooses a question set in Manage Grow Decks. The five decks are Roots, Field, Garden, Vine, and Seasons. Questions can be added, edited, deleted, or restored.',
-            'When everyone has joined, the host starts the game. Everyone enters the same board and sees the same category and question.',
-            'Players take turns in room order. Only the current player can roll the engraved die and draw from the matching deck; everyone else watches the shared roll and card.',
-            'Read the question aloud and give everyone time to answer. When everyone is finished, only the player who rolled can select Everyone Answered. The turn then passes to the next connected player.',
-            'Grow is a conversation game without points or a winner. The host can return the room to the lobby to change question sets.'],
-          note: 'Keep the host’s game tab open and all devices online. The question set is copied into the room when the host starts.'
+          steps: [
+            'A room supports 2–6 players on separate devices. If you get disconnected, please rejoin with the same name and room code.',
+            { html: 'Each game is set up with a <strong>Grow Deck set</strong>. The decks have five categories:<div style="margin-top:12px;display:grid;gap:12px"><div><strong>Roots → Who are we becoming?</strong><br>Your foundation, contentment, and existing growth.</div><div><strong>Field → How are we serving?</strong><br>Ministry, people, experiences, and meaningful service.</div><div><strong>Garden → Who are we growing alongside?</strong><br>Congregation relationships, encouragement, and contribution.</div><div><strong>Vine → How close are we to Jehovah?</strong><br>Your relationship with him, prayer, spiritual qualities, and reliance on him.</div><div><strong>Seasons → How are we handling where life is taking us?</strong><br>Waiting, change, future hopes, goals, patience, and trusting Jehovah\'s timing.</div></div>' },
+            'Everyone enters the same board and sees the same category and question.',
+            'Players take turns in room order. Only the current player can roll the die and draw from the matching deck; everyone else watches the shared roll and card.',
+            'The question is read out loud and time is given so that everyone can answer thoughtfully. When everyone has answered, the player who rolled can select the “Everyone Answered” button. The turn then passes to the next connected player.',
+            'Please use the Note card in the bottom-right corner of your screen to take personal notes if you would like. These notes are not kept after the Grow game ends, so use Settings to export your copy before leaving. You can export either a PNG image or a PDF sheet.',
+            'Grow is a conversation game without a point system.'
+          ],
+          note: ''
         },
         coop: {
           title: 'How to Play Principles in Practice',
@@ -7517,10 +7520,14 @@ html:not(.room-loading) #entryLoading{display:none}
       };
       const selected = rules[mode] || {title:'Choose a Game First', steps:['Select a game to see its rules, create a room, or manage its decks.'], note:''};
       ui.rulesTitle.textContent = selected.title;
-      ui.selectedGameRules.replaceChildren(...selected.steps.map(text => {
-        const item = document.createElement('li'); item.textContent = text; return item;
+      ui.selectedGameRules.replaceChildren(...selected.steps.map(step => {
+        const item = document.createElement('li');
+        if (step && typeof step === 'object' && step.html) item.innerHTML = step.html;
+        else item.textContent = step;
+        return item;
       }));
-      ui.rulesNote.textContent = selected.note;
+      ui.rulesNote.textContent = selected.note || '';
+      ui.rulesNote.hidden = !selected.note;
       ui.rulesDialog.showModal();
     }
     ui.rulesBtn.addEventListener('click', showSelectedGameRules);
@@ -7583,7 +7590,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=43').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=44').catch(() => {});
       });
     }
 </script>
