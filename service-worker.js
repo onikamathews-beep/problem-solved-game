@@ -1,11 +1,11 @@
-const CACHE_NAME = 'problem-solved-v42';
+const CACHE_NAME = 'problem-solved-v43';
 const CORE_ASSETS = [
   './',
   './index.html',
   './grow-where-youre-planted.html',
   './grow-decks.html',
   './grow-decks-store.js?v=38',
-  './grow-room.js?v=42',
+  './grow-room.js?v=42',\n  './grow-notes.js?v=43',
   './assets/grow-living-room.webp?v=38',
   './principles-in-practice-logo.png',
   './manifest.json?v=38',
