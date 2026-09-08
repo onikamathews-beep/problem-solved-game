@@ -274,6 +274,7 @@ document.addEventListener('keydown',event=>{
 },true);
 lobby.onclick=()=>enqueue(async()=>{
  if(!host||!online)return;
+ window.GrowNotesAPI?.clearSession?.();
  const saved=(await get(path('private/state'))).val();
  saved.phase='room';delete saved.growGame;
  saved.players=Object.entries(room.players).map(([id,p])=>({id,...p}));
@@ -310,7 +311,7 @@ try{
    await set(path('presence/'+uid),{connected:true,lastSeen:serverTimestamp()});
   }
  },fail);
- onValue(path('meta'),snapshot=>{const m=snapshot.val();if(!m||m.phase==='closed'){localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');location.replace(host?'./?game=grow':'./?join=grow');}else if(m.phase!=='grow')location.replace(host?'./':'./?join=grow&code='+encodeURIComponent(code));},fail);
+ onValue(path('meta'),snapshot=>{const m=snapshot.val();if(!m||m.phase==='closed'){window.GrowNotesAPI?.clearSession?.();localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');location.replace(host?'./?game=grow':'./?join=grow');}else if(m.phase!=='grow'){window.GrowNotesAPI?.clearSession?.();location.replace(host?'./':'./?join=grow&code='+encodeURIComponent(code));}},fail);
  onValue(path('views/'+uid+'/growGame'),snapshot=>apply(snapshot.val()),fail);
  document.body.inert=false;
  ready=true;
