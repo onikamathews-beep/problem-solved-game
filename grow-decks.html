@@ -44,8 +44,17 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
 .transfer-card p{margin:0 0 10px;color:var(--muted);font-size:.82rem;line-height:1.4}
 .transfer-card .btn{width:100%;margin-top:7px}
 .transfer-status{margin-top:12px}
+.sync-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(280px,1.2fr);gap:14px;margin-top:12px}
+.sync-card{padding:14px;border:1px solid #cbbd9e;border-radius:16px;background:linear-gradient(145deg,#fffdf7,#f5eedf)}
+.sync-card strong{display:block;margin-top:8px;color:#31583f;font-family:Georgia,serif;font-size:1.05rem}
+.sync-code{margin-top:8px;padding:10px 12px;border-radius:12px;background:#263d2e;color:#fff7df;font:900 clamp(1rem,4vw,1.35rem)/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;word-break:break-word}
+.sync-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sync-actions .btn{flex:1 1 150px}
+.sync-help{margin-top:8px;color:var(--muted);font-size:.78rem;line-height:1.4}
+.sync-online{background:#e4f0df!important;border-color:#9cb48e!important;color:#31583f!important}
+.sync-error{background:#f7dfda!important;border-color:#d6a39a!important;color:#793f37!important}
 .hidden-file{display:none}
-@media(max-width:820px){.transfer-grid{grid-template-columns:1fr}}
+@media(max-width:820px){.transfer-grid,.sync-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.deck-head{align-items:flex-start;flex-direction:column}.top{align-items:flex-start}}
 </style>
 </head>
@@ -79,6 +88,32 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
       <button class="btn danger" id="deleteSetBtn" type="button">Delete Set</button>
     </div>
     <p id="activeNote" class="note"></p>
+  </div>
+
+  <div class="panel">
+    <strong>Auto Sync Grow Decks</strong>
+    <p class="sub">Link your Grow library across devices and browsers. After a device is connected, deck edits, added games, deleted questions, imports, and the active Grow game automatically stay in sync.</p>
+    <div class="sync-grid">
+      <div class="sync-card">
+        <span id="syncStatusBadge" class="badge">Not connected</span>
+        <strong>Your Grow Sync Code</strong>
+        <div id="syncCodeDisplay" class="sync-code">Not connected</div>
+        <p id="syncStatusText" class="sync-help">Create a sync library on this device, then enter the same code on your other devices.</p>
+      </div>
+      <div class="sync-card">
+        <label>Connect another device
+          <input id="syncCodeInput" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="23" placeholder="ABCDE-FGHIJ-KLMNO-PQRST">
+        </label>
+        <div class="sync-actions">
+          <button id="createSyncBtn" class="btn green" type="button">Create Sync Library</button>
+          <button id="connectSyncBtn" class="btn" type="button">Connect With Code</button>
+          <button id="copySyncCodeBtn" class="btn" type="button">Copy Sync Code</button>
+          <button id="syncNowBtn" class="btn" type="button">Sync Now</button>
+          <button id="disconnectSyncBtn" class="btn danger" type="button">Disconnect Auto Sync</button>
+        </div>
+        <p class="sync-help"><strong>Keep this code private.</strong> Anyone with the full code can connect to this Grow deck library. Export/import remains available as a backup.</p>
+      </div>
+    </div>
   </div>
 
   <div class="panel">
@@ -127,6 +162,7 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
     </div>
   </div>
 </div>
+<script type="module" src="./grow-deck-sync.js?v=46"></script>
 <script>
 (()=>{
 "use strict";
@@ -196,7 +232,8 @@ let category="Roots";
 const $=id=>document.getElementById(id);
 const setSelect=$("setSelect"),audienceSelect=$("audienceSelect"),promptList=$("promptList");
 function current(){return sets.find(s=>s.id===setSelect.value)||sets[0]}
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));render()}
+function queueDeckSync(){window.GrowDeckSync?.queuePush?.()}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));render();queueDeckSync()}
 function uid(){return "set-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
 function render(){
   const prior=setSelect.value||currentId;
@@ -243,8 +280,101 @@ function render(){
   });
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
-setSelect.onchange=render;
+setSelect.onchange=()=>{render();queueDeckSync()};
 audienceSelect.onchange=()=>{current().audience=audienceSelect.value;save()};
+
+
+function renderSyncState(message="",error=false){
+  const api=window.GrowDeckSync;
+  const code=api?.currentCode?.()||"";
+  $("syncCodeDisplay").textContent=code||"Not connected";
+  $("syncStatusBadge").textContent=code?"Auto Sync On":"Not connected";
+  $("syncStatusBadge").classList.toggle("sync-online",!!code&&!error);
+  $("syncStatusBadge").classList.toggle("sync-error",!!error);
+  $("syncStatusText").textContent=message||(code
+    ?"Changes to this Grow library will automatically sync to every device connected with this code."
+    :"Create a sync library on this device, then enter the same code on your other devices.");
+  $("copySyncCodeBtn").disabled=!code;
+  $("syncNowBtn").disabled=!code;
+  $("disconnectSyncBtn").disabled=!code;
+}
+async function syncApi(){
+  if(window.GrowDeckSyncReady)await window.GrowDeckSyncReady;
+  if(!window.GrowDeckSync)throw new Error("Auto Sync is still loading. Please try again.");
+  return window.GrowDeckSync;
+}
+$("syncCodeInput").addEventListener("input",event=>{
+  const raw=event.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,20);
+  event.target.value=raw.replace(/(.{5})/g,"$1-").replace(/-$/,"");
+});
+$("createSyncBtn").onclick=async()=>{
+  try{
+    const api=await syncApi();
+    if(api.currentCode()&&!confirm("Create a new sync library? This device will stop using the current sync code."))return;
+    const code=await api.create();
+    $("syncCodeInput").value=code;
+    renderSyncState("Sync library created. Use this same code on your other devices.");
+  }catch(error){renderSyncState(error.message||"Could not create the sync library.",true)}
+};
+$("connectSyncBtn").onclick=async()=>{
+  try{
+    const input=$("syncCodeInput").value.trim();
+    if(!input)return alert("Enter the Grow sync code from your other device.");
+    if(!confirm("Connect to this Grow sync library? The cloud copy will become the Grow library on this device."))return;
+    const api=await syncApi();
+    const code=await api.connect(input);
+    sets=load();
+    currentId=localStorage.getItem(ACTIVE_KEY)||sets[0].id;
+    render();
+    $("syncCodeInput").value=code;
+    renderSyncState("Connected. This device will now receive and send Grow deck changes automatically.");
+  }catch(error){renderSyncState(error.message||"Could not connect to that sync library.",true)}
+};
+$("copySyncCodeBtn").onclick=async()=>{
+  try{
+    const api=await syncApi(),code=api.currentCode();
+    if(!code)return;
+    await navigator.clipboard.writeText(code);
+    renderSyncState("Sync code copied. Enter it on the other device.");
+  }catch{alert("Copy failed. Press and hold the sync code to copy it manually.")}
+};
+$("syncNowBtn").onclick=async()=>{
+  try{
+    const api=await syncApi();
+    await api.pushNow();
+    renderSyncState("Synced just now.");
+  }catch(error){renderSyncState(error.message||"Sync failed.",true)}
+};
+$("disconnectSyncBtn").onclick=async()=>{
+  try{
+    const api=await syncApi();
+    if(!api.currentCode())return;
+    if(!confirm("Disconnect auto sync on this device? Your local Grow games will stay here."))return;
+    api.disconnect();
+    $("syncCodeInput").value="";
+    renderSyncState("Auto Sync disconnected. Your local Grow deck library was kept.");
+  }catch(error){renderSyncState(error.message||"Could not disconnect Auto Sync.",true)}
+};
+window.addEventListener("grow-decks-cloud-update",()=>{
+  sets=load();
+  currentId=localStorage.getItem(ACTIVE_KEY)||sets[0]?.id;
+  if(!sets.some(s=>s.id===currentId))currentId=sets[0]?.id;
+  render();
+  renderSyncState("Updated from another connected device.");
+});
+window.addEventListener("grow-decks-sync-status",event=>{
+  const detail=event.detail||{};
+  if(detail.status==="error")renderSyncState(detail.message||"Auto Sync could not connect.",true);
+  else renderSyncState();
+});
+window.addEventListener("load",async()=>{
+  try{
+    const api=await syncApi();
+    const code=api.currentCode();
+    if(code)$("syncCodeInput").value=code;
+    renderSyncState();
+  }catch(error){renderSyncState(error.message||"Auto Sync unavailable.",true)}
+});
 
 $("newSetBtn").onclick=()=>{
   const base=current(); const name=prompt("Name the new deck set:",base.audience+" Copy"); if(!name)return;
@@ -398,7 +528,7 @@ $("importGameFile").onchange=async event=>{
     setSelect.value=game.id;
     currentId=game.id;
     localStorage.setItem(ACTIVE_KEY,game.id);
-    render();
+    render();queueDeckSync();
     transferMessage('Imported "'+game.name+'" with all five decks.');
   }catch(error){transferMessage(error.message||"Game import failed.",true);}
   finally{input.value="";}
@@ -420,7 +550,7 @@ $("importAllGamesFile").onchange=async event=>{
     }
     if(!imported.length)throw new Error("No valid Grow games were found in that backup.");
     localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));
-    render();
+    render();queueDeckSync();
     transferMessage(imported.length+" Grow game"+(imported.length===1?"":"s")+" imported. Existing games were kept.");
   }catch(error){transferMessage(error.message||"All-games import failed.",true);}
   finally{input.value="";}
