@@ -7356,6 +7356,13 @@ html:not(.room-loading) #entryLoading{display:none}
     async function hostStartGrowGame() {
       if (!isHost || state?.settings?.playMode !== 'grow') return;
       if (connectedPlayers().length < 2) return toast('At least two players must be connected.');
+      try {
+        await import('./grow-deck-sync.js?v=46');
+        if (window.GrowDeckSyncReady) await window.GrowDeckSyncReady;
+        await window.GrowDeckSync?.refresh?.();
+      } catch (error) {
+        console.warn('Grow deck cloud refresh skipped:', error);
+      }
       const deckSet = GrowDecks.active();
       if (!GrowDecks.validate(deckSet)) return toast('Add at least one question to each of the five Grow decks before starting.');
       ui.startGrowRoomBtn.disabled = true;
@@ -7590,7 +7597,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=45').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=46').catch(() => {});
       });
     }
 </script>
