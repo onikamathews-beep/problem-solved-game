@@ -262,7 +262,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   // the cube around the table's vertical axis, so the landed face stays on top
   // while the side faces move naturally through view.
   let tableViewYaw = 0;
-  let tableYawFrame = 0;
   let dragging = false;
   let dragStartAngle = 0;
   let dragStartRotation = 0;
@@ -332,7 +331,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   }
 
   function setRotation(deg, animate) {
-    const fromDeg = tableViewYaw * 180 / Math.PI;
     currentRotation = deg;
     if (animate) {
       tableShell.classList.remove("dragging");
@@ -341,28 +339,12 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     }
     document.documentElement.style.setProperty("--table-rotation", deg + "deg");
 
-    if (tableYawFrame) cancelAnimationFrame(tableYawFrame);
-    tableYawFrame = 0;
-
+    // Keep the die visually steady while the wood table turns underneath it.
+    // This avoids an expensive canvas redraw on every animation frame on phones.
     if (!animate) {
       tableViewYaw = deg * Math.PI / 180;
       drawDice();
-      return;
     }
-
-    const delta = deg - fromDeg;
-    const start = performance.now();
-    const duration = 900;
-    const ease = t => 1 - Math.pow(1 - t, 3);
-
-    function followYaw(now) {
-      const t = Math.min(1, (now - start) / duration);
-      tableViewYaw = (fromDeg + delta * ease(t)) * Math.PI / 180;
-      drawDice();
-      if (t < 1) tableYawFrame = requestAnimationFrame(followYaw);
-      else tableYawFrame = 0;
-    }
-    tableYawFrame = requestAnimationFrame(followYaw);
   }
 
   function applySceneFor(name) {
@@ -375,8 +357,10 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     table.classList.add("has-selection");
 
     if (autoRotate) {
-      const base = 90 - categories[name].tableAngle;
-      setRotation(nearestEquivalent(base, currentRotation), true);
+      // Every category uses the exact same destination: bottom/front center,
+      // with its card artwork upright to the player.
+      const frontCenter = 90 - categories[name].tableAngle;
+      setRotation(nearestEquivalent(frontCenter, currentRotation), true);
     }
 
 
@@ -629,7 +613,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         // only after this table movement finishes.
         selectDeck(chosen, true);
         if (typeof onComplete === "function") {
-          setTimeout(() => onComplete(chosen), 980);
+          setTimeout(() => onComplete(chosen), 740);
         }
       }
     }
@@ -761,6 +745,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script src="./grow-notes.js?v=44"></script>\n\n<script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=49" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=50" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
