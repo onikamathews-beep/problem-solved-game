@@ -38,6 +38,14 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
 .note{padding:10px 12px;background:#edf3e5;border:1px solid #bdcaad;border-radius:12px;color:#58604f;font-size:.88rem;line-height:1.4}
 .empty{padding:24px;text-align:center;color:var(--muted);border:2px dashed #c7baa0;border-radius:14px}
 .badge{display:inline-flex;padding:4px 8px;border-radius:999px;background:#eee4c9;border:1px solid #c5ae72;font-size:.74rem;font-weight:900}
+.transfer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.transfer-card{padding:14px;border:1px solid #cbbd9e;border-radius:16px;background:linear-gradient(145deg,#fffdf7,#f5eedf)}
+.transfer-card h3{margin:0 0 5px;color:#31583f;font-family:Georgia,serif;font-size:1rem}
+.transfer-card p{margin:0 0 10px;color:var(--muted);font-size:.82rem;line-height:1.4}
+.transfer-card .btn{width:100%;margin-top:7px}
+.transfer-status{margin-top:12px}
+.hidden-file{display:none}
+@media(max-width:820px){.transfer-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.grid{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(2,1fr)}.deck-head{align-items:flex-start;flex-direction:column}.top{align-items:flex-start}}
 </style>
 </head>
@@ -80,6 +88,35 @@ textarea{min-height:108px;resize:vertical;line-height:1.4}
       <button id="addPromptBtn" class="btn gold" type="button">+ Add Question</button>
     </div>
     <div id="promptList"></div><h3>Deleted questions</h3><div id="deletedList"></div>
+  </div>
+
+  <div class="panel">
+    <strong>Import &amp; Export Grow Questions</strong>
+    <p class="sub">Move questions between devices or browsers. A <strong>deck</strong> is one category, a <strong>game</strong> is one complete Grow deck set with all five categories, and <strong>all games</strong> is your entire Grow library.</p>
+    <div class="transfer-grid">
+      <div class="transfer-card">
+        <h3>One Deck</h3>
+        <p>Export or replace only the category you are currently viewing, such as Roots or Garden.</p>
+        <button id="exportDeckBtn" class="btn" type="button">Export Current Deck</button>
+        <button id="importDeckBtn" class="btn green" type="button">Import Into Current Deck</button>
+      </div>
+      <div class="transfer-card">
+        <h3>One Game</h3>
+        <p>Export or import one complete Grow game/deck set, including Roots, Field, Garden, Vine, and Seasons.</p>
+        <button id="exportGameBtn" class="btn" type="button">Export Current Game</button>
+        <button id="importGameBtn" class="btn green" type="button">Import One Game</button>
+      </div>
+      <div class="transfer-card">
+        <h3>All Games</h3>
+        <p>Back up or move every Grow game/deck set saved in this browser. Imports are merged so your existing games stay safe.</p>
+        <button id="exportAllGamesBtn" class="btn" type="button">Export All Games</button>
+        <button id="importAllGamesBtn" class="btn green" type="button">Import All Games</button>
+      </div>
+    </div>
+    <input id="importDeckFile" class="hidden-file" type="file" accept="application/json,.json">
+    <input id="importGameFile" class="hidden-file" type="file" accept="application/json,.json">
+    <input id="importAllGamesFile" class="hidden-file" type="file" accept="application/json,.json">
+    <p id="transferStatus" class="note transfer-status">Exports are JSON files. Imported games are added as new copies rather than overwriting your existing Grow games.</p>
   </div>
 
   <div class="panel">
@@ -227,6 +264,168 @@ $("addPromptBtn").onclick=()=>{
   const q=prompt("New "+category+" question:"); if(!q||!q.trim())return;
   current().decks[category].push(q.trim());save();
 };
+
+function cleanFilePart(value){
+  return String(value||"grow").trim().replace(/[^a-z0-9]+/gi,"-").replace(/^-+|-+$/g,"").toLowerCase()||"grow";
+}
+function downloadJson(data,name){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function transferMessage(message,error=false){
+  const el=$("transferStatus");
+  el.textContent=message;
+  el.style.background=error?"#f7dfda":"#edf3e5";
+  el.style.borderColor=error?"#d6a39a":"#bdcaad";
+  el.style.color=error?"#793f37":"#58604f";
+}
+function normalizeQuestions(list){
+  if(!Array.isArray(list))return null;
+  const out=list.map(q=>String(q??"").trim()).filter(Boolean);
+  return out.length?out:null;
+}
+function normalizeGame(raw){
+  if(!raw||typeof raw!=="object")return null;
+  const source=raw.set&&typeof raw.set==="object"?raw.set:raw;
+  const decks={};
+  for(const cat of CATS){
+    const q=normalizeQuestions(source.decks?.[cat]);
+    if(!q)return null;
+    decks[cat]=q;
+  }
+  return {
+    id:uid(),
+    name:String(source.name||"Imported Grow Game").trim()||"Imported Grow Game",
+    audience:String(source.audience||"Custom").trim()||"Custom",
+    decks,
+    included:false,
+    deleted:Array.isArray(source.deleted)?clone(source.deleted):[]
+  };
+}
+function uniqueImportedName(name){
+  const base=String(name||"Imported Grow Game").trim()||"Imported Grow Game";
+  if(!sets.some(s=>s.name.toLowerCase()===base.toLowerCase()))return base;
+  let n=2;
+  while(sets.some(s=>s.name.toLowerCase()===(base+" (Imported "+n+")").toLowerCase()))n++;
+  return base+" (Imported "+n+")";
+}
+async function readJsonFile(file){
+  if(!file)throw new Error("No file selected.");
+  const text=await file.text();
+  try{return JSON.parse(text)}catch{throw new Error("That file is not valid JSON.");}
+}
+
+$("exportDeckBtn").onclick=()=>{
+  const s=current(),questions=clone(s.decks[category]||[]);
+  downloadJson({
+    app:"grow-where-youre-planted",
+    version:1,
+    type:"deck",
+    exportedAt:new Date().toISOString(),
+    category,
+    sourceGame:{name:s.name,audience:s.audience},
+    questions
+  },"grow-"+cleanFilePart(s.name)+"-"+cleanFilePart(category)+"-deck.json");
+  transferMessage(category+" deck exported.");
+};
+
+$("exportGameBtn").onclick=()=>{
+  const s=current();
+  downloadJson({
+    app:"grow-where-youre-planted",
+    version:1,
+    type:"game",
+    exportedAt:new Date().toISOString(),
+    set:clone(s)
+  },"grow-"+cleanFilePart(s.name)+"-game.json");
+  transferMessage('Game "'+s.name+'" exported with all five decks.');
+};
+
+$("exportAllGamesBtn").onclick=()=>{
+  downloadJson({
+    app:"grow-where-youre-planted",
+    version:1,
+    type:"all-games",
+    exportedAt:new Date().toISOString(),
+    activeId:localStorage.getItem(ACTIVE_KEY)||current().id,
+    sets:clone(sets)
+  },"grow-all-games-backup-"+new Date().toISOString().slice(0,10)+".json");
+  transferMessage(sets.length+" Grow game"+(sets.length===1?"":"s")+" exported.");
+};
+
+$("importDeckBtn").onclick=()=>$("importDeckFile").click();
+$("importGameBtn").onclick=()=>$("importGameFile").click();
+$("importAllGamesBtn").onclick=()=>$("importAllGamesFile").click();
+
+$("importDeckFile").onchange=async event=>{
+  const input=event.currentTarget;
+  try{
+    const data=await readJsonFile(input.files?.[0]);
+    let questions=null,sourceCategory="";
+    if(data?.type==="deck"){
+      questions=normalizeQuestions(data.questions);
+      sourceCategory=String(data.category||"");
+    }else if(Array.isArray(data)){
+      questions=normalizeQuestions(data);
+    }
+    if(!questions)throw new Error("This is not a valid Grow deck export.");
+    const mismatch=sourceCategory&&sourceCategory!==category;
+    const wording=mismatch
+      ? 'This file contains '+sourceCategory+' questions. Replace the current '+category+' deck with them?'
+      : 'Replace all questions in the current '+category+' deck with the imported questions?';
+    if(!confirm(wording)){transferMessage("Deck import canceled.");return;}
+    current().decks[category]=questions;
+    current().deleted=(current().deleted||[]).filter(item=>item.category!==category);
+    save();
+    transferMessage(questions.length+" question"+(questions.length===1?"":"s")+" imported into "+category+".");
+  }catch(error){transferMessage(error.message||"Deck import failed.",true);}
+  finally{input.value="";}
+};
+
+$("importGameFile").onchange=async event=>{
+  const input=event.currentTarget;
+  try{
+    const data=await readJsonFile(input.files?.[0]);
+    let game=null;
+    if(data?.type==="game")game=normalizeGame(data);
+    else if(data?.decks)game=normalizeGame(data);
+    if(!game)throw new Error("This is not a valid Grow game export.");
+    game.name=uniqueImportedName(game.name);
+    sets.push(game);
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));
+    setSelect.value=game.id;
+    currentId=game.id;
+    localStorage.setItem(ACTIVE_KEY,game.id);
+    render();
+    transferMessage('Imported "'+game.name+'" with all five decks.');
+  }catch(error){transferMessage(error.message||"Game import failed.",true);}
+  finally{input.value="";}
+};
+
+$("importAllGamesFile").onchange=async event=>{
+  const input=event.currentTarget;
+  try{
+    const data=await readJsonFile(input.files?.[0]);
+    const incoming=Array.isArray(data?.sets)?data.sets:(Array.isArray(data)?data:null);
+    if(!incoming)throw new Error("This is not a valid Grow all-games backup.");
+    const imported=[];
+    for(const raw of incoming){
+      const game=normalizeGame(raw);
+      if(!game)continue;
+      game.name=uniqueImportedName(game.name);
+      sets.push(game);
+      imported.push(game);
+    }
+    if(!imported.length)throw new Error("No valid Grow games were found in that backup.");
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(sets));
+    render();
+    transferMessage(imported.length+" Grow game"+(imported.length===1?"":"s")+" imported. Existing games were kept.");
+  }catch(error){transferMessage(error.message||"All-games import failed.",true);}
+  finally{input.value="";}
+};
+
 $("restoreDefaultsBtn").onclick=()=>{
   if(!confirm("Restore the included Married Couples set to its original questions?"))return;
   const i=sets.findIndex(s=>s.id==="married-couples");
