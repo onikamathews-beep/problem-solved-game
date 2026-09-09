@@ -6,7 +6,7 @@ const code=(new URLSearchParams(location.search).get('room')||'').toUpperCase().
 const app=initializeApp({apiKey:'AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI',authDomain:'planning-with-ai-642ec.firebaseapp.com',databaseURL:'https://planning-with-ai-642ec-default-rtdb.firebaseio.com',projectId:'planning-with-ai-642ec',appId:'1:560868808729:web:1b0b6fc13eadb1c1047288'});
 const auth=getAuth(app), db=getDatabase(app), base='rooms/'+code;
 const path=p=>ref(db,base+'/'+p);
-let ready=false, online=false, host=false, uid, room, latest, lastSeq=-1, queue=Promise.resolve(), renderTimer, revealTimer, busyUntil=0, serverOffset=0;
+let ready=false, online=false, host=false, uid, room, latest, lastSeq=-1, queue=Promise.resolve(), renderTimer, rotateTimer, revealTimer, busyUntil=0, serverOffset=0;
 const inboxes=new Map(), pending=new Set();
 const menu=document.getElementById('roomMenu');
 const badge=document.createElement('div');
@@ -102,24 +102,27 @@ function enqueue(fn){queue=queue.then(fn).catch(fail);return queue;}
 function serverNow(){return Date.now()+serverOffset;}
 function openScheduledQuestion(rollSnapshot){
  if(!rollSnapshot?.category||!rollSnapshot?.pendingPrompt)return;
- const tryOpen=()=>{
-   if(latest?.seq!==rollSnapshot.seq&&latest?.sourceRollSeq!==rollSnapshot.seq)return;
-   if(api.isLocked()){
-     renderTimer=setTimeout(tryOpen,40);
-     return;
-   }
-   api.selectDeck(rollSnapshot.category,true);
-   api.showQuestion(rollSnapshot.pendingPrompt);
- };
- tryOpen();
+ if(latest?.seq!==rollSnapshot.seq&&latest?.sourceRollSeq!==rollSnapshot.seq)return;
+ // Do not wait for a slow device's dice animation. The room timeline decides
+ // when the shared question appears.
+ api.selectDeck(rollSnapshot.category,true);
+ (api.showQuestionNow||api.showQuestion)(rollSnapshot.pendingPrompt);
 }
-function scheduleRollReveal(rollSnapshot){
+function scheduleRollSequence(rollSnapshot){
+ clearTimeout(rotateTimer);
  clearTimeout(revealTimer);
- const delay=Math.max(0,Number(rollSnapshot.revealAt||0)-serverNow());
+
+ const rotateDelay=Math.max(0,Number(rollSnapshot.rotateAt||0)-serverNow());
+ rotateTimer=setTimeout(()=>{
+   if(latest?.seq!==rollSnapshot.seq&&latest?.sourceRollSeq!==rollSnapshot.seq)return;
+   api.selectDeck(rollSnapshot.category,true);
+ },rotateDelay);
+
+ const revealDelay=Math.max(0,Number(rollSnapshot.revealAt||0)-serverNow());
  revealTimer=setTimeout(()=>{
    openScheduledQuestion(rollSnapshot);
    if(host)enqueue(()=>publishAutomaticDraw(rollSnapshot));
- },delay);
+ },revealDelay);
 }
 async function publishAutomaticDraw(rollSnapshot){
  if(!host||!ready||!online)return;
@@ -146,10 +149,11 @@ function apply(snapshot){
    api.closeQuestion();
    if(!first&&!api.isLocked())api.roll(snapshot.category);
    else if(first)api.restore(snapshot);
-   scheduleRollReveal(snapshot);
+   scheduleRollSequence(snapshot);
    return;
  }
  if(snapshot.type==='draw'){
+   clearTimeout(rotateTimer);
    clearTimeout(revealTimer);
    const alreadyOpen=document.body.classList.contains('reading')&&document.getElementById('qtext')?.textContent===snapshot.prompt;
    if(alreadyOpen)return;
@@ -189,9 +193,12 @@ async function act(action,actorId){
      pendingPrompt,
      cardIndex,
      usedCards,
-     revealAt:now+3000
+     // Shared absolute times keep every device on the same visual sequence:
+     // dice settles -> clockwise table turn -> question opens.
+     rotateAt:now+1750,
+     revealAt:now+2550
    };
-   busyUntil=Date.now()+3200;
+   busyUntil=Date.now()+2750;
   }
  }else if(action.type==='grow-draw'){
   return;
@@ -201,7 +208,7 @@ async function act(action,actorId){
   const current=order.indexOf(actorId);
   const nextId=Array.from({length:order.length},(_,i)=>order[(current+i+1)%order.length]).find(id=>room.players[id]?.connected!==false)||actorId;
   const noCardsLeft=!hasCardsRemaining(latest);
-  next={...next,type:noCardsLeft?'complete':'close',prompt:null,pendingPrompt:null,revealAt:null,sourceRollSeq:null,category:null,cardIndex:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
+  next={...next,type:noCardsLeft?'complete':'close',prompt:null,pendingPrompt:null,rotateAt:null,revealAt:null,sourceRollSeq:null,category:null,cardIndex:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
  }else return;
  await publish(next);
 }
