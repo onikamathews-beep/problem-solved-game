@@ -323,6 +323,11 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     return t;
   }
 
+  function clockwiseEquivalent(target, current) {
+    const delta = ((target - current) % 360 + 360) % 360;
+    return current + delta;
+  }
+
   function angleAt(x, y) {
     const r = tableShell.getBoundingClientRect();
     const cx = r.left + r.width / 2;
@@ -360,7 +365,9 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       // Every category uses the exact same destination: bottom/front center,
       // with its card artwork upright to the player.
       const frontCenter = 90 - categories[name].tableAngle;
-      setRotation(nearestEquivalent(frontCenter, currentRotation), true);
+      // Always turn in the same clockwise direction. Every category lands at
+      // the exact same front-center position with its artwork upright.
+      setRotation(clockwiseEquivalent(frontCenter, currentRotation), true);
     }
 
 
@@ -372,8 +379,8 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     table.classList.remove("has-selection");
   }
 
-  function showQuestion(forcedText = null) {
-    if (!selected || locked || questionLayer.classList.contains("show")) return;
+  function showQuestion(forcedText = null, force = false) {
+    if (!selected || (!force && locked) || questionLayer.classList.contains("show")) return;
     const info = categories[selected];
     qcat.textContent = selected.toUpperCase();
     qtext.textContent = forcedText || info.prompts[Math.floor(Math.random() * info.prompts.length)];
@@ -608,13 +615,10 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         dice.q = targetQ;
         drawDice();
         locked = false;
-        // After the die lands, smoothly turn the selected deck toward the
-        // player. The multiplayer controller opens the synchronized question
-        // only after this table movement finishes.
-        selectDeck(chosen, true);
-        if (typeof onComplete === "function") {
-          setTimeout(() => onComplete(chosen), 740);
-        }
+        // The room controller owns the synchronized table-turn timing.
+        // Select/highlight the rolled category here, but do not rotate locally.
+        selectDeck(chosen, false);
+        if (typeof onComplete === "function") onComplete(chosen);
       }
     }
 
@@ -721,12 +725,13 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         const base = categories[snapshot.category].base;
         Object.assign(dice, {rx:base.rx, ry:base.ry, rz:0, q:qFromEuler(base.rx,base.ry,0), x:0, y:0, h:0});
         drawDice(); selectDeck(snapshot.category, false);
-        if (snapshot.type === 'draw') showQuestion(snapshot.prompt);
+        if (snapshot.type === 'draw') showQuestion(snapshot.prompt, true);
       }
     },
     roll,
     selectDeck,
     showQuestion,
+    showQuestionNow: text => showQuestion(text, true),
     closeQuestion,
     clearSelectionKeepTable,
     categories,
