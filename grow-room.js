@@ -77,13 +77,34 @@ tableStyle.textContent=`
 `;
 document.head.append(tableStyle);
 
+function usedCardsFor(snapshot=latest){
+ const source=snapshot?.usedCards&&typeof snapshot.usedCards==='object'?snapshot.usedCards:{};
+ return Object.fromEntries(api.names.map(name=>[
+   name,
+   Array.isArray(source[name])?source[name].map(Number).filter(Number.isInteger):[]
+ ]));
+}
+function availableIndexes(category,snapshot=latest){
+ const prompts=room?.growDeckSet?.decks?.[category]||[];
+ const used=new Set(usedCardsFor(snapshot)[category]||[]);
+ return prompts.map((_,index)=>index).filter(index=>!used.has(index));
+}
+function availableCategories(snapshot=latest){
+ return api.names.filter(name=>availableIndexes(name,snapshot).length>0);
+}
+function hasCardsRemaining(snapshot=latest){
+ return availableCategories(snapshot).length>0;
+}
+
 function controls(){
  const mine=latest?.turnPlayerId===uid;
  document.getElementById('dieHit').tabIndex=-1;
- document.getElementById('dieTap').disabled=!mine||!['ready','close'].includes(latest?.type);
+ const remaining=hasCardsRemaining(latest);
+ document.getElementById('dieTap').disabled=!mine||!['ready','close'].includes(latest?.type)||!remaining;
  document.querySelectorAll('.deck').forEach(deck=>{deck.setAttribute('aria-disabled','true');deck.tabIndex=-1;});
  document.getElementById('doneBtn').hidden=!mine;
- if(latest?.type==='roll') turnNote.textContent='Turning to '+(latest.category||'the selected deck')+'…';
+ if(latest?.type==='complete'||!remaining) turnNote.textContent='All questions have been played. Start a new Grow game to reset the decks.';
+ else if(latest?.type==='roll') turnNote.textContent='Turning to '+(latest.category||'the selected deck')+'…';
  else turnNote.textContent=mine?'Your turn':(latest?.playerNames?.[latest.turnPlayerId]||'Another player')+'’s turn';
 }
 function fail(error){document.body.inert=false;console.error(error);badge.textContent='Connection interrupted. Your room is saved; refresh to reconnect.';ready=false;}
@@ -91,9 +112,22 @@ function enqueue(fn){queue=queue.then(fn).catch(fail);return queue;}
 async function publishAutomaticDraw(rollSnapshot){
  if(!host||!ready||!online)return;
  if(latest?.seq!==rollSnapshot.seq||latest?.type!=='roll'||latest?.category!==rollSnapshot.category)return;
- const prompts=room.growDeckSet.decks[rollSnapshot.category];
- if(!prompts?.length)return;
- const next={...latest,seq:(latest.seq||0)+1,at:Date.now(),type:'draw',category:rollSnapshot.category,prompt:prompts[Math.floor(Math.random()*prompts.length)]};
+ const prompts=room.growDeckSet.decks[rollSnapshot.category]||[];
+ const choices=availableIndexes(rollSnapshot.category,latest);
+ if(!choices.length)return;
+ const cardIndex=choices[Math.floor(Math.random()*choices.length)];
+ const usedCards=usedCardsFor(latest);
+ usedCards[rollSnapshot.category]=[...usedCards[rollSnapshot.category],cardIndex];
+ const next={
+   ...latest,
+   seq:(latest.seq||0)+1,
+   at:Date.now(),
+   type:'draw',
+   category:rollSnapshot.category,
+   prompt:prompts[cardIndex],
+   cardIndex,
+   usedCards
+ };
  await publish(next);
 }
 function apply(snapshot){
@@ -127,7 +161,13 @@ async function act(action,actorId){
  let next={...latest,seq:(latest?.seq||0)+1,at:Date.now()};
  if(action.type==='grow-roll'){
   if(!['ready','close'].includes(latest?.type))return;
-  next={...next,type:'roll',category:api.names[Math.floor(Math.random()*api.names.length)],prompt:null};busyUntil=Date.now()+2600;
+  const categoriesLeft=availableCategories(latest);
+  if(!categoriesLeft.length){
+   next={...next,type:'complete',category:null,prompt:null};
+  }else{
+   next={...next,type:'roll',category:categoriesLeft[Math.floor(Math.random()*categoriesLeft.length)],prompt:null,cardIndex:null};
+   busyUntil=Date.now()+2600;
+  }
  }else if(action.type==='grow-draw'){
   return;
  }else if(action.type==='grow-close'){
@@ -135,7 +175,8 @@ async function act(action,actorId){
   const order=[...latest.turnOrder,...Object.keys(room.players).filter(id=>!latest.turnOrder.includes(id))];
   const current=order.indexOf(actorId);
   const nextId=Array.from({length:order.length},(_,i)=>order[(current+i+1)%order.length]).find(id=>room.players[id]?.connected!==false)||actorId;
-  next={...next,type:'close',prompt:null,category:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
+  const noCardsLeft=!hasCardsRemaining(latest);
+  next={...next,type:noCardsLeft?'complete':'close',prompt:null,category:null,cardIndex:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
  }else return;
  await publish(next);
 }
