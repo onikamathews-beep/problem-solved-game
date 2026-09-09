@@ -35,6 +35,12 @@
           ".write": "auth != null && root.child('rooms').child($roomCode).child('meta').child('hostUid').val() === auth.uid"
         }
       }
+    },
+    "growDeckSync": {
+      "$syncCode": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
     }
   }
 }
