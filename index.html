@@ -7498,7 +7498,7 @@ html:not(.room-loading) #entryLoading{display:none}
             'A room supports 2–6 players on separate devices. If you get disconnected, please rejoin with the same name and room code.',
             { html: 'Each game is set up with a <strong>Grow Deck set</strong>. The decks have five categories:<div style="margin-top:12px;display:grid;gap:12px"><div><strong>Roots → Who are we becoming?</strong><br>Your foundation, contentment, and existing growth.</div><div><strong>Field → How are we serving?</strong><br>Ministry, people, experiences, and meaningful service.</div><div><strong>Garden → Who are we growing alongside?</strong><br>Congregation relationships, encouragement, and contribution.</div><div><strong>Vine → How close are we to Jehovah?</strong><br>Your relationship with him, prayer, spiritual qualities, and reliance on him.</div><div><strong>Seasons → How are we handling where life is taking us?</strong><br>Waiting, change, future hopes, goals, patience, and trusting Jehovah\'s timing.</div></div>' },
             'Everyone enters the same board and sees the same category and question.',
-            'Players take turns in room order. Only the current player can roll the die and draw from the matching deck; everyone else watches the shared roll and card.',
+            'Players take turns in room order. Only the current player can roll the die. After the roll, the table automatically turns the matching deck toward the group and the question card opens automatically; everyone else watches the same shared roll and card.',
             'The question is read out loud and time is given so that everyone can answer thoughtfully. When everyone has answered, the player who rolled can select the “Everyone Answered” button. The turn then passes to the next connected player.',
             'Please use the Note card in the bottom-right corner of your screen to take personal notes if you would like. These notes are not kept after the Grow game ends, so use Settings to export your copy before leaving. You can export either a PNG image or a PDF sheet.',
             'Grow is a conversation game without a point system.'
@@ -7597,7 +7597,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=46').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=47').catch(() => {});
       });
     }
 </script>
