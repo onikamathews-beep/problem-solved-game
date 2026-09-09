@@ -338,6 +338,8 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       tableShell.classList.add("dragging");
     }
     document.documentElement.style.setProperty("--table-rotation", deg + "deg");
+    tableViewYaw = deg * Math.PI / 180;
+    drawDice();
   }
 
   function applySceneFor(name) {
@@ -525,7 +527,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     }
   }
 
-  function roll(forcedCategory = null) {
+  function roll(forcedCategory = null, onComplete = null) {
     if (locked) return;
     locked = true;
 
@@ -599,7 +601,13 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
         dice.q = targetQ;
         drawDice();
         locked = false;
-        selectDeck(chosen, false);
+        // After the die lands, smoothly turn the selected deck toward the
+        // player. The multiplayer controller opens the synchronized question
+        // only after this table movement finishes.
+        selectDeck(chosen, true);
+        if (typeof onComplete === "function") {
+          setTimeout(() => onComplete(chosen), 980);
+        }
       }
     }
 
@@ -730,6 +738,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script src="./grow-notes.js?v=44"></script>\n\n<script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=44" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=47" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
