@@ -7371,7 +7371,17 @@ html:not(.room-loading) #entryLoading{display:none}
         const next = deepClone(state);
         next.phase = 'grow';
         next.growDeckSet = deckSet;
-        next.growGame = {seq: 0, type: 'ready', category: null, prompt: null, turnPlayerId: myPlayerId, turnOrder: next.players.map(p => p.id), playerNames: Object.fromEntries(next.players.map(p => [p.id, p.name]))};
+        next.growGame = {
+          seq: 0,
+          type: 'ready',
+          category: null,
+          prompt: null,
+          cardIndex: null,
+          usedCards: { Roots: [], Field: [], Garden: [], Vine: [], Seasons: [] },
+          turnPlayerId: myPlayerId,
+          turnOrder: next.players.map(p => p.id),
+          playerNames: Object.fromEntries(next.players.map(p => [p.id, p.name]))
+        };
         const writes = {'private/state': next, 'meta/phase': 'grow', 'meta/updatedAt': serverTimestamp()};
         for (const player of next.players) writes[`views/${player.id}`] = sanitizeStateFor(player.id, next);
         clearRoomListeners();
@@ -7597,7 +7607,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=48').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=49').catch(() => {});
       });
     }
 </script>
