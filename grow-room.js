@@ -21,9 +21,7 @@ const table=document.getElementById('table');
 
 const tableStyle=document.createElement('style');
 tableStyle.textContent=`
-  /* Rotate the real illustrated board and every card stack as one rigid
-     lazy-Susan surface. Keeping a single transform prevents the platter,
-     artwork, and cards from drifting out of alignment. */
+  /* The table is now game-driven only: no manual lazy-Susan dragging. */
   .table{
     position:absolute!important;
     inset:0!important;
@@ -31,197 +29,85 @@ tableStyle.textContent=`
     transform-origin:50% 50%!important;
     transform-style:preserve-3d!important;
     will-change:transform;
-    backface-visibility:hidden
+    backface-visibility:hidden;
+    transition:transform .9s cubic-bezier(.22,.8,.22,1)!important
   }
   @media(max-width:620px){
     .table{transform:rotateX(44deg) rotateZ(var(--table-rotation))!important}
   }
-  .table-shell.grow-turning .table,
-  .table-shell.grow-spinning .table{transition:none!important}
+  .table-shell{cursor:default!important;touch-action:auto!important}
+  .deck{cursor:default!important}
+  .deck[aria-disabled="true"]{pointer-events:none!important}
 
-  /* The die remains physically centered. Its cube receives the same table yaw
-     inside GrowGameAPI so the correct landed face remains on top while the
-     visible side faces turn with the table. */
+  /* Keep the landed die centered while its visible side faces follow the
+     automatic table rotation. */
   .die-hit{
     transform:none!important;
     transform-origin:50% 50%!important;
     transition:none!important
   }
   .die-tap{transform:translate(-50%,-50%)!important}
-  .table-shell{cursor:grab!important;touch-action:none!important}
-  .table-shell.grow-turning{cursor:grabbing!important}
 
-  /* Make the rolled category unmistakable without covering the card art. */
+  /* Make the rolled category unmistakable before its card launches. */
   .deck.selected{
     z-index:14!important;
     filter:drop-shadow(0 0 10px rgba(255,224,139,.95))
-           drop-shadow(0 0 22px rgba(245,190,66,.78))!important
+           drop-shadow(0 0 24px rgba(245,190,66,.82))!important
   }
   .deck.selected .deck-card,
   .deck.selected:hover .deck-card{
-    transform:translateZ(32px) scale(1.045)!important;
+    transform:translateZ(32px) scale(1.05)!important;
     box-shadow:
       inset 1px 1px 0 #fff8e6,
-      0 0 0 3px rgba(255,232,166,.98),
-      0 0 15px 5px rgba(255,218,120,.88),
-      0 0 32px 10px rgba(242,180,55,.58),
+      0 0 0 4px rgba(255,236,177,.98),
+      0 0 18px 6px rgba(255,218,120,.92),
+      0 0 38px 12px rgba(242,180,55,.64),
       0 5px 0 #9c7745,
       2px 19px 18px rgba(39,23,12,.48)!important;
-    animation:growDeckSelectedGlow 1.55s ease-in-out infinite
+    animation:growDeckSelectedGlow 1.25s ease-in-out infinite
   }
   @keyframes growDeckSelectedGlow{
-    0%,100%{
-      filter:brightness(1.03);
-      box-shadow:
-        inset 1px 1px 0 #fff8e6,
-        0 0 0 3px rgba(255,232,166,.94),
-        0 0 14px 4px rgba(255,218,120,.80),
-        0 0 28px 8px rgba(242,180,55,.48),
-        0 5px 0 #9c7745,
-        2px 19px 18px rgba(39,23,12,.48)
-    }
-    50%{
-      filter:brightness(1.10);
-      box-shadow:
-        inset 1px 1px 0 #fffaf0,
-        0 0 0 4px rgba(255,240,190,1),
-        0 0 20px 7px rgba(255,222,128,.98),
-        0 0 42px 14px rgba(244,184,57,.68),
-        0 5px 0 #9c7745,
-        2px 19px 18px rgba(39,23,12,.48)
-    }
+    0%,100%{filter:brightness(1.03)}
+    50%{filter:brightness(1.12)}
   }
   @media(prefers-reduced-motion:reduce){
+    .table{transition-duration:.01ms!important}
     .deck.selected .deck-card{animation:none!important}
   }
 `;
 document.head.append(tableStyle);
 
-let tableRotation=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--table-rotation'))||0;
-let tableTurning=false,lastPointerPoint=null,lastPointerTime=0,angularVelocity=0,inertiaFrame=0,paintFrame=0;
-
-function projectedPointer(event){
- const box=tableShell.getBoundingClientRect();
- const cx=box.left+box.width/2;
- const cy=box.top+box.height/2;
- const tilt=(matchMedia('(max-width:620px)').matches?44:52)*Math.PI/180;
- const planeScale=Math.max(.48,Math.cos(tilt));
- return {
-   x:event.clientX-cx,
-   y:(event.clientY-cy)/planeScale,
-   minRadius:box.width*.19
- };
-}
-
-function tangentRotationDelta(from,to){
- const radius=Math.max(from.minRadius,Math.hypot(from.x,from.y));
- const tx=-from.y/radius;
- const ty= from.x/radius;
- const dx=to.x-from.x;
- const dy=to.y-from.y;
- const tangentialPixels=dx*tx+dy*ty;
- const degrees=tangentialPixels/radius*180/Math.PI;
- return Math.max(-14,Math.min(14,degrees));
-}
-
-function applyTablePaint(){
- document.documentElement.style.setProperty('--table-rotation',tableRotation+'deg');
- api.setTableRotation?.(tableRotation);
-}
-
-function requestTablePaint(){
- if(paintFrame)return;
- paintFrame=requestAnimationFrame(()=>{
-   paintFrame=0;
-   applyTablePaint();
- });
-}
-
-applyTablePaint();
-
-function stopTableSpin(){
- if(inertiaFrame)cancelAnimationFrame(inertiaFrame);
- inertiaFrame=0;
- tableShell.classList.remove('grow-spinning');
-}
-
-function startTableInertia(velocity){
- stopTableSpin();
- velocity=Math.max(-.22,Math.min(.22,Number(velocity)||0));
- if(Math.abs(velocity)<.012)return;
- tableShell.classList.add('grow-spinning');
- let last=performance.now();
- const frame=now=>{
-   const dt=Math.min(28,Math.max(8,now-last||16));
-   last=now;
-   tableRotation+=velocity*dt;
-   applyTablePaint();
-   velocity*=Math.pow(.945,dt/16);
-   if(Math.abs(velocity)>.008)inertiaFrame=requestAnimationFrame(frame);
-   else{
-     inertiaFrame=0;
-     tableShell.classList.remove('grow-spinning');
-   }
- };
- inertiaFrame=requestAnimationFrame(frame);
-}
-
-tableShell.addEventListener('pointerdown',event=>{
- if(event.button!==undefined&&event.button!==0)return;
- if(event.target.closest('#dieTap,#dieHit,.deck'))return;
- if(document.getElementById('questionLayer')?.classList.contains('show'))return;
- stopTableSpin();
- tableTurning=true;
- lastPointerPoint=projectedPointer(event);
- lastPointerTime=performance.now();
- angularVelocity=0;
- tableShell.classList.add('grow-turning');
- try{tableShell.setPointerCapture(event.pointerId);}catch{}
-});
-
-tableShell.addEventListener('pointermove',event=>{
- if(!tableTurning||!lastPointerPoint)return;
- const now=performance.now();
- const point=projectedPointer(event);
- const delta=tangentRotationDelta(lastPointerPoint,point);
- const dt=Math.max(1,now-lastPointerTime);
- tableRotation+=delta;
- const instantVelocity=delta/dt;
- angularVelocity=angularVelocity*.68+instantVelocity*.32;
- lastPointerPoint=point;
- lastPointerTime=now;
- requestTablePaint();
-});
-
-function endTableTurn(event){
- if(!tableTurning)return;
- tableTurning=false;
- tableShell.classList.remove('grow-turning');
- try{tableShell.releasePointerCapture(event.pointerId);}catch{}
- if(performance.now()-lastPointerTime>95)angularVelocity=0;
- startTableInertia(angularVelocity);
- lastPointerPoint=null;
-}
-
-tableShell.addEventListener('pointerup',endTableTurn);
-tableShell.addEventListener('pointercancel',endTableTurn);
 function controls(){
  const mine=latest?.turnPlayerId===uid;
  document.getElementById('dieHit').tabIndex=-1;
  document.getElementById('dieTap').disabled=!mine||!['ready','close'].includes(latest?.type);
- document.querySelectorAll('.deck').forEach(deck=>{const enabled=mine&&latest?.type==='roll'&&latest.category===deck.dataset.name;deck.setAttribute('aria-disabled',String(!enabled));deck.tabIndex=enabled?0:-1;});
+ document.querySelectorAll('.deck').forEach(deck=>{deck.setAttribute('aria-disabled','true');deck.tabIndex=-1;});
  document.getElementById('doneBtn').hidden=!mine;
- turnNote.textContent=mine?'Your turn':(latest?.playerNames?.[latest.turnPlayerId]||'Another player')+'’s turn';
+ if(latest?.type==='roll') turnNote.textContent='Turning to '+(latest.category||'the selected deck')+'…';
+ else turnNote.textContent=mine?'Your turn':(latest?.playerNames?.[latest.turnPlayerId]||'Another player')+'’s turn';
 }
 function fail(error){document.body.inert=false;console.error(error);badge.textContent='Connection interrupted. Your room is saved; refresh to reconnect.';ready=false;}
 function enqueue(fn){queue=queue.then(fn).catch(fail);return queue;}
+async function publishAutomaticDraw(rollSnapshot){
+ if(!host||!ready||!online)return;
+ if(latest?.seq!==rollSnapshot.seq||latest?.type!=='roll'||latest?.category!==rollSnapshot.category)return;
+ const prompts=room.growDeckSet.decks[rollSnapshot.category];
+ if(!prompts?.length)return;
+ const next={...latest,seq:(latest.seq||0)+1,at:Date.now(),type:'draw',category:rollSnapshot.category,prompt:prompts[Math.floor(Math.random()*prompts.length)]};
+ await publish(next);
+}
 function apply(snapshot){
  if(!snapshot||snapshot.seq<=lastSeq)return;
  const first=lastSeq<0;lastSeq=snapshot.seq;latest=snapshot;
  controls();
  clearTimeout(renderTimer);
  const draw=()=>{if(api.isLocked()){renderTimer=setTimeout(draw,60);return;} api.restore(snapshot);};
- if(snapshot.type==='roll'&&!first&&!api.isLocked()){stopTableSpin();api.closeQuestion();api.roll(snapshot.category);}else draw();
+ if(snapshot.type==='roll'&&!first&&!api.isLocked()){
+   api.closeQuestion();
+   api.roll(snapshot.category,()=>{
+     if(host) enqueue(()=>publishAutomaticDraw(snapshot));
+   });
+ }else draw();
 }
 async function publish(snapshot){
  const writes={'private/state/growGame':snapshot};
@@ -234,12 +120,9 @@ async function act(action,actorId){
  let next={...latest,seq:(latest?.seq||0)+1,at:Date.now()};
  if(action.type==='grow-roll'){
   if(!['ready','close'].includes(latest?.type))return;
-  next={...next,type:'roll',category:api.names[Math.floor(Math.random()*api.names.length)],prompt:null};busyUntil=Date.now()+1700;
+  next={...next,type:'roll',category:api.names[Math.floor(Math.random()*api.names.length)],prompt:null};busyUntil=Date.now()+2600;
  }else if(action.type==='grow-draw'){
-  if(latest?.type!=='roll'||action.category!==latest.category||Date.now()-latest.at<1700)return;
-  const prompts=room.growDeckSet.decks[action.category];
-  if(!prompts?.length)return;
-  next={...next,type:'draw',category:action.category,prompt:prompts[Math.floor(Math.random()*prompts.length)]};
+  return;
  }else if(action.type==='grow-close'){
   if(latest.type!=='draw')return;
   const order=[...latest.turnOrder,...Object.keys(room.players).filter(id=>!latest.turnOrder.includes(id))];
@@ -267,7 +150,7 @@ document.addEventListener('click',event=>{
   localStorage.removeItem('problemSolved.activeFirebaseRoom.v1');
   update(path('players/'+uid),{connected:false}).finally(()=>{location.href='./?join=grow&code='+encodeURIComponent(code);});return;
  }
- if(die){stopTableSpin();send('grow-roll');}else if(deck){stopTableSpin();send('grow-draw',{category:deck.dataset.name});}else send('grow-close');
+ if(die)send('grow-roll');else if(deck)return;else send('grow-close');
 },true);
 document.addEventListener('keydown',event=>{
  if(event.key==='Escape'&&document.body.classList.contains('reading')){event.preventDefault();event.stopImmediatePropagation();send('grow-close');}
