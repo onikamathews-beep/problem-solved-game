@@ -262,6 +262,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   // the cube around the table's vertical axis, so the landed face stays on top
   // while the side faces move naturally through view.
   let tableViewYaw = 0;
+  let tableYawFrame = 0;
   let dragging = false;
   let dragStartAngle = 0;
   let dragStartRotation = 0;
@@ -331,6 +332,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
   }
 
   function setRotation(deg, animate) {
+    const fromDeg = tableViewYaw * 180 / Math.PI;
     currentRotation = deg;
     if (animate) {
       tableShell.classList.remove("dragging");
@@ -338,8 +340,29 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       tableShell.classList.add("dragging");
     }
     document.documentElement.style.setProperty("--table-rotation", deg + "deg");
-    tableViewYaw = deg * Math.PI / 180;
-    drawDice();
+
+    if (tableYawFrame) cancelAnimationFrame(tableYawFrame);
+    tableYawFrame = 0;
+
+    if (!animate) {
+      tableViewYaw = deg * Math.PI / 180;
+      drawDice();
+      return;
+    }
+
+    const delta = deg - fromDeg;
+    const start = performance.now();
+    const duration = 900;
+    const ease = t => 1 - Math.pow(1 - t, 3);
+
+    function followYaw(now) {
+      const t = Math.min(1, (now - start) / duration);
+      tableViewYaw = (fromDeg + delta * ease(t)) * Math.PI / 180;
+      drawDice();
+      if (t < 1) tableYawFrame = requestAnimationFrame(followYaw);
+      else tableYawFrame = 0;
+    }
+    tableYawFrame = requestAnimationFrame(followYaw);
   }
 
   function applySceneFor(name) {
@@ -738,6 +761,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script src="./grow-notes.js?v=44"></script>\n\n<script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=47" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=48" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
