@@ -750,6 +750,6 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
 </script>
 
 <script src="./grow-notes.js?v=44"></script>\n\n<script>document.body.inert = true;</script>
-<script type="module" src="./grow-room.js?v=50" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
+<script type="module" src="./grow-room.js?v=51" onerror="document.body.inert=false;document.body.textContent='Unable to connect. Please refresh or return to the lobby.'"></script>
 </body>
 </html>
