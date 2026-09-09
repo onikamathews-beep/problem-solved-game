@@ -6,7 +6,7 @@ const code=(new URLSearchParams(location.search).get('room')||'').toUpperCase().
 const app=initializeApp({apiKey:'AIzaSyDFAlX5qpDicALbcEMMq5LhprSp4LvhMfI',authDomain:'planning-with-ai-642ec.firebaseapp.com',databaseURL:'https://planning-with-ai-642ec-default-rtdb.firebaseio.com',projectId:'planning-with-ai-642ec',appId:'1:560868808729:web:1b0b6fc13eadb1c1047288'});
 const auth=getAuth(app), db=getDatabase(app), base='rooms/'+code;
 const path=p=>ref(db,base+'/'+p);
-let ready=false, online=false, host=false, uid, room, latest, lastSeq=-1, queue=Promise.resolve(), renderTimer, busyUntil=0;
+let ready=false, online=false, host=false, uid, room, latest, lastSeq=-1, queue=Promise.resolve(), renderTimer, revealTimer, busyUntil=0, serverOffset=0;
 const inboxes=new Map(), pending=new Set();
 const menu=document.getElementById('roomMenu');
 const badge=document.createElement('div');
@@ -30,7 +30,7 @@ tableStyle.textContent=`
     transform-style:preserve-3d!important;
     will-change:transform;
     backface-visibility:hidden;
-    transition:transform .9s cubic-bezier(.22,.8,.22,1)!important
+    transition:transform .68s cubic-bezier(.22,.8,.22,1)!important
   }
   @media(max-width:620px){
     .table{transform:rotateX(44deg) rotateZ(var(--table-rotation))!important}
@@ -49,11 +49,7 @@ tableStyle.textContent=`
   .die-tap{transform:translate(-50%,-50%)!important}
 
   /* Make the rolled category unmistakable before its card launches. */
-  .deck.selected{
-    z-index:14!important;
-    filter:drop-shadow(0 0 10px rgba(255,224,139,.95))
-           drop-shadow(0 0 24px rgba(245,190,66,.82))!important
-  }
+  .deck.selected{z-index:14!important}
   .deck.selected .deck-card,
   .deck.selected:hover .deck-card{
     transform:translateZ(32px) scale(1.05)!important;
@@ -64,15 +60,9 @@ tableStyle.textContent=`
       0 0 38px 12px rgba(242,180,55,.64),
       0 5px 0 #9c7745,
       2px 19px 18px rgba(39,23,12,.48)!important;
-    animation:growDeckSelectedGlow 1.25s ease-in-out infinite
-  }
-  @keyframes growDeckSelectedGlow{
-    0%,100%{filter:brightness(1.03)}
-    50%{filter:brightness(1.12)}
   }
   @media(prefers-reduced-motion:reduce){
     .table{transition-duration:.01ms!important}
-    .deck.selected .deck-card{animation:none!important}
   }
 `;
 document.head.append(tableStyle);
@@ -109,24 +99,41 @@ function controls(){
 }
 function fail(error){document.body.inert=false;console.error(error);badge.textContent='Connection interrupted. Your room is saved; refresh to reconnect.';ready=false;}
 function enqueue(fn){queue=queue.then(fn).catch(fail);return queue;}
+function serverNow(){return Date.now()+serverOffset;}
+function openScheduledQuestion(rollSnapshot){
+ if(!rollSnapshot?.category||!rollSnapshot?.pendingPrompt)return;
+ const tryOpen=()=>{
+   if(latest?.seq!==rollSnapshot.seq&&latest?.sourceRollSeq!==rollSnapshot.seq)return;
+   if(api.isLocked()){
+     renderTimer=setTimeout(tryOpen,40);
+     return;
+   }
+   api.selectDeck(rollSnapshot.category,true);
+   api.showQuestion(rollSnapshot.pendingPrompt);
+ };
+ tryOpen();
+}
+function scheduleRollReveal(rollSnapshot){
+ clearTimeout(revealTimer);
+ const delay=Math.max(0,Number(rollSnapshot.revealAt||0)-serverNow());
+ revealTimer=setTimeout(()=>{
+   openScheduledQuestion(rollSnapshot);
+   if(host)enqueue(()=>publishAutomaticDraw(rollSnapshot));
+ },delay);
+}
 async function publishAutomaticDraw(rollSnapshot){
  if(!host||!ready||!online)return;
  if(latest?.seq!==rollSnapshot.seq||latest?.type!=='roll'||latest?.category!==rollSnapshot.category)return;
- const prompts=room.growDeckSet.decks[rollSnapshot.category]||[];
- const choices=availableIndexes(rollSnapshot.category,latest);
- if(!choices.length)return;
- const cardIndex=choices[Math.floor(Math.random()*choices.length)];
- const usedCards=usedCardsFor(latest);
- usedCards[rollSnapshot.category]=[...usedCards[rollSnapshot.category],cardIndex];
  const next={
    ...latest,
    seq:(latest.seq||0)+1,
-   at:Date.now(),
+   sourceRollSeq:rollSnapshot.seq,
+   at:serverNow(),
    type:'draw',
    category:rollSnapshot.category,
-   prompt:prompts[cardIndex],
-   cardIndex,
-   usedCards
+   prompt:rollSnapshot.pendingPrompt,
+   pendingPrompt:null,
+   revealAt:null
  };
  await publish(next);
 }
@@ -135,20 +142,20 @@ function apply(snapshot){
  const first=lastSeq<0;lastSeq=snapshot.seq;latest=snapshot;
  controls();
  clearTimeout(renderTimer);
- const draw=()=>{if(api.isLocked()){renderTimer=setTimeout(draw,60);return;} api.restore(snapshot);};
- if(snapshot.type==='roll'&&!first&&!api.isLocked()){
+ if(snapshot.type==='roll'){
    api.closeQuestion();
-   api.roll(snapshot.category,()=>{
-     if(host) enqueue(()=>publishAutomaticDraw(snapshot));
-   });
- }else{
-   draw();
-   // If the host reconnects during the brief roll/turn animation, finish the
-   // automatic card launch rather than leaving the room waiting for a deck tap.
-   if(first&&host&&snapshot.type==='roll'){
-     renderTimer=setTimeout(()=>enqueue(()=>publishAutomaticDraw(snapshot)),1050);
-   }
+   if(!first&&!api.isLocked())api.roll(snapshot.category);
+   else if(first)api.restore(snapshot);
+   scheduleRollReveal(snapshot);
+   return;
  }
+ if(snapshot.type==='draw'){
+   clearTimeout(revealTimer);
+   const alreadyOpen=document.body.classList.contains('reading')&&document.getElementById('qtext')?.textContent===snapshot.prompt;
+   if(alreadyOpen)return;
+ }
+ const draw=()=>{if(api.isLocked()){renderTimer=setTimeout(draw,40);return;} api.restore(snapshot);};
+ draw();
 }
 async function publish(snapshot){
  const writes={'private/state/growGame':snapshot};
@@ -165,8 +172,26 @@ async function act(action,actorId){
   if(!categoriesLeft.length){
    next={...next,type:'complete',category:null,prompt:null};
   }else{
-   next={...next,type:'roll',category:categoriesLeft[Math.floor(Math.random()*categoriesLeft.length)],prompt:null,cardIndex:null};
-   busyUntil=Date.now()+2600;
+   const category=categoriesLeft[Math.floor(Math.random()*categoriesLeft.length)];
+   const choices=availableIndexes(category,latest);
+   if(!choices.length)return;
+   const cardIndex=choices[Math.floor(Math.random()*choices.length)];
+   const usedCards=usedCardsFor(latest);
+   usedCards[category]=[...usedCards[category],cardIndex];
+   const pendingPrompt=room.growDeckSet.decks[category][cardIndex];
+   const now=serverNow();
+   next={
+     ...next,
+     at:now,
+     type:'roll',
+     category,
+     prompt:null,
+     pendingPrompt,
+     cardIndex,
+     usedCards,
+     revealAt:now+3000
+   };
+   busyUntil=Date.now()+3200;
   }
  }else if(action.type==='grow-draw'){
   return;
@@ -176,7 +201,7 @@ async function act(action,actorId){
   const current=order.indexOf(actorId);
   const nextId=Array.from({length:order.length},(_,i)=>order[(current+i+1)%order.length]).find(id=>room.players[id]?.connected!==false)||actorId;
   const noCardsLeft=!hasCardsRemaining(latest);
-  next={...next,type:noCardsLeft?'complete':'close',prompt:null,category:null,cardIndex:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
+  next={...next,type:noCardsLeft?'complete':'close',prompt:null,pendingPrompt:null,revealAt:null,sourceRollSeq:null,category:null,cardIndex:null,turnPlayerId:nextId,turnOrder:order,playerNames:Object.fromEntries(Object.entries(room.players).map(([id,p])=>[id,p.name||'Player']))};
  }else return;
  await publish(next);
 }
@@ -232,6 +257,7 @@ try{
  const name=player.name||'Player';
  localStorage.setItem('problemSolved.activeFirebaseRoom.v1',JSON.stringify({roomCode:code,role:host?'host':'guest',mode:'grow',name}));
  lobby.hidden=!host;
+ onValue(ref(db,'.info/serverTimeOffset'),snapshot=>{serverOffset=Number(snapshot.val())||0;},()=>{});
  onValue(ref(db,'.info/connected'),async snapshot=>{
   online=snapshot.val()===true;
   badge.textContent='Room '+code+' · '+(online?(host?'Host':'Player')+' · '+room.growDeckSet.name:'Reconnecting…');
