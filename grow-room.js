@@ -107,7 +107,14 @@ function apply(snapshot){
    api.roll(snapshot.category,()=>{
      if(host) enqueue(()=>publishAutomaticDraw(snapshot));
    });
- }else draw();
+ }else{
+   draw();
+   // If the host reconnects during the brief roll/turn animation, finish the
+   // automatic card launch rather than leaving the room waiting for a deck tap.
+   if(first&&host&&snapshot.type==='roll'){
+     renderTimer=setTimeout(()=>enqueue(()=>publishAutomaticDraw(snapshot)),1050);
+   }
+ }
 }
 async function publish(snapshot){
  const writes={'private/state/growGame':snapshot};
