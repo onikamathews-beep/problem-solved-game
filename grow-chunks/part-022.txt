@@ -364,7 +364,16 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
     if (autoRotate) {
       // Every category uses the exact same destination: bottom/front center,
       // with its card artwork upright to the player.
-      const frontCenter = 90 - categories[name].tableAngle;
+      const deck = decks.find(d => d.dataset.name === name);
+      if (!deck) return;
+      // Measure the untransformed layout; older category angles no longer
+      // match the current arrangement of decks around the table.
+      const layout = getComputedStyle(deck);
+      const dx = parseFloat(layout.left) - table.clientWidth / 2;
+      const dy = parseFloat(layout.top) - table.clientHeight / 2;
+      const deckAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+      const frontCenter = 90 - deckAngle;
+      deck.style.transform = 'translate(-50%, -50%) rotate(' + (deckAngle - 90) + 'deg)';
       // Always turn in the same clockwise direction. Every category lands at
       // the exact same front-center position with its artwork upright.
       setRotation(clockwiseEquivalent(frontCenter, currentRotation), true);
@@ -724,7 +733,7 @@ body.motion-off .ambient-mote,body.motion-off .world-petal{display:none}
       if (snapshot.category && categories[snapshot.category]) {
         const base = categories[snapshot.category].base;
         Object.assign(dice, {rx:base.rx, ry:base.ry, rz:0, q:qFromEuler(base.rx,base.ry,0), x:0, y:0, h:0});
-        drawDice(); selectDeck(snapshot.category, false);
+        drawDice(); selectDeck(snapshot.category, true);
         if (snapshot.type === 'draw') showQuestion(snapshot.prompt, true);
       }
     },
