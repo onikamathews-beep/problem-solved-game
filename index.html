@@ -1653,7 +1653,7 @@ html:not(.room-loading) #entryLoading{display:none}
       content: "";
       position: absolute;
       inset: 5px;
-      background: url("./ornate-landscape-frame.svg") center / 100% 100% no-repeat;
+      background: url("./ornate-landscape-frame.svg?v=54") center / 100% 100% no-repeat;
       opacity: .9;
       pointer-events: none;
       z-index: 1;
@@ -1663,7 +1663,7 @@ html:not(.room-loading) #entryLoading{display:none}
       content: "";
       position: absolute;
       inset: 4px;
-      background: url("./ornate-portrait-frame.svg") center / 100% 100% no-repeat;
+      background: url("./ornate-portrait-frame.svg?v=54") center / 100% 100% no-repeat;
       opacity: .88;
       pointer-events: none;
       z-index: 1;
@@ -2414,7 +2414,7 @@ html:not(.room-loading) #entryLoading{display:none}
       content: "";
       position: absolute;
       inset: 5px;
-      background: url("./ornate-portrait-frame.svg") center / 100% 100% no-repeat;
+      background: url("./ornate-portrait-frame.svg?v=54") center / 100% 100% no-repeat;
       opacity: .9;
       pointer-events: none;
     }
@@ -2956,7 +2956,7 @@ html:not(.room-loading) #entryLoading{display:none}
       min-height: 260px;
       max-height: none;
       aspect-ratio: auto;
-      padding: clamp(22px, 4vw, 44px);
+      padding: clamp(36px, 6vw, 54px) clamp(30px, 5vw, 48px);
     }
     body.coop-game.coop-reader-view .card-text {
       font-size: clamp(1.4rem, 3.5vw, 2.4rem);
@@ -7638,7 +7638,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=53').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=54').catch(() => {});
       });
     }
 </script>
