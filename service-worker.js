@@ -1,4 +1,4 @@
-const CACHE_NAME = 'problem-solved-v51';
+const CACHE_NAME = 'problem-solved-v52';
 const CORE_ASSETS = [
   './',
   './index.html',
