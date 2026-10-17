@@ -2936,6 +2936,35 @@ html:not(.room-loading) #entryLoading{display:none}
       }
     }
 
+
+    /* Give the reader the whole table until the Problem Card is revealed. */
+    body.coop-game.coop-reader-view .hand-wrap,
+    body.coop-game.coop-reader-view .shared-stage { display: none; }
+    body.coop-game.coop-reader-view .table-area {
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: auto;
+    }
+    body.coop-game.coop-reader-view .problem-stage {
+      align-self: stretch;
+      min-height: 280px;
+      overflow: visible;
+      padding: 10px 8px 18px;
+    }
+    body.coop-game.coop-reader-view .problem-stage .play-card {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      max-height: none;
+      aspect-ratio: auto;
+      padding: clamp(22px, 4vw, 44px);
+    }
+    body.coop-game.coop-reader-view .card-text {
+      font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    body.coop-game.coop-reader-view .action-panel { flex-wrap: wrap; gap: 8px; }
+    body.coop-game.coop-reader-view .action-panel .btn { margin: 0; }
   </style>
 </head>
 <body>
@@ -6102,6 +6131,7 @@ html:not(.room-loading) #entryLoading{display:none}
       // that it was read aloud, the card is shown to everyone and stays visible
       // until the next player actually draws a replacement Problem.
       document.body.classList.toggle('coop-problem-private', coop && !showProblem);
+      document.body.classList.toggle('coop-reader-view', coop && game.phase === 'readProblem' && maySeePrivateProblem && showProblem);
       ui.problemZone.classList.toggle('problem-empty', coop && !showProblem);
 
       if (!showProblem) {
@@ -7607,7 +7637,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=51').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=52').catch(() => {});
       });
     }
 </script>
