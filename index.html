@@ -2965,6 +2965,30 @@ html:not(.room-loading) #entryLoading{display:none}
     }
     body.coop-game.coop-reader-view .action-panel { flex-wrap: wrap; gap: 8px; }
     body.coop-game.coop-reader-view .action-panel .btn { margin: 0; }
+
+    /* Independent corner ornaments retain their proportions on every card. */
+    body.coop-game .play-card::before,
+    body.coop-game .hand-card::before,
+    body.coop-game .played-solution-card::before,
+    .confirm-card-preview::before {
+      background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%2090%22%20fill%3D%22none%22%20stroke%3D%22%238b6d35%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%2080V30Q18%2018%2030%2018h58M18%2055c18-2%2033-14%2038-32M27%2062c16-2%2028-12%2033-28M45%2043c-7-12-5-24%207-34M45%2043c13%202%2024-3%2031-15M32%2050c-9-3-15-10-18-20%22%2F%3E%3C%2Fsvg%3E") left top / 64px 58px no-repeat,
+        url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22500%200%20100%2090%22%20fill%3D%22none%22%20stroke%3D%22%238b6d35%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M582%2080V30q0-12-12-12h-58M582%2055c-18-2-33-14-38-32M573%2062c-16-2-28-12-33-28M555%2043c7-12%205-24-7-34M555%2043c-13%202-24-3-31-15M568%2050c9-3%2015-10%2018-20%22%2F%3E%3C%2Fsvg%3E") right top / 64px 58px no-repeat,
+        url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%20290%20100%2090%22%20fill%3D%22none%22%20stroke%3D%22%238b6d35%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M18%20300v50q0%2012%2012%2012h58M18%20325c18%202%2033%2014%2038%2032M27%20318c16%202%2028%2012%2033%2028M45%20337c-7%2012-5%2024%207%2034M45%20337c13-2%2024%203%2031%2015M32%20330c-9%203-15%2010-18%2020%22%2F%3E%3C%2Fsvg%3E") left bottom / 64px 58px no-repeat,
+        url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%22500%20290%20100%2090%22%20fill%3D%22none%22%20stroke%3D%22%238b6d35%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M582%20300v50q0%2012-12%2012h-58M582%20325c-18%202-33%2014-38%2032M573%20318c-16%202-28%2012-33%2028M555%20337c7%2012%205%2024-7%2034M555%20337c-13-2-24%203-31%2015M568%20330c9%203%2015%2010%2018%2020%22%2F%3E%3C%2Fsvg%3E") right bottom / 64px 58px no-repeat;
+    }
+    body.coop-game.coop-reader-view .problem-stage .play-card {
+      height: auto;
+      min-height: 360px;
+      max-width: 100%;
+      align-self: center;
+      aspect-ratio: 3 / 4;
+      max-height: none;
+      padding: 44px 36px 48px;
+    }
+    body.coop-game.coop-reader-view .card-text {
+      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      padding: 24px 0;
+    }
   </style>
 </head>
 <body>
@@ -7638,7 +7662,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=54').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=55').catch(() => {});
       });
     }
 </script>
