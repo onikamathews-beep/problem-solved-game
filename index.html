@@ -6570,7 +6570,6 @@ html:not(.room-loading) #entryLoading{display:none}
         dragSpacing = hand.length <= 5 ? 66 : Math.max(18, 270 / Math.max(1, hand.length - 1));
         ui.hand.dataset.dragging = 'false';
         ui.hand.classList.add('is-dragging');
-        ui.hand.setPointerCapture?.(pointerId);
       });
 
       ui.hand.addEventListener('pointermove', event => {
@@ -6587,6 +6586,8 @@ html:not(.room-loading) #entryLoading{display:none}
         if (!axis && (Math.abs(dx) > 7 || Math.abs(dy) > 7)) {
           axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
           ui.hand.dataset.dragging = 'true';
+          // Capture actual swipes only; keep taps targeted at the card button.
+          ui.hand.setPointerCapture?.(pointerId);
         }
         if (axis !== 'x') return;
 
@@ -7637,7 +7638,7 @@ html:not(.room-loading) #entryLoading{display:none}
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js?v=52').catch(() => {});
+        navigator.serviceWorker.register('./service-worker.js?v=53').catch(() => {});
       });
     }
 </script>
